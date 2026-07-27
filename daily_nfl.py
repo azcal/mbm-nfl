@@ -16,6 +16,7 @@ from sklearn.metrics import log_loss, brier_score_loss
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import tg_delta
 import engine_nfl as E
 
 H = {"User-Agent": "Mozilla/5.0"}
@@ -182,16 +183,20 @@ def run(today_str):
 
     tg, ch = os.environ.get("TG_TOKEN"), os.environ.get("TG_CHAT")
     if tg and ch and (board is not None or alerts):
+        push = {}
         if board is not None:
-            lines = []
             for _, r in board.iterrows():
-                if r.week < CAL_UNLOCK_WEEK:
-                    lines.append(f"{r.away} @ {r.home}: {r.p_home:.3f} | CALIBRATION, no betting thru Wk4")
-                else:
-                    lines.append(f"{r.away} @ {r.home}: {r.p_home:.3f} | {r.home} >= {min_odds(r.p_home):.2f} / {r.away} >= {min_odds(1-r.p_home):.2f}")
-            txt = "\n".join(lines)
-        else:
-            txt = "no games this week"
+                line = (f"{r.away} @ {r.home}: {r.p_home:.3f} | CALIBRATION, no betting thru Wk4"
+                        if r.week < CAL_UNLOCK_WEEK else
+                        f"{r.away} @ {r.home}: {r.p_home:.3f} | "
+                        f"{r.home} >= {min_odds(r.p_home):.2f} / {r.away} >= {min_odds(1-r.p_home):.2f}")
+                push[r.game_id] = {"line": line, "min_odds": min_odds(r.p_home)}
+        mode, lines = tg_delta.gate(LOGS, dt.date.today().strftime("%Y%m%d"), push)
+        if not (lines or alerts):
+            return
+        txt = "\n".join(lines) if lines else "no price changes since the last push"
+        if mode == "delta" and lines:
+            txt = "changes since the last push:\n" + txt
         if alerts:
             txt += "\n\u26a0 TRIPWIRE: " + ", ".join(alerts) + " below base rate, stop betting this board"
         requests.post(f"https://api.telegram.org/bot{tg}/sendMessage",
