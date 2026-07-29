@@ -165,6 +165,13 @@ def run(today_str):
             have = f[f.game_id.astype(str).isin(log.game_id.astype(str))]
             if len(have):
                 bph, bPh, bPa = spread.price(SH, have)
+                # Historical rows already carry the moneyline this board published.
+                # Anchor on it so the backfilled line agrees with what is logged.
+                _lp = pd.Series(pd.to_numeric(log.p_home, errors="coerce").values,
+                                index=log.game_id.astype(str))
+                _lp = _lp[~_lp.index.duplicated(keep="last")]
+                _ov = have.game_id.astype(str).map(_lp).astype(float).values
+                bph = np.where(np.isnan(_ov), bph, _ov)
                 bf = pd.DataFrame({"game_id": have.game_id.astype(str).values,
                                    "sp_margin": spread.expected_margin(bph, bPh, bPa),
                                    "sp_line": spread.median_line(bph, bPh, bPa)})
@@ -186,7 +193,8 @@ def run(today_str):
         totals = mt.predict(sct.transform(rows[E.TT].values))
         pe = 1/(1+10**(-((rows.h_elo + CFG["HA"]) - rows.a_elo)/400))
         cal = rows.week < CAL_UNLOCK_WEEK
-        sp_ph, sp_Ph, sp_Pa = spread.price(SH, rows)
+        # anchor on the moneyline this runner actually logs, not a refit
+        sp_ph, sp_Ph, sp_Pa = spread.price(SH, rows, ph=p)
         sp_exp = spread.expected_margin(sp_ph, sp_Ph, sp_Pa)
         sp_line = spread.median_line(sp_ph, sp_Ph, sp_Pa)
         board = pd.DataFrame({"date": rows.date.dt.strftime("%Y-%m-%d"), "game_id": rows.game_id,

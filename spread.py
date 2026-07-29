@@ -80,9 +80,18 @@ def fit(df, feats, tr, C, target="margin"):
             "feats": feats, "roughness": roughness(w)}
 
 
-def price(H, X):
-    """Per-game probabilities. Returns P(home wins) and the two magnitude distributions."""
-    ph = H["mw"].predict_proba(H["scw"].transform(X[H["feats"]].values))[:, 1]
+def price(H, X, ph=None):
+    """Per-game probabilities. Returns P(home wins) and the two magnitude distributions.
+
+    Pass ph to anchor on the caller's own moneyline number. Without it this refits an
+    internal winner head, which is trained on a slightly different mask and so lands a
+    fraction away from the probability the runner logs. That fraction is enough to put the
+    median line on the opposite side of zero from the moneyline on near-even games, which
+    reads as the two heads contradicting each other.
+    """
+    if ph is None:
+        ph = H["mw"].predict_proba(H["scw"].transform(X[H["feats"]].values))[:, 1]
+    ph = np.asarray(ph, float)
     Xh = X[H["feats"]].assign(win_home=1.0)
     Xa = flip(X[H["feats"]], H["feats"]).assign(win_home=0.0)
     j = np.arange(1, JMAX + 1)
