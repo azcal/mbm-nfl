@@ -17,6 +17,7 @@ from sklearn.metrics import log_loss, brier_score_loss
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import tg_delta
+import board_format as BF
 import spread
 import engine_nfl as E
 
@@ -263,18 +264,39 @@ def run(today_str):
 
     tg, ch = os.environ.get("TG_TOKEN"), os.environ.get("TG_CHAT")
     if tg and ch and (board is not None or alerts):
-        push = {}
+        push, skipped = {}, 0
         if board is not None:
-            for _, r in board.iterrows():
-                line = (f"{r.away} @ {r.home}: {r.p_home:.3f} | CALIBRATION, no betting thru Wk4"
-                        if r.week < CAL_UNLOCK_WEEK else
-                        f"{r.away} @ {r.home}: {r.p_home:.3f} | "
-                        f"{r.home} >= {min_odds(r.p_home):.2f} / {r.away} >= {min_odds(1-r.p_home):.2f}")
-                push[r.game_id] = {"line": line, "min_odds": min_odds(r.p_home)}
+            _grid = np.arange(-40.5, 41.0, 1.0)
+            _cf = lambda k: spread.cover(sp_ph, sp_Ph, sp_Pa, k)
+            bd = []
+            for bi, (_, r) in enumerate(board.iterrows()):
+                kh, ka = BF.spread_threshold(_cf, bi, _grid)
+                # Two actionable lines per game, one each side. Together they bound the
+                # zone where neither side is worth taking at standard juice.
+                parts = []
+                if kh is not None:
+                    parts.append(f"{r.home} {-kh:+.1f}")
+                if ka is not None:
+                    parts.append(f"{r.away} {ka:+.1f}")
+                if not parts:
+                    skipped += 1
+                    continue
+                bd.append((str(r.date)[:10], f"{r.away} @ {r.home}", " / ".join(parts),
+                           r.game_id))
+            if bd:
+                wg = max([len(x[1]) for x in bd] + [10])
+                wp = max([len(x[2]) for x in bd] + [8])
+                for d_, gm, pk, gid in bd:
+                    push[gid] = {"line": BF.line(d_, gm, pk, 1.05 / BF.STD_SPREAD_ODDS,
+                                                 w_game=wg, w_pick=wp),
+                                 "min_odds": BF.STD_SPREAD_ODDS}
         mode, lines = tg_delta.gate(LOGS, dt.date.today().strftime("%Y%m%d"), push)
         if not (lines or alerts):
             return
         txt = "\n".join(lines) if lines else "no price changes since the last push"
+        if skipped:
+            txt += f"\n({skipped} game{'s' if skipped != 1 else ''} skipped, "\
+                   f"no line qualifies at standard juice)"
         if mode == "delta" and lines:
             txt = "changes since the last push:\n" + txt
         if alerts:
