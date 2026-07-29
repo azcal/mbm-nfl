@@ -158,7 +158,8 @@ def run(today_str):
     # One-time backfill: fill the spread columns for games logged before the spread head
     # existed, so the dashboard has history to grade instead of waiting a season. Self
     # healing, runs once, then the condition is false forever after.
-    need_bf = [c for c in SP_COLS + ["sp_margin", "sp_line"] if c not in log.columns
+    need_bf = [c for c in SP_COLS + ["sp_margin", "sp_line", "p_sp_elo"]
+               if c not in log.columns
                or log[c].isna().all()]
     if need_bf and len(log):
         try:
@@ -172,9 +173,16 @@ def run(today_str):
                 _lp = _lp[~_lp.index.duplicated(keep="last")]
                 _ov = have.game_id.astype(str).map(_lp).astype(float).values
                 bph = np.where(np.isnan(_ov), bph, _ov)
+                _le = pd.Series(pd.to_numeric(log.p_elo, errors="coerce").values,
+                                index=log.game_id.astype(str))
+                _le = _le[~_le.index.duplicated(keep="last")]
+                _be = have.game_id.astype(str).map(_le).astype(float).values
+                _be = np.where(np.isnan(_be), bph, _be)
+                _, ePh, ePa = spread.price(SH, have, ph=_be)
                 bf = pd.DataFrame({"game_id": have.game_id.astype(str).values,
                                    "sp_margin": spread.expected_margin(bph, bPh, bPa),
-                                   "sp_line": spread.median_line(bph, bPh, bPa)})
+                                   "sp_line": spread.median_line(bph, bPh, bPa),
+                                   "p_sp_elo": spread.cover(_be, ePh, ePa, 3.5)})
                 for nm, k in zip(SP_COLS, SP_LINES):
                     bf[nm] = spread.cover(bph, bPh, bPa, k)
                 log = log.drop(columns=[c for c in bf.columns if c != "game_id"
@@ -197,10 +205,16 @@ def run(today_str):
         sp_ph, sp_Ph, sp_Pa = spread.price(SH, rows, ph=p)
         sp_exp = spread.expected_margin(sp_ph, sp_Ph, sp_Pa)
         sp_line = spread.median_line(sp_ph, sp_Ph, sp_Pa)
+        # Elo floor for the spread: the rating's own win probability pushed through the
+        # same magnitude model. Isolates what the feature layer adds on this market, the
+        # way p_elo does for the moneyline.
+        _pe = pe.values if hasattr(pe, "values") else pe
+        _, sp_ePh, sp_ePa = spread.price(SH, rows, ph=_pe)
         board = pd.DataFrame({"date": rows.date.dt.strftime("%Y-%m-%d"), "game_id": rows.game_id,
                               "week": rows.week, "season": rows.season, "home": rows.home,
                               "away": rows.away, "p_home": p, "p_elo": pe.values,
                               "sp_margin": sp_exp, "sp_line": sp_line,
+                              "p_sp_elo": spread.cover(_pe, sp_ePh, sp_ePa, 3.5),
                               "model": "v1"})
         for nm, k in zip(SP_COLS, SP_LINES):
             board[nm] = spread.cover(sp_ph, sp_Ph, sp_Pa, k)
