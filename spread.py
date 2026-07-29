@@ -113,21 +113,28 @@ def cover(ph, Ph, Pa, k):
     return np.where(k[:, 0] >= 0, ph * home_by_more, ph + (1 - ph) * away_by_less)
 
 
-def median_line(ph, Ph, Pa, grid=np.arange(-40, 40.5, 0.5)):
-    """The half-point line where P(home covers) crosses 0.5.
+def median_line(ph, Ph, Pa, grid=np.arange(-40.5, 41.0, 1.0)):
+    """The half-point line where P(home covers) is closest to 0.5.
 
-    This is what a spread line actually is, and it is what must be displayed. The mean
-    margin is a different quantity: when the distribution is skewed the two land on
-    opposite sides of zero, so a team can be favoured on the moneyline while the mean
-    margin points the other way. That reads as the two heads contradicting each other.
-    The median cannot do that, because P(margin > 0) is the moneyline number by
-    construction, so the crossing point sits above zero exactly when the home side is
-    favoured.
+    This is what a spread line is, and it is what must be displayed. The mean margin is a
+    different quantity: on a skewed game the two sit on opposite sides of zero, so a team
+    can be favoured on the moneyline while the mean points the other way. The median cannot
+    do that, because P(margin > 0) is the moneyline number by construction.
+
+    The grid is half points only, matching how books quote and guaranteeing the line never
+    lands on a whole number where a game could push.
+
+    Nearest to 0.5 rather than the last point still clearing it. The crossing almost never
+    lands exactly on a half point, so taking the last one that clears biases every line
+    toward the home side and outcomes stop splitting evenly around it.
     """
     P = np.column_stack([cover(ph, Ph, Pa, k) for k in grid])
-    idx = (P >= 0.5).sum(axis=1) - 1
-    idx = np.clip(idx, 0, len(grid) - 1)
-    return grid[idx]
+    # P is flat across zero, because a margin of exactly 0 is impossible, so "nearest to
+    # 0.5" can pick either side arbitrarily and land opposite the moneyline. Search only
+    # the side the moneyline is on, which restores the guarantee that the two agree.
+    want = np.where(np.asarray(ph, float) >= 0.5, 1.0, -1.0)
+    ok = np.sign(grid)[None, :] == want[:, None]
+    return grid[np.where(ok, np.abs(P - 0.5), np.inf).argmin(axis=1)]
 
 
 def expected_margin(ph, Ph, Pa):
