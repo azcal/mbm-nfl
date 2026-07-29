@@ -104,6 +104,23 @@ def cover(ph, Ph, Pa, k):
     return np.where(k[:, 0] >= 0, ph * home_by_more, ph + (1 - ph) * away_by_less)
 
 
+def median_line(ph, Ph, Pa, grid=np.arange(-40, 40.5, 0.5)):
+    """The half-point line where P(home covers) crosses 0.5.
+
+    This is what a spread line actually is, and it is what must be displayed. The mean
+    margin is a different quantity: when the distribution is skewed the two land on
+    opposite sides of zero, so a team can be favoured on the moneyline while the mean
+    margin points the other way. That reads as the two heads contradicting each other.
+    The median cannot do that, because P(margin > 0) is the moneyline number by
+    construction, so the crossing point sits above zero exactly when the home side is
+    favoured.
+    """
+    P = np.column_stack([cover(ph, Ph, Pa, k) for k in grid])
+    idx = (P >= 0.5).sum(axis=1) - 1
+    idx = np.clip(idx, 0, len(grid) - 1)
+    return grid[idx]
+
+
 def expected_margin(ph, Ph, Pa):
     j = np.arange(1, JMAX + 1)
     return ph * (Ph * j).sum(axis=1) - (1 - ph) * (Pa * j).sum(axis=1)
