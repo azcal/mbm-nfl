@@ -158,7 +158,7 @@ def run(today_str):
     # One-time backfill: fill the spread columns for games logged before the spread head
     # existed, so the dashboard has history to grade instead of waiting a season. Self
     # healing, runs once, then the condition is false forever after.
-    need_bf = [c for c in SP_COLS + ["sp_margin"] if c not in log.columns
+    need_bf = [c for c in SP_COLS + ["sp_margin", "sp_line"] if c not in log.columns
                or log[c].isna().all()]
     if need_bf and len(log):
         try:
@@ -166,7 +166,8 @@ def run(today_str):
             if len(have):
                 bph, bPh, bPa = spread.price(SH, have)
                 bf = pd.DataFrame({"game_id": have.game_id.astype(str).values,
-                                   "sp_margin": spread.expected_margin(bph, bPh, bPa)})
+                                   "sp_margin": spread.expected_margin(bph, bPh, bPa),
+                                   "sp_line": spread.median_line(bph, bPh, bPa)})
                 for nm, k in zip(SP_COLS, SP_LINES):
                     bf[nm] = spread.cover(bph, bPh, bPa, k)
                 log = log.drop(columns=[c for c in bf.columns if c != "game_id"
@@ -187,10 +188,12 @@ def run(today_str):
         cal = rows.week < CAL_UNLOCK_WEEK
         sp_ph, sp_Ph, sp_Pa = spread.price(SH, rows)
         sp_exp = spread.expected_margin(sp_ph, sp_Ph, sp_Pa)
+        sp_line = spread.median_line(sp_ph, sp_Ph, sp_Pa)
         board = pd.DataFrame({"date": rows.date.dt.strftime("%Y-%m-%d"), "game_id": rows.game_id,
                               "week": rows.week, "season": rows.season, "home": rows.home,
                               "away": rows.away, "p_home": p, "p_elo": pe.values,
-                              "sp_margin": sp_exp, "model": "v1"})
+                              "sp_margin": sp_exp, "sp_line": sp_line,
+                              "model": "v1"})
         for nm, k in zip(SP_COLS, SP_LINES):
             board[nm] = spread.cover(sp_ph, sp_Ph, sp_Pa, k)
         log = pd.concat([log[~log.game_id.isin(board.game_id)], board], ignore_index=True)
