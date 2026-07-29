@@ -17,6 +17,7 @@ from sklearn.metrics import log_loss, brier_score_loss
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import tg_delta
+import spread
 import engine_nfl as E
 
 H = {"User-Agent": "Mozilla/5.0"}
@@ -27,6 +28,17 @@ CFG, C = SPEC["cfg"], SPEC["C"]
 TRAIN_LO, TRAIN_HI = 2018, 2025          # frozen; 2026 = forward test
 CAL_UNLOCK_WEEK = 5                       # value lines suppressed through week 4
 MIN_EDGE = 0.05
+
+SP_LINES = [-7.5, -3.5, -0.5, 3.5, 7.5]     # margin thresholds logged for grading
+SP_COLS = ["p_sp_m75", "p_sp_m35", "p_sp_m05", "p_sp_p35", "p_sp_p75"]
+
+
+def spread_ladder(i, ph, Ph, Pa, exp, home, away, span=4):
+    out = [f"    {'line':>7}  {home + ' covers':>14} {'needs':>7}   {away + ' covers':>14} {'needs':>7}"]
+    for q, p, o1, p2, o2 in spread.ladder(ph[i], Ph[i], Pa[i], exp[i], min_odds, span=span):
+        out.append(f"    {q:>+7.1f}  {p:>14.3f} {o1:>7.2f}   {p2:>14.3f} {o2:>7.2f}")
+    return out
+
 
 def min_odds(p):
     p = min(max(float(p), 0.01), 0.99)
@@ -131,12 +143,39 @@ def run(today_str):
     sct = StandardScaler().fit(trm[E.TT].values)
     mt = Ridge(alpha=5.0).fit(sct.transform(trm[E.TT].values), trm.total.values)
     base = float(f.loc[tr, "y"].mean())
+    # Spread head. Same construction as NBA; the fitted weights come back spiky here
+    # because NFL margins really do pile up on 3, 7 and 6.
+    SH = spread.fit(f, E.W, (f.season >= TRAIN_LO) & (f.season <= TRAIN_HI)
+                    & f.margin.notna() & (f.margin != 0), C)
 
     alerts = []
     os.makedirs(LOGS, exist_ok=True)
     pred_path = os.path.join(LOGS, "predictions.csv")
     log = pd.read_csv(pred_path) if os.path.exists(pred_path) else \
         pd.DataFrame(columns=["date","game_id","week","season","home","away","p_home","p_elo","model"])
+
+
+    # One-time backfill: fill the spread columns for games logged before the spread head
+    # existed, so the dashboard has history to grade instead of waiting a season. Self
+    # healing, runs once, then the condition is false forever after.
+    need_bf = [c for c in SP_COLS + ["sp_margin"] if c not in log.columns
+               or log[c].isna().all()]
+    if need_bf and len(log):
+        try:
+            have = f[f.game_id.astype(str).isin(log.game_id.astype(str))]
+            if len(have):
+                bph, bPh, bPa = spread.price(SH, have)
+                bf = pd.DataFrame({"game_id": have.game_id.astype(str).values,
+                                   "sp_margin": spread.expected_margin(bph, bPh, bPa)})
+                for nm, k in zip(SP_COLS, SP_LINES):
+                    bf[nm] = spread.cover(bph, bPh, bPa, k)
+                log = log.drop(columns=[c for c in bf.columns if c != "game_id"
+                                        and c in log.columns], errors="ignore")
+                log["game_id"] = log.game_id.astype(str)
+                log = log.merge(bf, on="game_id", how="left")
+                print(f"spread backfill: filled {bf.sp_margin.notna().sum()} historical rows")
+        except Exception as ex:
+            print(f"spread backfill skipped: {type(ex).__name__}: {ex}")
 
     board = None
     if len(upcoming):
@@ -146,16 +185,25 @@ def run(today_str):
         totals = mt.predict(sct.transform(rows[E.TT].values))
         pe = 1/(1+10**(-((rows.h_elo + CFG["HA"]) - rows.a_elo)/400))
         cal = rows.week < CAL_UNLOCK_WEEK
+        sp_ph, sp_Ph, sp_Pa = spread.price(SH, rows)
+        sp_exp = spread.expected_margin(sp_ph, sp_Ph, sp_Pa)
         board = pd.DataFrame({"date": rows.date.dt.strftime("%Y-%m-%d"), "game_id": rows.game_id,
                               "week": rows.week, "season": rows.season, "home": rows.home,
-                              "away": rows.away, "p_home": p, "p_elo": pe.values, "model": "v1"})
+                              "away": rows.away, "p_home": p, "p_elo": pe.values,
+                              "sp_margin": sp_exp, "model": "v1"})
+        for nm, k in zip(SP_COLS, SP_LINES):
+            board[nm] = spread.cover(sp_ph, sp_Ph, sp_Pa, k)
         log = pd.concat([log[~log.game_id.isin(board.game_id)], board], ignore_index=True)
         print(f"\n=== MBM NFL board (week {int(rows.week.min())}) ===")
-        for (idx, r), mgn, tot, incal in zip(board.iterrows(), margins, totals, cal.values):
-            side = f"model: {r.home} {-mgn:+.1f}" if mgn > 0 else f"model: {r.away} {mgn:+.1f}"
+        for bi, ((idx, r), tot, incal) in enumerate(zip(board.iterrows(), totals, cal.values)):
+            mgn = sp_exp[bi]
+            side = f"model: {r.home} by {mgn:.1f}" if mgn > 0 else f"model: {r.away} by {-mgn:.1f}"
             vals = (f"value: {r.home} >= {min_odds(r.p_home):.2f} / {r.away} >= {min_odds(1-r.p_home):.2f}"
                     if not incal else "CALIBRATION thru Wk4: predictions only, no betting")
             print(f"{r.away:>3} @ {r.home:<3}  p(home)={r.p_home:.3f}  {side}, total {tot:.1f}  | {vals}")
+            if not incal:
+                for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
+                    print(ln)
     else:
         print("no games in the next 8 days")
 
