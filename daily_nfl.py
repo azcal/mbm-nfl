@@ -158,7 +158,9 @@ def run(today_str):
     # One-time backfill: fill the spread columns for games logged before the spread head
     # existed, so the dashboard has history to grade instead of waiting a season. Self
     # healing, runs once, then the condition is false forever after.
-    need_bf = [c for c in SP_COLS + ["sp_margin", "sp_line", "p_sp_elo"]
+    stale = ("sp_ver" not in log.columns or
+             pd.to_numeric(log.get("sp_ver"), errors="coerce").max() != spread.VERSION)
+    need_bf = stale or [c for c in SP_COLS + ["sp_margin", "sp_line", "p_sp_elo"]
                if c not in log.columns
                or log[c].isna().all()]
     if need_bf and len(log):
@@ -182,14 +184,16 @@ def run(today_str):
                 bf = pd.DataFrame({"game_id": have.game_id.astype(str).values,
                                    "sp_margin": spread.expected_margin(bph, bPh, bPa),
                                    "sp_line": spread.median_line(bph, bPh, bPa),
-                                   "p_sp_elo": spread.cover(_be, ePh, ePa, 3.5)})
+                                   "p_sp_elo": spread.cover(_be, ePh, ePa, 3.5),
+                                   "sp_ver": spread.VERSION})
                 for nm, k in zip(SP_COLS, SP_LINES):
                     bf[nm] = spread.cover(bph, bPh, bPa, k)
                 log = log.drop(columns=[c for c in bf.columns if c != "game_id"
                                         and c in log.columns], errors="ignore")
                 log["game_id"] = log.game_id.astype(str)
                 log = log.merge(bf, on="game_id", how="left")
-                print(f"spread backfill: filled {bf.sp_margin.notna().sum()} historical rows")
+                print(f"spread backfill v{spread.VERSION}: "
+                      f"filled {bf.sp_margin.notna().sum()} historical rows")
         except Exception as ex:
             print(f"spread backfill skipped: {type(ex).__name__}: {ex}")
 
@@ -215,7 +219,7 @@ def run(today_str):
                               "away": rows.away, "p_home": p, "p_elo": pe.values,
                               "sp_margin": sp_exp, "sp_line": sp_line,
                               "p_sp_elo": spread.cover(_pe, sp_ePh, sp_ePa, 3.5),
-                              "model": "v1"})
+                              "sp_ver": spread.VERSION, "model": "v1"})
         for nm, k in zip(SP_COLS, SP_LINES):
             board[nm] = spread.cover(sp_ph, sp_Ph, sp_Pa, k)
         log = pd.concat([log[~log.game_id.isin(board.game_id)], board], ignore_index=True)

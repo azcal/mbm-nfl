@@ -26,6 +26,11 @@ from scipy import stats
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.preprocessing import StandardScaler
 
+# Bump on any change to how the line or the distribution is computed. The runners compare
+# this to what is stored in the log and rebackfill when it differs, otherwise a formula
+# change silently never reaches history and reruns appear to do nothing.
+VERSION = 3
+
 JMAX = 70
 W_CLIP = (0.15, 6.0)
 
