@@ -209,6 +209,9 @@ def run(today_str):
 
     fin = g.set_index("game_id")["result"]
     log["result"] = log.game_id.map(fin)
+    mrg = f.dropna(subset=["margin"]).drop_duplicates("game_id").set_index(
+        f.dropna(subset=["margin"]).drop_duplicates("game_id").game_id.astype(str))["margin"]
+    log["final_margin"] = log.game_id.astype(str).map(mrg)
     log.to_csv(pred_path, index=False)
     dec = log[log.result.notna() & (log.result != 0)]
     if len(dec) >= 30:
