@@ -225,7 +225,7 @@ def run(today_str):
         for nm, k in zip(SP_COLS, SP_LINES):
             board[nm] = spread.cover(sp_ph, sp_Ph, sp_Pa, k)
         log = pd.concat([log[~log.game_id.isin(board.game_id)], board], ignore_index=True)
-        print(f"\n=== MBM NFL board (week {int(rows.week.min())}) ===")
+        print("\n--- NFL detail: model margin, total, spread ladder ---")
         for bi, ((idx, r), tot, incal) in enumerate(zip(board.iterrows(), totals, cal.values)):
             mgn = sp_exp[bi]
             side = f"model: {r.home} by {mgn:.1f}" if mgn > 0 else f"model: {r.away} by {-mgn:.1f}"
@@ -296,6 +296,13 @@ def run(today_str):
                     if note:
                         ln = "\n".join([ln] + note)
                     push[gid] = {"line": ln, "min_odds": BF.STD_SPREAD_ODDS}
+        print("\n=== MBM NFL board ===")
+        for _v in push.values():
+            print(_v["line"])
+        if skipped:
+            print(f"({skipped} game{{'s' if skipped != 1 else ''}} skipped, "
+                  f"price floor {{BF.PRICE_FLOOR:.2f}} / {{BF.american(BF.PRICE_FLOOR)}})")
+
         mode, lines = tg_delta.gate(LOGS, dt.date.today().strftime("%Y%m%d"), push)
         if not (lines or alerts):
             return
