@@ -18,6 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import tg_delta
 import board_format as BF
+import notify
 import spread
 import engine_nfl as E
 
@@ -262,8 +263,7 @@ def run(today_str):
                 alerts.append("NFL winner")
         dec.to_csv(os.path.join(LOGS, "graded.csv"), index=False)
 
-    tg, ch = os.environ.get("TG_TOKEN"), os.environ.get("TG_CHAT")
-    if tg and ch and (board is not None or alerts):
+    if True:
         push, skipped = {}, 0
         if board is not None:
             _grid = np.arange(-40.5, 41.0, 1.0)
@@ -282,27 +282,35 @@ def run(today_str):
                     skipped += 1
                     continue
                 bd.append((str(r.date)[:10], f"{r.away} @ {r.home}", " / ".join(parts),
-                           r.game_id))
+                           r.game_id, float(p[bi])))
             if bd:
                 wg = max([len(x[1]) for x in bd] + [10])
                 wp = max([len(x[2]) for x in bd] + [8])
-                for d_, gm, pk, gid in bd:
-                    push[gid] = {"line": BF.line(d_, gm, pk, 1.05 / BF.STD_SPREAD_ODDS,
-                                                 w_game=wg, w_pick=wp),
-                                 "min_odds": BF.STD_SPREAD_ODDS}
+                for d_, gm, pk, gid, ph_i in bd:
+                    ln = BF.line(d_, gm, pk, 1.05 / BF.STD_SPREAD_ODDS,
+                                 w_game=wg, w_pick=wp)
+                    # Live-entry note keyed off the moneyline favourite, not the spread.
+                    # Only fires where the pregame moneyline is too short to take at all.
+                    fav_p = max(ph_i, 1 - ph_i)
+                    note = BF.live_note("NFL", fav_p)
+                    if note:
+                        ln = "\n".join([ln] + note)
+                    push[gid] = {"line": ln, "min_odds": BF.STD_SPREAD_ODDS}
         mode, lines = tg_delta.gate(LOGS, dt.date.today().strftime("%Y%m%d"), push)
         if not (lines or alerts):
             return
-        txt = "\n".join(lines) if lines else "no price changes since the last push"
-        if skipped:
-            txt += f"\n({skipped} game{'s' if skipped != 1 else ''} skipped, "\
-                   f"no line qualifies at standard juice)"
-        if mode == "delta" and lines:
-            txt = "changes since the last push:\n" + txt
+        body = list(lines) if lines else ["no price changes since the last push"]
+        foot = (f"{skipped} game{'s' if skipped != 1 else ''} skipped, "
+                f"price floor {BF.PRICE_FLOOR:.2f} / {BF.american(BF.PRICE_FLOOR)}")\
+               if skipped else None
+        title = "MBM NFL" + (" · changes since the last push"
+                                 if mode == "delta" and lines else "")
+        colour = notify.GREEN
         if alerts:
-            txt += "\n\u26a0 TRIPWIRE: " + ", ".join(alerts) + " below base rate, stop betting this board"
-        requests.post(f"https://api.telegram.org/bot{tg}/sendMessage",
-                      data={"chat_id": ch, "text": f"MBM NFL\n{txt}"}, timeout=20)
+            body = body + ["", "TRIPWIRE: " + ", ".join(alerts)
+                           + " below base rate, stop betting this board"]
+            colour = notify.RED
+        notify.send(title, body, foot, colour)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
