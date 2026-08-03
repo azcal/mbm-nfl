@@ -2,8 +2,8 @@
 MBM NFL daily runner (rebuild v1, frozen spec).
 - Refreshes nflverse games + current-season pbp EPA aggregates
 - Expected starters from depth charts + injury report (fallback: last actual starter)
-- Boards upcoming games (8-day horizon): p(home), model margin, model total
-- CALIBRATION GATE: value lines suppressed through Week 4; unlock Week 5
+- Boards upcoming games (7-day horizon): p(home), model margin, model total
+- CALIBRATION GATE: value lines suppressed through Week 4 on the board AND the push
 - Grades logged predictions (ties push), rolling metrics + last-150 tripwire
 Usage: python daily_nfl.py [--date YYYY-MM-DD]
 """
@@ -22,14 +22,30 @@ import notify
 import spread
 import engine_nfl as E
 
+# Shared files must be at least this new. A minimum rather than an exact match, so a later
+# improvement to a shared file does not force an edit here.
+#
+# spread.py is deliberately NOT in this loop. Its VERSION is an integer with a different
+# job: the runner compares it against sp_ver in the log and rebackfills history when they
+# differ. Folding it in would raise on the string comparison, and bumping it for freshness
+# reasons would trigger a full rebackfill for no reason.
+SHARED_MIN = "2026-08-03"
+for _mod in (BF, notify, tg_delta):
+    _have = getattr(_mod, "VERSION", "")
+    if _have < SHARED_MIN:
+        raise ImportError(
+            f"{_mod.__name__}.py is version {_have or 'unstamped'}, this runner needs "
+            f"{SHARED_MIN} or newer. Copy the current shared files into this repo.")
+
 H = {"User-Agent": "Mozilla/5.0"}
 NV = "https://github.com/nflverse/nflverse-data/releases/download"
 LOGS = os.path.join(HERE, "logs")
 SPEC = json.load(open(os.path.join(HERE, "spec.json")))
 CFG, C = SPEC["cfg"], SPEC["C"]
 TRAIN_LO, TRAIN_HI = 2018, 2025          # frozen; 2026 = forward test
-CAL_UNLOCK_WEEK = 5                       # value lines suppressed through week 4
+CAL_UNLOCK_WEEK = SPEC.get("cal_unlock_week", 5)   # value lines suppressed through week 4
 MIN_EDGE = 0.05
+HORIZON_DAYS = SPEC.get("horizon_days", 7)
 
 SP_LINES = [-7.5, -3.5, -0.5, 3.5, 7.5]     # margin thresholds logged for grading
 SP_COLS = ["p_sp_m75", "p_sp_m35", "p_sp_m05", "p_sp_p35", "p_sp_p75"]
@@ -120,7 +136,7 @@ def run(today_str):
     for c in ("home_team", "away_team"):
         g[c] = g[c].replace(E.REN)
     g["date"] = pd.to_datetime(g.gameday)
-    upcoming = g[g.result.isna() & (g.date >= today) & (g.date <= today + pd.Timedelta(days=8))].copy()
+    upcoming = g[g.result.isna() & (g.date >= today) & (g.date <= today + pd.Timedelta(days=HORIZON_DAYS))].copy()
     exp = expected_starters(season)
     last_starter = {}
     for r in g[g.result.notna()].sort_values("date").itertuples():
@@ -236,7 +252,7 @@ def run(today_str):
                 for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
                     print(ln)
     else:
-        print("no games in the next 8 days")
+        print(f"no games in the next {HORIZON_DAYS} days")
 
     fin = g.set_index("game_id")["result"]
     log["result"] = log.game_id.map(fin)
@@ -263,30 +279,43 @@ def run(today_str):
                 alerts.append("NFL winner")
         dec.to_csv(os.path.join(LOGS, "graded.csv"), index=False)
 
-    if True:
-        push, skipped = {}, 0
-        if board is not None:
-            _grid = np.arange(-40.5, 41.0, 1.0)
-            _cf = lambda k: spread.cover(sp_ph, sp_Ph, sp_Pa, k)
-            bd = []
-            for bi, (_, r) in enumerate(board.iterrows()):
-                kh, ka = BF.spread_threshold(_cf, bi, _grid)
-                # Two actionable lines per game, one each side. Together they bound the
-                # zone where neither side is worth taking at standard juice.
-                parts = []
-                if kh is not None:
-                    parts.append(f"{r.home} {-kh:+.1f}")
-                if ka is not None:
-                    parts.append(f"{r.away} {ka:+.1f}")
-                if not parts:
-                    skipped += 1
-                    continue
-                bd.append((str(r.date)[:10], f"{r.away} @ {r.home}", " / ".join(parts),
-                           r.game_id, float(p[bi])))
-            if bd:
-                wg = max([len(x[1]) for x in bd] + [10])
-                wp = max([len(x[2]) for x in bd] + [8])
-                for d_, gm, pk, gid, ph_i in bd:
+    push, skipped, cal_n = {}, 0, 0
+    if board is not None:
+        _grid = np.arange(-40.5, 41.0, 1.0)
+        _cf = lambda k: spread.cover(sp_ph, sp_Ph, sp_Pa, k)
+        bd = []
+        for bi, (_, r) in enumerate(board.iterrows()):
+            incal = bool(r.week < CAL_UNLOCK_WEEK)
+            if incal:
+                # The calibration gate was checked in the console print and nowhere else,
+                # so weeks 1 to 4 were publishing priced value lines to the channel. A
+                # calibration row now carries the model's own line and no price at all.
+                bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
+                           BF.spread_pick(r.home, r.away, float(sp_line[bi])),
+                           r.game_id, float(p[bi]), True, int(r.week)))
+                continue
+            kh, ka = BF.spread_threshold(_cf, bi, _grid)
+            # Two actionable lines per game, one each side. Together they bound the
+            # zone where neither side is worth taking at standard juice.
+            parts = []
+            if kh is not None:
+                parts.append(f"{r.home} {-kh:+.1f}")
+            if ka is not None:
+                parts.append(f"{r.away} {ka:+.1f}")
+            if not parts:
+                skipped += 1
+                continue
+            bd.append((str(r.date)[:10], f"{r.away} @ {r.home}", " / ".join(parts),
+                       r.game_id, float(p[bi]), False, int(r.week)))
+        if bd:
+            wg = max([len(x[1]) for x in bd] + [10])
+            wp = max([len(x[2]) for x in bd] + [8])
+            for d_, gm, pk, gid, ph_i, incal, wk in bd:
+                if incal:
+                    ln = (f"{d_}  {gm}  ·  calibration week {wk}, model {pk}, "
+                          f"no betting until Week {CAL_UNLOCK_WEEK}")
+                    cal_n += 1
+                else:
                     ln = BF.line(d_, gm, pk, 1.05 / BF.STD_SPREAD_ODDS,
                                  w_game=wg, w_pick=wp)
                     # Live-entry note keyed off the moneyline favourite, not the spread.
@@ -295,29 +324,42 @@ def run(today_str):
                     note = BF.live_note("NFL", fav_p)
                     if note:
                         ln = "\n".join([ln] + note)
-                    push[gid] = {"line": ln, "min_odds": BF.STD_SPREAD_ODDS}
-        print("\n=== MBM NFL board ===")
-        for _v in push.values():
-            print(_v["line"])
-        if skipped:
-            print(f"({skipped} game{{'s' if skipped != 1 else ''}} skipped, "
-                  f"price floor {{BF.PRICE_FLOOR:.2f}} / {{BF.american(BF.PRICE_FLOOR)}})")
+                push[gid] = {"line": ln,
+                             "min_odds": BF.STD_SPREAD_ODDS,
+                             # min_odds is a module constant on this board, identical on
+                             # every row forever, so the gate's price check can never fire.
+                             # The pick string is what actually moves: a QB ruled out on
+                             # Sunday morning shifts the threshold and rewrites this.
+                             "match": pk,
+                             "cal": incal}
+    print("\n=== MBM NFL board ===")
+    for _v in push.values():
+        print(_v["line"])
+    if skipped:
+        print(f"({skipped} game{'s' if skipped != 1 else ''} skipped, "
+              f"no line qualifies at {BF.STD_SPREAD_ODDS:.2f} / "
+              f"{BF.american(BF.STD_SPREAD_ODDS)})")
 
-        mode, lines = tg_delta.gate(LOGS, dt.date.today().strftime("%Y%m%d"), push)
-        if not (lines or alerts):
-            return
-        body = list(lines) if lines else ["no price changes since the last push"]
-        foot = (f"{skipped} game{'s' if skipped != 1 else ''} skipped, "
-                f"price floor {BF.PRICE_FLOOR:.2f} / {BF.american(BF.PRICE_FLOOR)}")\
+    mode, lines = tg_delta.gate(LOGS, dt.date.today().strftime("%Y%m%d"), push)
+    if lines or alerts:
+        body = list(lines) if lines else ["no changes since the last push"]
+        foot = (f"{skipped} game{'s' if skipped != 1 else ''} skipped, no line qualifies "
+                f"at {BF.STD_SPREAD_ODDS:.2f} / {BF.american(BF.STD_SPREAD_ODDS)}")\
                if skipped else None
         title = "MBM NFL" + (" · changes since the last push"
-                                 if mode == "delta" and lines else "")
-        colour = notify.GREEN
+                             if mode == "delta" and lines else "")
+        # GREY is the calibration colour. Only when every row is inside the window, so a
+        # week straddling the unlock reads as a live board with some rows marked.
+        colour = notify.GREY if push and cal_n == len(push) else notify.GREEN
         if alerts:
             body = body + ["", "TRIPWIRE: " + ", ".join(alerts)
                            + " below base rate, stop betting this board"]
             colour = notify.RED
         notify.send(title, body, foot, colour)
+    elif not push:
+        print("no board to send")
+    else:
+        print("board unchanged since the last push, nothing sent")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
