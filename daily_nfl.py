@@ -44,7 +44,10 @@ SPEC = json.load(open(os.path.join(HERE, "spec.json")))
 CFG, C = SPEC["cfg"], SPEC["C"]
 TRAIN_LO, TRAIN_HI = 2018, 2025          # frozen; 2026 = forward test
 CAL_UNLOCK_WEEK = SPEC.get("cal_unlock_week", 5)   # value lines suppressed through week 4
-MIN_EDGE = 0.05
+# Tracks board_format rather than restating it. This is the console-side copy, and a
+# local 0.05 here while board_format ran at 0.00 meant the Actions log and Discord
+# quoted different prices for the same game.
+MIN_EDGE = BF.MIN_EDGE
 HORIZON_DAYS = SPEC.get("horizon_days", 7)
 
 SP_LINES = [-7.5, -3.5, -0.5, 3.5, 7.5]     # margin thresholds logged for grading
@@ -316,7 +319,12 @@ def run(today_str):
                           f"no betting until Week {CAL_UNLOCK_WEEK}")
                     cal_n += 1
                 else:
-                    ln = BF.line(d_, gm, pk, 1.05 / BF.STD_SPREAD_ODDS,
+                    # The probability passed here exists only to make price() print the
+                    # standard spread number. It has to track MIN_EDGE: hardcoding 1.05
+                    # printed 1.91 while the edge was 5% and 1.82 once it went to zero,
+                    # and 1.82 on a 52.36% cover is -4.7% EV.
+                    ln = BF.line(d_, gm, pk,
+                                 (1 + BF.MIN_EDGE) / BF.STD_SPREAD_ODDS,
                                  w_game=wg, w_pick=wp)
                     # Live-entry note keyed off the moneyline favourite, not the spread.
                     # Only fires where the pregame moneyline is too short to take at all.
