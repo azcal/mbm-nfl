@@ -154,7 +154,9 @@ def market_spreads():
     """
     key = os.environ.get("ODDS_API_KEY", "").strip()
     if not key:
-        print("no ODDS_API_KEY set, market anchoring off")
+        print("ODDS_API_KEY is empty in this process, market anchoring off. A repository "
+              "secret is not visible to a step unless it is listed in that step's env: "
+              "block in daily.yml.")
         return {}
     try:
         r = requests.get(ODDS_API, headers=H, timeout=60, params={
@@ -373,9 +375,15 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
         was = prev.get(str(gid[i])) if prev else None
         hm, aw = str(home[i]), str(away[i])
 
-        # --- which team is the favourite, dead band around 0.50 ---------------------
-        if p > 0.5 + FLIP_MARGIN:
-            home_fav = True
+        # --- which team is the favourite ------------------------------------------
+        # The dead band exists to stop a published LINE changing teams on a threshold
+        # wobble. It only applies where there is a market line to stabilise. On the
+        # fallback path there is no line, the claim is simply who wins, and holding a
+        # stale side there published "PIT -0.5, wins outright 48.7%": a claim the model
+        # expects to be false. So the fallback always takes the fresh read.
+        has_mkt = (aw, hm) in mkt
+        if p > 0.5 + FLIP_MARGIN or not has_mkt:
+            home_fav = p >= 0.5 if not has_mkt else True
         elif p < 0.5 - FLIP_MARGIN:
             home_fav = False
         elif was is not None and "fav_home" in was:
@@ -383,9 +391,10 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
         else:
             home_fav = p >= 0.5
         fav = hm if home_fav else aw
+        row_held = has_mkt and (home_fav != (p >= 0.5))
 
         kc = key_context(cover3_fn, i, home_fav)
-        row = {"median_team": fav, "median_line": -abs(med), "pick_held": False,
+        row = {"median_team": fav, "median_line": -abs(med), "pick_held": row_held,
                **{f"k_{BF.handicap(L)}": v for L, v in kc.items()},
                "home_line": -kh if kh is not None else np.nan,
                "away_line": ka if ka is not None else np.nan,
@@ -959,11 +968,12 @@ def run(today_str):
                 ctx = "no market line, model line shown"
             bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
                        f"{r.pick_team} {BF.handicap(r.pick_line)}",
-                       r.game_id, float(r.pick_prob), incal, int(r.week), ctx))
+                       r.game_id, float(r.pick_prob), incal, int(r.week), ctx,
+                       "cover" if r.pick_claim == "covers" else "win"))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
-            for d_, gm, pk, gid, ph_i, incal, wk, ctx in bd:
+            for d_, gm, pk, gid, ph_i, incal, wk, ctx, verb in bd:
                 # A forecast row, not a board row. BF.line's trailer is "find <price> or
                 # better", which is an instruction to bet, and at the median line the cover
                 # is 50% by construction so any price there is either meaningless or a lie.
@@ -977,7 +987,10 @@ def run(today_str):
                 # model's line beside it, which put two teams and two numbers on one line
                 # and left the reader deciding which was the call. median_team and
                 # median_line are still in predictions.csv for the A/B.
-                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  cover {ph_i:.1%}"
+                # The verb has to track pick_claim. Hardcoding "cover" printed a
+                # wins-outright fallback row as "PIT -0.5 cover 48.7%", which states a
+                # cover probability the model never computed.
+                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  {verb} {ph_i:.1%}"
                 notes_pre = [f"      note: {ctx}"]
                 notes = list(notes_pre)
                 if incal:
