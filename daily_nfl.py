@@ -146,11 +146,19 @@ ODDS_TEAM = {
 
 
 def market_spreads():
-    """(away, home) -> (consensus home handicap, book count). {} on any failure.
+    """(away, home) -> (consensus home handicap, books at that number). {} on any failure.
 
-    Median across books, not one book's number. A single book can hang an outlier or go
-    stale; the median is the market. Returning {} on any problem is deliberate, because the
-    board must still publish when the feed is down or the month's quota is spent.
+    The MODE across books, not the median. A median of a split market lands between the
+    clusters, on a number nobody is offering: BUF @ HOU came back as HOU PK from a market
+    that was actually sitting at 1.5, because four books had one side and four the other
+    and the midpoint of that is zero. The mode is always a line somebody actually posted,
+    which is the whole point of anchoring to the market. Ties break toward the median.
+
+    One line per book first, so a book listing alternates cannot outvote the rest of the
+    market by itself, and so the reported count is books rather than quotes.
+
+    Returning {} on any problem is deliberate: the board must still publish when the feed
+    is down or the month's quota is spent.
     """
     key = os.environ.get("ODDS_API_KEY", "").strip()
     if not key:
@@ -166,27 +174,42 @@ def market_spreads():
         if r.status_code != 200:
             print(f"odds feed HTTP {r.status_code}: {r.text[:120]}")
             return {}
-        out, unknown = {}, set()
+        out, unknown, split = {}, set(), []
         for ev in r.json():
             ht, at = ev.get("home_team"), ev.get("away_team")
             if ht not in ODDS_TEAM or at not in ODDS_TEAM:
                 unknown.update(t for t in (ht, at) if t not in ODDS_TEAM)
                 continue
-            pts = []
+            per_book = []
             for bk in ev.get("bookmakers", []):
-                for mk in bk.get("markets", []):
-                    if mk.get("key") != "spreads":
-                        continue
-                    for o in mk.get("outcomes", []):
-                        if o.get("name") == ht and o.get("point") is not None:
-                            pts.append(float(o["point"]))
-            if pts:
-                out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (float(np.median(pts)), len(pts))
+                q = [float(o["point"]) for mk in bk.get("markets", [])
+                     if mk.get("key") == "spreads"
+                     for o in mk.get("outcomes", [])
+                     if o.get("name") == ht and o.get("point") is not None]
+                if q:
+                    per_book.append(float(np.median(q)))
+            if not per_book:
+                continue
+            cnt = {}
+            for v in per_book:
+                cnt[v] = cnt.get(v, 0) + 1
+            top = max(cnt.values())
+            med = float(np.median(per_book))
+            line = min((v for v, c in cnt.items() if c == top), key=lambda v: abs(v - med))
+            out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (line, cnt[line])
+            if max(per_book) - min(per_book) >= 1.0:
+                split.append((ODDS_TEAM[at], ODDS_TEAM[ht], min(per_book),
+                              max(per_book), line, cnt[line], len(per_book)))
         if unknown:
-            # A rename or an expansion team would land here. Loud, because a silent miss
-            # would just look like a game with no market line.
+            # A rename or an expansion team lands here. Loud, because a silent miss would
+            # just look like a game with no market line.
             print(f"odds feed: UNMAPPED TEAM NAMES {sorted(unknown)}, add them to ODDS_TEAM")
         print(f"market: {len(out)} game(s) priced, {left or '?'} API credits left")
+        for a_, h_, lo, hi, ln, c, nb in split[:12]:
+            # Printed rather than swallowed: a market this split is either a stale book in
+            # the sample or real news the model has not seen, and both are worth a look.
+            print(f"  SPLIT MARKET {a_} @ {h_}: books range {lo:+g} to {hi:+g}, "
+                  f"taking {ln:+g} ({c}/{nb} books)")
         return out
     except Exception as ex:
         print("odds feed unavailable:", type(ex).__name__)
