@@ -65,6 +65,68 @@ CAL_UNLOCK_WEEK = SPEC.get("cal_unlock_week", 5)   # value lines suppressed thro
 MIN_EDGE = BF.MIN_EDGE
 HORIZON_DAYS = SPEC.get("horizon_days", 7)
 
+DATA_DICT = """# picks.csv
+
+One row per published pick from the MustBeMoose NFL model. Rebuilt on every run.
+
+This is a **forecast**, not a bet recommendation. No market price is compared anywhere in
+this file, and nothing here says whether a pick is worth backing at the number your book
+is posting. That call is yours.
+
+## Reading a pick
+
+`pick` is the whole answer in one field, written the way a book writes it: `PIT +3.5`,
+`SEA -3.5`. If you only read one column, read that one.
+
+The parts of it, if you need them separately:
+
+| column | meaning |
+|---|---|
+| `pick_team` | the team being picked |
+| `pick_side` | whether that team is `home` or `away` in this game |
+| `pick_line` | the handicap **on `pick_team`**. Negative lays points, positive takes them. Not a home-side number: `pick_side` tells you which end of the game it belongs to. |
+| `pick_claim` | what is being asserted: `covers` or `wins outright` |
+| `pick_prob` | probability of **that claim**, not of anything else |
+| `pick_rule` | `dog_band` produced a `covers` row, `median` produced a `wins outright` row |
+| `pick_result` | `win`, `loss`, `push`, or empty when the game has not been played |
+| `cal` | true while the model is inside its calibration window (weeks 1-4) |
+
+Two claim types, graded differently, because they assert different things:
+
+- `covers`  -> `pick_team` stays within `pick_line`. Score it as
+  `margin_for_pick + pick_line`, where `margin_for_pick` is `final_margin` when
+  `pick_side` is `home` and `-final_margin` when it is `away`. Above zero wins, below
+  loses, exactly zero pushes.
+- `wins outright` -> `pick_team` wins the game. `pick_line` is still populated on these
+  rows as the model's own line, but it is context, not the claim.
+
+## What the probability means
+
+`pick_prob` is calibrated, not a confidence score. A set of rows reading 0.60 should win
+about 60% of the time. Measured over 569 graded games the model runs slightly conservative:
+it said 0.651 and delivered 0.670 on outright winners, and said 0.539 against 0.543 actual
+across its spread lines. Nothing here is a bet recommendation, and no market price is
+compared anywhere in this file.
+
+## Other columns
+
+| column | meaning |
+|---|---|
+| `date` | kickoff date |
+| `game_id` | nflverse id, stable, use it as the key |
+| `away` / `home` | the fixture |
+| `model_line` | the model's own line on the favourite. On a `covers` row this is the view the pick was derived from, so you can see the gap between them. |
+| `final_margin` | home score minus away score, empty until played |
+
+## The two rules
+
+`median` rows publish the model's own line and claim the favourite wins outright. `dog_band`
+rows fire when the model makes a team a favourite by 0.5 to 2.5 and instead publish the
+underdog at +3.5, because a model favourite that small wins by four or more only about 42%
+of the time. The band is under active test and may change.
+"""
+
+
 SP_LINES = [-7.5, -3.5, -0.5, 3.5, 7.5]     # margin thresholds logged for grading
 SP_COLS = ["p_sp_m75", "p_sp_m35", "p_sp_m05", "p_sp_p35", "p_sp_p75"]
 
@@ -292,11 +354,13 @@ def resolve_picks(cover3_fn, ph, sp_line, home, away):
             h, pu, a = cover3_fn(med)
             cov = float(h[i]) if home_side else float(a[i])
             oth = float(a[i]) if home_side else float(h[i])
+            pw = float(ph[i]) if home_side else float(1.0 - ph[i])
             row.update(pick_rule="median", pick_team=fav,
                        pick_side="home" if home_side else "away",
                        pick_line=-abs(med),
-                       pick_p_win=float(ph[i]) if home_side else float(1.0 - ph[i]),
-                       pick_p_cover=cov / max(cov + oth, 1e-9))
+                       pick=f"{fav} {BF.handicap(-abs(med))}",
+                       pick_claim="wins outright", pick_prob=pw,
+                       pick_p_win=pw, pick_p_cover=cov / max(cov + oth, 1e-9))
         else:
             # Sign flips with the favourite. A home favourite means the dog is the away
             # team, which covers when the margin stays under +D; an away favourite means
@@ -306,11 +370,14 @@ def resolve_picks(cover3_fn, ph, sp_line, home, away):
             h, pu, a = cover3_fn(k)
             cov = float(a[i]) if home_side else float(h[i])
             oth = float(h[i]) if home_side else float(a[i])
+            pc = cov / max(cov + oth, 1e-9)
             row.update(pick_rule="dog_band", pick_team=dog,
                        pick_side="away" if home_side else "home",
                        pick_line=float(D),
+                       pick=f"{dog} {BF.handicap(D)}",
+                       pick_claim="covers", pick_prob=pc,
                        pick_p_win=float(1.0 - ph[i]) if home_side else float(ph[i]),
-                       pick_p_cover=cov / max(cov + oth, 1e-9))
+                       pick_p_cover=pc)
         out.append(row)
     return out
 
@@ -354,6 +421,48 @@ def reliability(p, y, label, edges=(0.0, .15, .30, .40, .50, .60, .70, .85, 1.01
     print(f"{'pooled':>12} {len(p):>6} {p.mean():>7.3f} {y.mean():>7.3f} "
           f"{y.mean() - p.mean():>+7.3f}")
     return over
+
+
+
+PICKS_COLS = ["date", "game_id", "season", "week", "away", "home", "pick", "pick_team",
+              "pick_side", "pick_line", "pick_claim", "pick_prob", "pick_rule",
+              "model_line", "cal", "final_margin", "pick_result"]
+
+
+def write_picks(log):
+    """The publishable file: one row per published pick, nothing else.
+
+    Separate from predictions.csv on purpose. That file feeds graded.csv and the dashboard
+    repo and must keep its shape; this one is built for a reader who has never seen the
+    project and gets handed a URL. So it carries only rows that actually have a pick,
+    only columns that mean something to an outsider, and no model internals at all.
+
+    Rebuilt in full from the log every run rather than appended to. Appending needs its own
+    dedupe and its own idea of which rows changed, and the log already knows both.
+
+    Rows are sorted and probabilities rounded to four places so an unchanged pick produces
+    a byte-identical line. Without that every run rewrites all 585 rows and the git history
+    in the public repo becomes a wall of noise nobody can read a real change out of.
+    """
+    if "pick_team" not in log.columns:
+        return
+    p = log[log.pick_team.notna() & (log.pick_team.astype(str) != "")].copy()
+    if not len(p):
+        print("picks.csv: no published picks in the log yet")
+        return
+    p = p.drop_duplicates("game_id", keep="last")
+    p["model_line"] = p.get("median_line")
+    for c in PICKS_COLS:
+        if c not in p.columns:
+            p[c] = ""
+    p["pick_prob"] = pd.to_numeric(p.pick_prob, errors="coerce").round(4)
+    p["pick_line"] = pd.to_numeric(p.pick_line, errors="coerce")
+    p["model_line"] = pd.to_numeric(p.model_line, errors="coerce")
+    p = p[PICKS_COLS].sort_values(["date", "game_id"]).reset_index(drop=True)
+    p.to_csv(os.path.join(LOGS, "picks.csv"), index=False)
+    open(os.path.join(LOGS, "picks_README.md"), "w").write(DATA_DICT)
+    g = int((p.pick_result.astype(str) != "").sum())
+    print(f"picks.csv: {len(p)} pick(s), {g} graded, {len(p) - g} pending")
 
 
 def board_until(today):
@@ -567,7 +676,31 @@ def run(today_str):
     _m = f.dropna(subset=["margin"]).drop_duplicates("game_id")
     log["final_margin"] = log.game_id.astype(str).map(
         pd.Series(_m.margin.values, index=_m.game_id.astype(str)))
+    # Grade the published claim, so a reader with only this file can score it without
+    # knowing which rule produced the row. A "covers" row grades against pick_line; a
+    # "wins outright" row grades on the moneyline, because that is the claim it made.
+    if {"pick_claim", "pick_side", "pick_line"} <= set(log.columns):
+        fmv = pd.to_numeric(log.get("final_margin"), errors="coerce").values
+        plv = pd.to_numeric(log.get("pick_line"), errors="coerce").values
+        side = log.pick_side.astype(str).values
+        claim = log.pick_claim.astype(str).values
+        mp = np.where(side == "home", fmv, -fmv)          # margin from the pick's side
+        e = mp + plv
+        cov = np.where(e > 0, "win", np.where(e < 0, "loss", "push"))
+        out = np.where(mp > 0, "win", np.where(mp < 0, "loss", "push"))
+        log["pick_result"] = np.where(
+            ~np.isfinite(fmv) | ~np.isfinite(plv), "",
+            np.where(claim == "covers", cov, out))
+
+    # predictions.csv is deliberately left alone beyond new columns being appended. It
+    # feeds graded.csv, which feeds the dashboard repo, and dropping or reordering columns
+    # there would break a pipeline that has nothing to do with this change. The dead
+    # pick_p and pick_push headers stay; they are empty and harmless where they are.
+    #
+    # The clean, self-describing file is picks.csv, written next. Additive here, purged
+    # there, so neither consumer constrains the other.
     log.to_csv(pred_path, index=False)
+    write_picks(log)
     dec = log[log.result.notna() & (log.result != 0)]
     if len(dec) >= 30:
         y = (dec.result > 0).astype(int).values
