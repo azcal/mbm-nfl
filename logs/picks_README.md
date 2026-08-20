@@ -2,58 +2,50 @@
 
 One row per published pick from the MustBeMoose NFL model. Rebuilt on every run.
 
-This is a **forecast**, not a bet recommendation. No market price is compared anywhere in
-this file, and nothing here says whether a pick is worth backing at the number your book
-is posting. That call is yours.
+This is a **forecast**, not a bet recommendation. No price is compared anywhere in this
+file, so whether a probability beats the odds at your book is entirely your call.
 
 ## Reading a pick
 
-`pick` is the whole answer in one field, written the way a book writes it: `PIT +3.5`,
-`SEA -3.5`. If you only read one column, read that one.
-
-The parts of it, if you need them separately:
+`pick` is the whole answer in one field, written the way a book writes it: `ATL +3`,
+`SEA -3.5`. If you read one column, read that one.
 
 | column | meaning |
 |---|---|
 | `pick_team` | the team being picked |
 | `pick_side` | whether that team is `home` or `away` in this game |
-| `pick_line` | the handicap **on `pick_team`**. Negative lays points, positive takes them. Not a home-side number: `pick_side` tells you which end of the game it belongs to. |
-| `pick_claim` | what is being asserted: `covers` or `wins outright` |
-| `pick_prob` | probability of **that claim**, not of anything else |
-| `pick_rule` | `dog_band` produced a `covers` row, `median` produced a `wins outright` row |
-| `pick_result` | `win`, `loss`, `push`, or empty when the game has not been played |
-| `cal` | true while the model is inside its calibration window (weeks 1-4) |
+| `pick_line` | the handicap **on `pick_team`**, taken from the book line. Negative lays points, positive takes them. Not a home-side number; `pick_side` tells you which end it belongs to. |
+| `book_line` | the same number as a sportsbook posts it, on the **home** team. Median across `book_count` books. Empty when no market line was available. |
+| `book_count` | how many books went into that median |
+| `pick_claim` | what is asserted: `covers` or `wins outright` |
+| `pick_prob` | probability of **that claim**, with any push excluded |
+| `pick_push` | chance the game lands exactly on `pick_line`. Non-zero only on whole numbers, where it reaches 9-10% at 3. |
+| `pick_rule` | `market` when anchored to a book line, `median` when it fell back to the model's own |
+| `pick_result` | `win`, `loss`, `push`, or empty until the game is played |
+| `cal` | true while the model is inside its calibration window, weeks 1-4 |
 
-Two claim types, graded differently, because they assert different things:
+## Grading
 
-- `covers`  -> `pick_team` stays within `pick_line`. Score it as
-  `margin_for_pick + pick_line`, where `margin_for_pick` is `final_margin` when
-  `pick_side` is `home` and `-final_margin` when it is `away`. Above zero wins, below
-  loses, exactly zero pushes.
-- `wins outright` -> `pick_team` wins the game. `pick_line` is still populated on these
-  rows as the model's own line, but it is context, not the claim.
+`covers` rows score as `margin_for_pick + pick_line`, where `margin_for_pick` is
+`final_margin` when `pick_side` is `home` and `-final_margin` when it is `away`. Above zero
+wins, below loses, exactly zero pushes.
+
+`wins outright` rows score on the game result. `pick_line` is still populated on those rows
+as the model's own line, but it is context, not the claim.
+
+## Where the line comes from
+
+The published line is **the market's**, not the model's. Every run pulls current NFL spreads,
+takes the median across books, and reports the model's probability that one side covers that
+exact number.
+
+Books hang their numbers on key margins by themselves, so this lands on 3, 7 and their hooks
+without the board forcing it, and it gives a different number per game rather than crowding
+the slate onto a handful of lines.
 
 ## What the probability means
 
 `pick_prob` is calibrated, not a confidence score. A set of rows reading 0.60 should win
 about 60% of the time. Measured over 569 graded games the model runs slightly conservative:
-it said 0.651 and delivered 0.670 on outright winners, and said 0.539 against 0.543 actual
-across its spread lines. Nothing here is a bet recommendation, and no market price is
-compared anywhere in this file.
-
-## Other columns
-
-| column | meaning |
-|---|---|
-| `date` | kickoff date |
-| `game_id` | nflverse id, stable, use it as the key |
-| `away` / `home` | the fixture |
-| `model_line` | the model's own line on the favourite. On a `covers` row this is the view the pick was derived from, so you can see the gap between them. |
-| `final_margin` | home score minus away score, empty until played |
-
-## The two rules
-
-`median` rows publish the model's own line and claim the favourite wins outright. `dog_band`
-rows fire when the model makes a team a favourite by 0.5 to 2.5 and instead publish the
-underdog at +3.5, because a model favourite that small wins by four or more only about 42%
-of the time. The band is under active test and may change.
+it said 0.651 and delivered 0.670 on outright winners, and 0.539 against 0.543 actual across
+its spread lines.
