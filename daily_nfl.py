@@ -214,7 +214,11 @@ def market_spreads():
             top = max(cnt.values())
             med = float(np.median(per_book))
             line = min((v for v, c in cnt.items() if c == top), key=lambda v: abs(v - med))
-            out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (line, cnt[line])
+            # Both counts. "3 books" hides whether that is 3 of 3 or 3 of 9, and those
+            # are opposite readings: the first is a thin market, the second is a market
+            # that cannot agree with itself. BUF @ HOU is 3 of 9, which is the weakest
+            # anchor on the board and should look like it.
+            out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (line, cnt[line], len(per_book))
             if max(per_book) - min(per_book) >= 1.0:
                 split.append((ODDS_TEAM[at], ODDS_TEAM[ht], min(per_book),
                               max(per_book), line, cnt[line], len(per_book),
@@ -442,7 +446,8 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
                **{f"k_{BF.handicap(L)}": v for L, v in kc.items()},
                "home_line": -kh if kh is not None else np.nan,
                "away_line": ka if ka is not None else np.nan,
-               "mkt_line": np.nan, "mkt_books": 0}
+               "mkt_line": np.nan, "mkt_books": 0, "mkt_books_total": 0,
+               "mkt_agree": np.nan}
 
         m = mkt.get((aw, hm))
         if m is not None:
@@ -450,7 +455,7 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
             # mkt_line is the HOME team's handicap, so the margin threshold for the home
             # side to cover is its negative. A whole-number market line can push, so the
             # probability is taken over the games that resolve.
-            mline, nbk = m
+            mline, nbk, ntot = m
             h, pu, a = cover3_fn(-float(mline))
             hc, ac, pushm = float(h[i]), float(a[i]), float(pu[i])
             live = max(hc + ac, 1e-9)
@@ -459,6 +464,8 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
             line = float(mline) if take_home else -float(mline)
             pc = (hc if take_home else ac) / live
             row.update(mkt_line=float(mline), mkt_books=int(nbk),
+                       mkt_books_total=int(ntot),
+                       mkt_agree=float(nbk) / max(int(ntot), 1),
                        pick_rule="market", pick_team=team,
                        pick_side="home" if take_home else "away",
                        pick_line=line, pick=f"{team} {BF.handicap(line)}",
@@ -542,7 +549,8 @@ file, so whether a probability beats the odds at your book is entirely your call
 | `pick_side` | whether that team is `home` or `away` in this game |
 | `pick_line` | the handicap **on `pick_team`**, taken from the book line. Negative lays points, positive takes them. Not a home-side number; `pick_side` tells you which end it belongs to. |
 | `book_line` | the same number as a sportsbook posts it, on the **home** team. Median across `book_count` books. Empty when no market line was available. |
-| `book_count` | how many books went into that median |
+| `book_count` | how many books post that exact number |
+| `book_total` | how many books priced the game at all. `3` of `9` is a market that cannot agree with itself; `3` of `3` is just a thin one. |
 | `pick_claim` | what is asserted: `covers` or `wins outright` |
 | `pick_prob` | probability of **that claim**, with any push excluded |
 | `pick_push` | chance the game lands exactly on `pick_line`. Non-zero only on whole numbers, where it reaches 9-10% at 3. |
@@ -580,7 +588,7 @@ its spread lines.
 
 PICKS_COLS = ["date", "game_id", "season", "week", "away", "home",
               "pick", "pick_team", "pick_side", "pick_line", "pick_claim",
-              "pick_prob", "pick_push", "book_line", "book_count",
+              "pick_prob", "pick_push", "book_line", "book_count", "book_total",
               "pick_rule", "cal", "final_margin", "pick_result"]
 
 
@@ -614,6 +622,7 @@ def write_picks(log):
     # disagreement between model and market is the interesting part.
     p["book_line"] = p.get("mkt_line")
     p["book_count"] = p.get("mkt_books")
+    p["book_total"] = p.get("mkt_books_total")
     for c in PICKS_COLS:
         if c not in p.columns:
             p[c] = ""
@@ -837,7 +846,7 @@ def run(today_str):
             _ms = (f"{r.home} by {_md}" if _md > 0 else f"{r.away} by {-_md}")
             if r.pick_rule == "market":
                 print(f"      MARKET {r.home} {BF.handicap(r.mkt_line)} "
-                      f"({int(r.mkt_books)} books)  ->  {r.pick_team} "
+                      f"({int(r.mkt_books)} of {int(r.mkt_books_total)} books)  ->  {r.pick_team} "
                       f"{BF.handicap(r.pick_line)} covers {r.pick_prob:.3f}"
                       + (f", push {r.pick_push:.3f}" if r.pick_push > 0 else ""))
             else:
@@ -1007,7 +1016,9 @@ def run(today_str):
             if r.pick_rule == "market":
                 ctx = (f"model {r.median_team} {BF.handicap(r.median_line)}, "
                        f"market {r.home} {BF.handicap(r.mkt_line)} "
-                       f"({int(r.mkt_books)} books)")
+                       f"({int(r.mkt_books)} of {int(r.mkt_books_total)} books)")
+                if r.mkt_agree < 0.5:
+                    ctx += " \u00b7 weak consensus"
             else:
                 ctx = "no market line, model line shown"
             bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",

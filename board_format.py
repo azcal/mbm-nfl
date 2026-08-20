@@ -11,7 +11,7 @@ import math
 
 # Bumped whenever this file changes. Every runner asserts on it at import, so a repo
 # holding an old copy fails in the workflow's import guard instead of rendering wrong.
-VERSION = "2026-08-19"
+VERSION = "2026-08-20"
 
 # Zero on purpose. The board publishes the EXACT price at which a bet breaks even, and the
 # row reads "or better", so choosing a margin is the bettor's job at the book rather than
@@ -126,10 +126,16 @@ def spread_threshold_push(cover3_fn, i, grid, edge=MIN_EDGE, odds=STD_SPREAD_ODD
 
 
 def handicap(x):
-    """A margin threshold as a bettor reads it: '-3', '+7', '-3.5'. Whole numbers print
-    without a decimal, because a book quotes -3 and a row reading -3.0 looks like a typo
-    for -3.5, which is a different bet 15% of the time."""
+    """A margin threshold as a bettor reads it: '-3', '+7', '-3.5', 'PK'. Whole numbers
+    print without a decimal, because a book quotes -3 and a row reading -3.0 looks like a
+    typo for -3.5, which is a different bet 15% of the time.
+
+    Zero is 'PK'. Signed zero formats as '+0' or even '-0' depending on which way the float
+    was carrying its sign, and a board row reading "BUF -0" is not a line anyone posts.
+    A pick'em has no handicap, so it gets the name books give it."""
     x = float(x)
+    if x == 0:
+        return "PK"
     return f"{x:+.0f}" if x == int(x) else f"{x:+.1f}"
 
 
