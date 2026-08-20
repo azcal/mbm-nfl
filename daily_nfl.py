@@ -31,13 +31,26 @@ import engine_nfl as E
 # job: the runner compares it against sp_ver in the log and rebackfills history when they
 # differ. Folding it in would raise on the string comparison, and bumping it for freshness
 # reasons would trigger a full rebackfill for no reason.
-SHARED_MIN = "2026-08-19"
+SHARED_MIN = "2026-08-03"
 for _mod in (BF, notify, tg_delta):
     _have = getattr(_mod, "VERSION", "")
     if _have < SHARED_MIN:
         raise ImportError(
             f"{_mod.__name__}.py is version {_have or 'unstamped'}, this runner needs "
             f"{SHARED_MIN} or newer. Copy the current shared files into this repo.")
+
+# A capability check, because SHARED_MIN cannot do this job. One date gates three files, so
+# raising it to demand the push-aware board_format also demanded a newer notify.py and
+# tg_delta.py that were never changed, and the workflow failed on notify at 2026-08-09.
+# Asking for the functions this runner actually calls names the missing thing exactly and
+# stays true no matter what the other two shared files are stamped.
+for _mod, _fns in ((BF, ("spread_threshold_push", "handicap")), (spread, ("cover3",))):
+    _missing = [f for f in _fns if not hasattr(_mod, f)]
+    if _missing:
+        raise ImportError(
+            f"{_mod.__name__}.py is missing {', '.join(_missing)}. This runner prices whole"
+            f" numbers, which needs the 2026-08-19 copy of board_format.py and spread.py."
+            f" notify.py and tg_delta.py are unchanged, leave them alone.")
 
 H = {"User-Agent": "Mozilla/5.0"}
 NV = "https://github.com/nflverse/nflverse-data/releases/download"
