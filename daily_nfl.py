@@ -231,6 +231,43 @@ def expected_starters(season):
         return {}
 
 
+def resolve_picks(cover3_fn, ph, home, away):
+    """One side per game, plus everything a grader needs later.
+
+    The side comes from the moneyline. spread.median_line already forces sp_line onto the
+    same side as p_home, so anchoring the spread here means the published pick can never
+    contradict the winner head, which is the only output on this board with 569 graded
+    games behind it. A rule that read the mean margin instead would have taken PIT in
+    ATL @ PIT, where the mean says PIT by 0.8 and the moneyline says ATL at 50.4%.
+
+    Both thresholds are still computed and both are written to the log. The board shows the
+    one side; the row keeps the pair, so asking later whether the other side was live does
+    not need a rerun.
+
+    pick_line is the book's handicap on the picked team, negative laying points and positive
+    taking them, which makes grading margin_for_pick + pick_line with zero a push.
+    """
+    out = []
+    for i in range(len(ph)):
+        kh, ka = BF.spread_threshold_push(cover3_fn, i, KEY_GRID)
+        home_side = float(ph[i]) >= 0.5
+        k = kh if home_side else ka
+        row = {"pick_team": None, "pick_side": "home" if home_side else "away",
+               "pick_line": np.nan, "pick_p": np.nan, "pick_push": np.nan,
+               "home_line": -kh if kh is not None else np.nan,
+               "away_line": ka if ka is not None else np.nan}
+        if k is not None:
+            h, pu, a = cover3_fn(k)
+            cov = float(h[i]) if home_side else float(a[i])
+            oth = float(a[i]) if home_side else float(h[i])
+            row.update(pick_team=str(home[i] if home_side else away[i]),
+                       pick_line=float(-k if home_side else k),
+                       pick_p=cov / max(cov + oth, 1e-9),
+                       pick_push=float(pu[i]))
+        out.append(row)
+    return out
+
+
 def board_until(today):
     """Last game date to board. HORIZON_DAYS normally, reaching to EARLY_UNTIL while the
     early window is open. max() rather than a swap, so the window can only ever widen the
@@ -398,6 +435,13 @@ def run(today_str):
                               "sp_ver": spread.VERSION, "model": "v1"})
         for nm, k in zip(SP_COLS, SP_LINES):
             board[nm] = spread.cover(sp_ph, sp_Ph, sp_Pa, k)
+        # Resolved here rather than down in the push block, because log.to_csv runs before
+        # that block. Computing the pick in two places is how the file a machine reads and
+        # the row a person reads drift apart.
+        _c3 = lambda k: spread.cover3(sp_ph, sp_Ph, sp_Pa, k)
+        board["cal"] = board.week < CAL_UNLOCK_WEEK
+        board = board.join(pd.DataFrame(
+            resolve_picks(_c3, p, rows.home.values, rows.away.values), index=board.index))
         log = pd.concat([log[~log.game_id.isin(board.game_id)], board], ignore_index=True)
         print("\n--- NFL detail: model margin, total, spread ladder ---")
         for bi, ((idx, r), tot, incal) in enumerate(zip(board.iterrows(), totals, cal.values)):
@@ -407,6 +451,14 @@ def run(today_str):
             if incal:
                 vals += f"  [wk {int(r.week)} calibration]"
             print(f"{r.away:>3} @ {r.home:<3}  p(home)={r.p_home:.3f}  {side}, total {tot:.1f}  | {vals}")
+            _band = " / ".join(x for x in (
+                f"{r.home} {BF.handicap(r.home_line)}" if r.home_line == r.home_line else None,
+                f"{r.away} {BF.handicap(r.away_line)}" if r.away_line == r.away_line else None) if x)
+            _pk = (f"{r.pick_team} {BF.handicap(r.pick_line)} "
+                   f"(covers {r.pick_p:.3f}, push {r.pick_push:.3f})"
+                   if isinstance(r.pick_team, str) else "no line qualifies on the model's side")
+            print(f"      PICK {_pk}")
+            print(f"      both sides live at: {_band}")
             for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
                 print(ln)
     else:
@@ -437,28 +489,47 @@ def run(today_str):
                 alerts.append("NFL winner")
         dec.to_csv(os.path.join(LOGS, "graded.csv"), index=False)
 
+    # Against the spread, on the side the board actually published. The moneyline grade
+    # above says whether the winner head is calibrated; it says nothing about whether the
+    # published handicap beat the number. Those are different questions and only this one
+    # is about the board.
+    if "pick_line" in log.columns:
+        ats = log[log.pick_line.notna() & log.final_margin.notna()].copy()
+        if len(ats) >= 20:
+            mp = np.where(ats.pick_side.values == "home",
+                          ats.final_margin.values, -ats.final_margin.values)
+            e = mp + ats.pick_line.values.astype(float)
+            win, loss, pu = int((e > 0).sum()), int((e < 0).sum()), int((e == 0).sum())
+            dec_n = win + loss
+            if dec_n:
+                hit = win / dec_n
+                roi = (win * (BF.STD_SPREAD_ODDS - 1) - loss) / dec_n
+                print(f"\nATS grade, published pick only: n={len(ats)}  "
+                      f"{win}-{loss}-{pu}  hit={hit:.3f}  "
+                      f"ROI={roi:+.1%} at {BF.STD_SPREAD_ODDS:.2f}  "
+                      f"[break-even {1 / BF.STD_SPREAD_ODDS:.3f}]")
+                # 52.4% is the number to clear, not 50%. A board can pick winners and
+                # still lose money, which is the whole reason this line exists.
+                if dec_n >= 100 and hit < 1 / BF.STD_SPREAD_ODDS:
+                    alerts.append("NFL spread")
+
     push, skipped, cal_n = {}, 0, 0
     if board is not None:
-        _c3 = lambda k: spread.cover3(sp_ph, sp_Ph, sp_Pa, k)
         bd = []
         for bi, (_, r) in enumerate(board.iterrows()):
-            # Weeks 1 to 4 now publish the same priced line every other week does, carrying
-            # a tag instead of a blank. Suppressing the number never protected anyone: it
+            # Weeks 1 to 4 publish the same priced line every other week does, carrying a
+            # tag instead of a blank. Suppressing the number never protected anyone: it
             # removed the record. A forward test that prints nothing for its first four
             # weeks cannot be graded on its first four weeks.
             incal = bool(r.week < CAL_UNLOCK_WEEK)
-            kh, ka = BF.spread_threshold_push(_c3, bi, KEY_GRID)
-            # Two actionable lines per game, one each side. Together they bound the
-            # zone where neither side is worth taking at standard juice.
-            parts = []
-            if kh is not None:
-                parts.append(f"{r.home} {BF.handicap(-kh)}")
-            if ka is not None:
-                parts.append(f"{r.away} {BF.handicap(ka)}")
-            if not parts:
+            # One side. The row used to carry both thresholds, "PIT +1.5 / ATL +1.5",
+            # which is two different bets bounding a dead zone and reads as though both
+            # teams are getting points. A reader has to be told what to back.
+            if not isinstance(r.pick_team, str):
                 skipped += 1
                 continue
-            bd.append((str(r.date)[:10], f"{r.away} @ {r.home}", " / ".join(parts),
+            bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
+                       f"{r.pick_team} {BF.handicap(r.pick_line)}",
                        r.game_id, float(p[bi]), incal, int(r.week)))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
