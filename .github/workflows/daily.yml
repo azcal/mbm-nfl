@@ -44,6 +44,13 @@ jobs:
           # inputs context at all. False yields an empty string, and tg_delta only treats
           # "1", "true" or "yes" as set, so an empty value is the same as unset.
           FORCE_PUSH: ${{ github.event_name == 'workflow_dispatch' && inputs.force_push && '1' || '' }}
+          # Which cron fired. The runner needs this to hold a weekly cadence during the
+          # Week 1 run-up: Actions cannot express "weekly until a date, then twice daily",
+          # so both crons keep firing every day and daily_nfl.py decides whether to work.
+          #
+          # workflow_dispatch resolves to "manual", which always runs in full. That is the
+          # override: any time you want a board on a non-Tuesday, run it by hand.
+          MBM_SLOT: ${{ github.event_name != 'schedule' && 'manual' || ((github.event.schedule == '0 15 * 3-10 *' || github.event.schedule == '0 16 * 1-2,11-12 *') && 'am' || 'pm') }}
 
       # Two things the original commit step got wrong.
       #
