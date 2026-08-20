@@ -681,11 +681,11 @@ def run(today_str):
                        f"{r.pick_team} {BF.handicap(r.pick_line)}",
                        r.game_id,
                        float(r.pick_p_cover if _dog else r.pick_p_win), incal, int(r.week),
-                       f"{r.median_team} {BF.handicap(r.median_line)}" if _dog else None))
+                       _dog))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
-            for d_, gm, pk, gid, ph_i, incal, wk, mdl in bd:
+            for d_, gm, pk, gid, ph_i, incal, wk, is_dog in bd:
                 # A forecast row, not a board row. BF.line's trailer is "find <price> or
                 # better", which is an instruction to bet, and at the median line the cover
                 # is 50% by construction so any price there is either meaningless or a lie.
@@ -693,9 +693,14 @@ def run(today_str):
                 # which would otherwise swallow any date followed by two spaces.
                 # Two verbs on purpose. A median row states who wins outright; a dog-band
                 # row states how often a different team covers a different number, and
-                # calling both "win" would publish a 53.9% cover as a 53.9% win.
-                ln = (f"{d_}  {gm:<{wg}}  {pk:<{wp}}  cover {ph_i:.1%}  model {mdl}"
-                      if mdl else f"{d_}  {gm:<{wg}}  {pk:<{wp}}  win {ph_i:.1%}")
+                # calling both "win" would publish a 56.2% cover as a 56.2% win.
+                #
+                # The dog row carries the pick and nothing else. It used to print the
+                # model's line beside it, which put two teams and two numbers on one line
+                # and left the reader deciding which was the call. median_team and
+                # median_line are still in predictions.csv for the A/B.
+                _v = "cover" if is_dog else "win"
+                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  {_v} {ph_i:.1%}"
                 notes = []
                 if incal:
                     cal_n += 1
