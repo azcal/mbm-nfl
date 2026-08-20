@@ -65,67 +65,6 @@ CAL_UNLOCK_WEEK = SPEC.get("cal_unlock_week", 5)   # value lines suppressed thro
 MIN_EDGE = BF.MIN_EDGE
 HORIZON_DAYS = SPEC.get("horizon_days", 7)
 
-DATA_DICT = """# picks.csv
-
-One row per published pick from the MustBeMoose NFL model. Rebuilt on every run.
-
-This is a **forecast**, not a bet recommendation. No market price is compared anywhere in
-this file, and nothing here says whether a pick is worth backing at the number your book
-is posting. That call is yours.
-
-## Reading a pick
-
-`pick` is the whole answer in one field, written the way a book writes it: `PIT +3.5`,
-`SEA -3.5`. If you only read one column, read that one.
-
-The parts of it, if you need them separately:
-
-| column | meaning |
-|---|---|
-| `pick_team` | the team being picked |
-| `pick_side` | whether that team is `home` or `away` in this game |
-| `pick_line` | the handicap **on `pick_team`**. Negative lays points, positive takes them. Not a home-side number: `pick_side` tells you which end of the game it belongs to. |
-| `pick_claim` | what is being asserted: `covers` or `wins outright` |
-| `pick_prob` | probability of **that claim**, not of anything else |
-| `pick_rule` | `dog_band` produced a `covers` row, `median` produced a `wins outright` row |
-| `pick_result` | `win`, `loss`, `push`, or empty when the game has not been played |
-| `cal` | true while the model is inside its calibration window (weeks 1-4) |
-
-Two claim types, graded differently, because they assert different things:
-
-- `covers`  -> `pick_team` stays within `pick_line`. Score it as
-  `margin_for_pick + pick_line`, where `margin_for_pick` is `final_margin` when
-  `pick_side` is `home` and `-final_margin` when it is `away`. Above zero wins, below
-  loses, exactly zero pushes.
-- `wins outright` -> `pick_team` wins the game. `pick_line` is still populated on these
-  rows as the model's own line, but it is context, not the claim.
-
-## What the probability means
-
-`pick_prob` is calibrated, not a confidence score. A set of rows reading 0.60 should win
-about 60% of the time. Measured over 569 graded games the model runs slightly conservative:
-it said 0.651 and delivered 0.670 on outright winners, and said 0.539 against 0.543 actual
-across its spread lines. Nothing here is a bet recommendation, and no market price is
-compared anywhere in this file.
-
-## Other columns
-
-| column | meaning |
-|---|---|
-| `date` | kickoff date |
-| `game_id` | nflverse id, stable, use it as the key |
-| `away` / `home` | the fixture |
-| `model_line` | the model's own line on the favourite. On a `covers` row this is the view the pick was derived from, so you can see the gap between them. |
-| `final_margin` | home score minus away score, empty until played |
-
-## The two rules
-
-`median` rows publish the model's own line and claim the favourite wins outright. `dog_band`
-rows fire when the model makes a team a favourite by 0.5 to 2.5 and instead publish the
-underdog at +3.5, because a model favourite that small wins by four or more only about 42%
-of the time. The band is under active test and may change.
-"""
-
 
 SP_LINES = [-7.5, -3.5, -0.5, 3.5, 7.5]     # margin thresholds logged for grading
 SP_COLS = ["p_sp_m75", "p_sp_m35", "p_sp_m05", "p_sp_p35", "p_sp_p75"]
@@ -137,6 +76,17 @@ SP_COLS = ["p_sp_m75", "p_sp_m35", "p_sp_m05", "p_sp_p35", "p_sp_p75"]
 # does the work. Priced through spread.cover3, which separates the push out instead of
 # handing it to the away side. See board_format.spread_threshold_push.
 KEY_GRID = np.arange(-40.0, 41.0, 0.5)
+
+# Dead band around the favourite/underdog boundary, in p_home points. Inside it the
+# DECISION holds and the PROBABILITY is still recomputed, so a pick reprices every run and
+# does not change teams because a threshold wobbled. Without it, three of sixteen Week 1
+# rows swapped teams between consecutive runs and one sat a thousandth from flipping.
+#
+# Deliberately defined up here beside KEY_GRID rather than inside a rule block. It has now
+# been deleted twice as collateral when a rule it happened to sit next to was replaced, and
+# both times the module still imported cleanly, because it is only referenced inside
+# function bodies. That fails at runtime, past the workflow's import check.
+FLIP_MARGIN = float(SPEC.get("flip_margin", 0.02))
 
 # --- Week 1 early window -------------------------------------------------------------
 # A date rather than a wider horizon. A horizon big enough to reach Week 1 in August would
@@ -163,48 +113,106 @@ ESPN_INJ = "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/injur
 # knee three weeks before a game he is expected to start.
 ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
 
-# --- dog bands -----------------------------------------------------------------------
-# [fav_line_low, fav_line_high, dog_line]. Where the model makes a team a favourite by
-# between low and high, publish the DOG at dog_line instead of the favourite at the model
-# line. Measured over 569 graded games 2024-25: a model favourite of 0.5 to 3.5 wins by
-# four or more only 42.7% of the time, so the dog at +3.5 landed 57.6%.
+# --- market lines ---------------------------------------------------------------------
+# The Odds API v4. Key lives in the ODDS_API_KEY secret and is read from the environment;
+# it is never written to a log, a file or a board row.
 #
-# Two things this cannot do, both worth remembering when the season starts arguing back.
-# The +18 net games that justified it were graded at the model's own number, so they
-# assume +3.5 was on the board when it often was not: on the live Week 1 slate the rule
-# fired 12 times and DraftKings had the number 5 times. And +18 on 569 games is inside
-# 2se. Both fixes need a market feed this runner does not have.
+# Anchoring to the market rather than to a fixed list of key numbers. Books price the same
+# 3-hump this model does, so their numbers land on keys by themselves: 13 of the 16 Week 1
+# lines sat on a key number or its hook. That gets key-number anchoring for free AND gives
+# a number per game instead of forcing a third of the slate onto +3.5, which is what
+# collapsed resolution on every fixed-list variant tested.
 #
-# Empty list disables it and the board reverts to publishing the median line.
-DOG_BANDS = [tuple(map(float, b)) for b in SPEC.get("dog_bands", [])]
+# One call per run, one region, one market, so one credit. Roughly 60 a month against a
+# 500 free-tier allowance. Remaining quota is printed from the response header.
+ODDS_API = "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds"
+ODDS_REGIONS = SPEC.get("odds_regions", "us")
 
-# Dead band around every threshold that decides what gets published, in p_home points.
-#
-# Both decisions the board makes are hard cuts on a continuous quantity: which team is the
-# favourite turns on p_home crossing 0.50, and whether the dog band fires turns on the
-# median line crossing 2.5. median_line runs a grid spaced a full point apart, so a half
-# point of probability can swing the line a whole point and change the published team.
-#
-# Measured on the Week 1 board: three of sixteen games flipped between two consecutive
-# runs, six of sixteen sat within two points of a boundary, and BUF @ HOU was one
-# thousandth away from flipping and survived on luck. ATL @ PIT changed teams on a p_home
-# move of under seven tenths of a point while the model's actual view barely moved:
-# PIT +3.5 at 65.6% became ATL +3.5 at 61.8%, which is the same read of a pick'em game.
-#
-# So the decision is sticky inside the dead band and the probability never is. A pick that
-# holds is still repriced every run; it just does not change teams because a threshold
-# wobbled. Past the dead band it flips normally, so a QB ruled out still moves the board
-# and nothing gets stuck.
-FLIP_MARGIN = float(SPEC.get("flip_margin", 0.02))
+# The Odds API names teams in full; nflverse uses abbreviations. Hardcoded rather than
+# fuzzy matched: 32 stable strings beat a name matcher that fails silently in September.
+ODDS_TEAM = {
+    "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL",
+    "Buffalo Bills": "BUF", "Carolina Panthers": "CAR", "Chicago Bears": "CHI",
+    "Cincinnati Bengals": "CIN", "Cleveland Browns": "CLE", "Dallas Cowboys": "DAL",
+    "Denver Broncos": "DEN", "Detroit Lions": "DET", "Green Bay Packers": "GB",
+    "Houston Texans": "HOU", "Indianapolis Colts": "IND", "Jacksonville Jaguars": "JAX",
+    "Kansas City Chiefs": "KC", "Las Vegas Raiders": "LV", "Los Angeles Chargers": "LAC",
+    "Los Angeles Rams": "LA", "Miami Dolphins": "MIA", "Minnesota Vikings": "MIN",
+    "New England Patriots": "NE", "New Orleans Saints": "NO", "New York Giants": "NYG",
+    "New York Jets": "NYJ", "Philadelphia Eagles": "PHI", "Pittsburgh Steelers": "PIT",
+    "San Francisco 49ers": "SF", "Seattle Seahawks": "SEA", "Tampa Bay Buccaneers": "TB",
+    "Tennessee Titans": "TEN", "Washington Commanders": "WAS",
+}
 
 
-def dog_band(fav_line):
-    """Dog line to publish for a model favourite of fav_line points, or None to use the
-    median. First matching band wins, so order them narrow to wide in spec.json."""
-    for lo, hi, d in DOG_BANDS:
-        if lo <= abs(float(fav_line)) <= hi:
-            return float(d)
-    return None
+def market_spreads():
+    """(away, home) -> (consensus home handicap, book count). {} on any failure.
+
+    Median across books, not one book's number. A single book can hang an outlier or go
+    stale; the median is the market. Returning {} on any problem is deliberate, because the
+    board must still publish when the feed is down or the month's quota is spent.
+    """
+    key = os.environ.get("ODDS_API_KEY", "").strip()
+    if not key:
+        print("no ODDS_API_KEY set, market anchoring off")
+        return {}
+    try:
+        r = requests.get(ODDS_API, headers=H, timeout=60, params={
+            "apiKey": key, "regions": ODDS_REGIONS, "markets": "spreads",
+            "oddsFormat": "american"})
+        left = r.headers.get("x-requests-remaining")
+        if r.status_code != 200:
+            print(f"odds feed HTTP {r.status_code}: {r.text[:120]}")
+            return {}
+        out, unknown = {}, set()
+        for ev in r.json():
+            ht, at = ev.get("home_team"), ev.get("away_team")
+            if ht not in ODDS_TEAM or at not in ODDS_TEAM:
+                unknown.update(t for t in (ht, at) if t not in ODDS_TEAM)
+                continue
+            pts = []
+            for bk in ev.get("bookmakers", []):
+                for mk in bk.get("markets", []):
+                    if mk.get("key") != "spreads":
+                        continue
+                    for o in mk.get("outcomes", []):
+                        if o.get("name") == ht and o.get("point") is not None:
+                            pts.append(float(o["point"]))
+            if pts:
+                out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (float(np.median(pts)), len(pts))
+        if unknown:
+            # A rename or an expansion team would land here. Loud, because a silent miss
+            # would just look like a game with no market line.
+            print(f"odds feed: UNMAPPED TEAM NAMES {sorted(unknown)}, add them to ODDS_TEAM")
+        print(f"market: {len(out)} game(s) priced, {left or '?'} API credits left")
+        return out
+    except Exception as ex:
+        print("odds feed unavailable:", type(ex).__name__)
+        return {}
+
+
+# --- key-number context ---------------------------------------------------------------
+# Not the pick. Every row logs the model's probability at each of these, so a reader gets
+# the whole key-number picture without the board having snapped its pick onto one of them.
+# Snapping was tested five ways and every variant scored negative BSS: nine anchors cannot
+# absorb a slate without compressing 200+ games onto +3.5, and that compression is where
+# the information goes.
+KEY_NUMBERS = [int(k) for k in SPEC.get("key_numbers", [3, 6, 7, 10, 14, 21])]
+KEY_LINES = sorted([-(k - 0.5) for k in KEY_NUMBERS] + [k + 0.5 for k in KEY_NUMBERS])
+KEY_STRIP = [float(x) for x in SPEC.get("key_strip", [-2.5, 3.5, -5.5, -6.5, 7.5])]
+
+
+def key_context(cover3_fn, i, home_fav):
+    """P(named side covers) at every key line, from the favourite's point of view."""
+    out = {}
+    for L in KEY_LINES:
+        X = abs(L)
+        h, pu, a = cover3_fn(X if home_fav else -X)
+        is_fav = L < 0
+        c = float(h[i]) if (home_fav == is_fav) else float(a[i])
+        o = float(a[i]) if (home_fav == is_fav) else float(h[i])
+        out[L] = c / max(c + o, 1e-9)
+    return out
 
 
 def spread_ladder(i, ph, Ph, Pa, exp, home, away, span=4):
@@ -336,7 +344,7 @@ def expected_starters(season):
         return {}
 
 
-def resolve_picks(cover3_fn, ph, sp_line, sp_lo, sp_hi, gid, home, away, prev):
+def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
     """The model's own line per game, plus the thresholds kept for the record.
 
     pick_line is the MEDIAN, spread.median_line's number: the half point where the picked
@@ -361,68 +369,61 @@ def resolve_picks(cover3_fn, ph, sp_line, sp_lo, sp_hi, gid, home, away, prev):
     out = []
     for i in range(len(ph)):
         kh, ka = BF.spread_threshold_push(cover3_fn, i, KEY_GRID)
-        p = float(ph[i])
-        med = float(sp_line[i])
+        p = float(ph[i]); med = float(sp_line[i])
         was = prev.get(str(gid[i])) if prev else None
+        hm, aw = str(home[i]), str(away[i])
 
-        # --- side, with a dead band around 0.50 -------------------------------------
+        # --- which team is the favourite, dead band around 0.50 ---------------------
         if p > 0.5 + FLIP_MARGIN:
-            home_side = True
+            home_fav = True
         elif p < 0.5 - FLIP_MARGIN:
-            home_side = False
+            home_fav = False
         elif was is not None and "fav_home" in was:
-            home_side = bool(was["fav_home"])
+            home_fav = bool(was["fav_home"])
         else:
-            home_side = p >= 0.5
+            home_fav = p >= 0.5
+        fav = hm if home_fav else aw
 
-        # --- band membership, with the same dead band expressed through the line ----
-        # The line is quantised, so there is no room for a buffer in line space. Ask the
-        # model what line p_home +/- the margin would produce instead: if the two land on
-        # opposite sides of the band edge, the boundary is inside the dead band.
-        fresh = dog_band(med) is not None
-        edge = (dog_band(float(sp_lo[i])) is not None) != (dog_band(float(sp_hi[i])) is not None)
-        if edge and was and was.get("rule") in ("median", "dog_band"):
-            use_band = was["rule"] == "dog_band"
-        else:
-            use_band = fresh
-        # True when stickiness actually overrode what this run would have said on its own.
-        held = (home_side != (p >= 0.5)) or (use_band != fresh)
-
-        fav = str(home[i] if home_side else away[i])
-        dog = str(away[i] if home_side else home[i])
-        row = {"median_team": fav, "median_line": -abs(med), "pick_held": held,
+        kc = key_context(cover3_fn, i, home_fav)
+        row = {"median_team": fav, "median_line": -abs(med), "pick_held": False,
+               **{f"k_{BF.handicap(L)}": v for L, v in kc.items()},
                "home_line": -kh if kh is not None else np.nan,
-               "away_line": ka if ka is not None else np.nan}
-        # A pick held inside the band keeps the band's line even though the current median
-        # has stepped outside it. DOG_BANDS[0] is the fallback because a held row is by
-        # definition sitting on the edge of the first band it left.
-        D = dog_band(med) if use_band else None
-        if D is None and use_band and DOG_BANDS:
-            D = float(DOG_BANDS[0][2])
-        if D is None:
-            h, pu, a = cover3_fn(med)
-            cov = float(h[i]) if home_side else float(a[i])
-            oth = float(a[i]) if home_side else float(h[i])
-            pw = p if home_side else 1.0 - p
-            row.update(pick_rule="median", pick_team=fav,
-                       pick_side="home" if home_side else "away",
-                       pick_line=-abs(med),
-                       pick=f"{fav} {BF.handicap(-abs(med))}",
-                       pick_claim="wins outright", pick_prob=pw,
-                       pick_p_win=pw, pick_p_cover=cov / max(cov + oth, 1e-9))
-        else:
-            k = D if home_side else -D
-            h, pu, a = cover3_fn(k)
-            cov = float(a[i]) if home_side else float(h[i])
-            oth = float(h[i]) if home_side else float(a[i])
-            pc = cov / max(cov + oth, 1e-9)
-            row.update(pick_rule="dog_band", pick_team=dog,
-                       pick_side="away" if home_side else "home",
-                       pick_line=float(D),
-                       pick=f"{dog} {BF.handicap(D)}",
+               "away_line": ka if ka is not None else np.nan,
+               "mkt_line": np.nan, "mkt_books": 0}
+
+        m = mkt.get((aw, hm))
+        if m is not None:
+            # --- anchored to the number actually on the board ----------------------
+            # mkt_line is the HOME team's handicap, so the margin threshold for the home
+            # side to cover is its negative. A whole-number market line can push, so the
+            # probability is taken over the games that resolve.
+            mline, nbk = m
+            h, pu, a = cover3_fn(-float(mline))
+            hc, ac, pushm = float(h[i]), float(a[i]), float(pu[i])
+            live = max(hc + ac, 1e-9)
+            take_home = (hc / live) >= 0.5
+            team = hm if take_home else aw
+            line = float(mline) if take_home else -float(mline)
+            pc = (hc if take_home else ac) / live
+            row.update(mkt_line=float(mline), mkt_books=int(nbk),
+                       pick_rule="market", pick_team=team,
+                       pick_side="home" if take_home else "away",
+                       pick_line=line, pick=f"{team} {BF.handicap(line)}",
                        pick_claim="covers", pick_prob=pc,
-                       pick_p_win=(1.0 - p) if home_side else p,
-                       pick_p_cover=pc)
+                       pick_p_win=p if take_home else 1.0 - p,
+                       pick_p_cover=pc, pick_push=pushm)
+        else:
+            # --- no market number, fall back to the model's own line ---------------
+            h, pu, a = cover3_fn(med)
+            cov = float(h[i]) if home_fav else float(a[i])
+            oth = float(a[i]) if home_fav else float(h[i])
+            pw = p if home_fav else 1.0 - p
+            row.update(pick_rule="median", pick_team=fav,
+                       pick_side="home" if home_fav else "away",
+                       pick_line=-abs(med), pick=f"{fav} {BF.handicap(-abs(med))}",
+                       pick_claim="wins outright", pick_prob=pw,
+                       pick_p_win=pw, pick_p_cover=cov / max(cov + oth, 1e-9),
+                       pick_push=0.0)
         out.append(row)
     return out
 
@@ -469,9 +470,65 @@ def reliability(p, y, label, edges=(0.0, .15, .30, .40, .50, .60, .70, .85, 1.01
 
 
 
-PICKS_COLS = ["date", "game_id", "season", "week", "away", "home", "pick", "pick_team",
-              "pick_side", "pick_line", "pick_claim", "pick_prob", "pick_rule",
-              "model_line", "cal", "final_margin", "pick_result"]
+
+DATA_DICT = """# picks.csv
+
+One row per published pick from the MustBeMoose NFL model. Rebuilt on every run.
+
+This is a **forecast**, not a bet recommendation. No price is compared anywhere in this
+file, so whether a probability beats the odds at your book is entirely your call.
+
+## Reading a pick
+
+`pick` is the whole answer in one field, written the way a book writes it: `ATL +3`,
+`SEA -3.5`. If you read one column, read that one.
+
+| column | meaning |
+|---|---|
+| `pick_team` | the team being picked |
+| `pick_side` | whether that team is `home` or `away` in this game |
+| `pick_line` | the handicap **on `pick_team`**, taken from the book line. Negative lays points, positive takes them. Not a home-side number; `pick_side` tells you which end it belongs to. |
+| `book_line` | the same number as a sportsbook posts it, on the **home** team. Median across `book_count` books. Empty when no market line was available. |
+| `book_count` | how many books went into that median |
+| `pick_claim` | what is asserted: `covers` or `wins outright` |
+| `pick_prob` | probability of **that claim**, with any push excluded |
+| `pick_push` | chance the game lands exactly on `pick_line`. Non-zero only on whole numbers, where it reaches 9-10% at 3. |
+| `pick_rule` | `market` when anchored to a book line, `median` when it fell back to the model's own |
+| `pick_result` | `win`, `loss`, `push`, or empty until the game is played |
+| `cal` | true while the model is inside its calibration window, weeks 1-4 |
+
+## Grading
+
+`covers` rows score as `margin_for_pick + pick_line`, where `margin_for_pick` is
+`final_margin` when `pick_side` is `home` and `-final_margin` when it is `away`. Above zero
+wins, below loses, exactly zero pushes.
+
+`wins outright` rows score on the game result. `pick_line` is still populated on those rows
+as the model's own line, but it is context, not the claim.
+
+## Where the line comes from
+
+The published line is **the market's**, not the model's. Every run pulls current NFL spreads,
+takes the median across books, and reports the model's probability that one side covers that
+exact number.
+
+Books hang their numbers on key margins by themselves, so this lands on 3, 7 and their hooks
+without the board forcing it, and it gives a different number per game rather than crowding
+the slate onto a handful of lines.
+
+## What the probability means
+
+`pick_prob` is calibrated, not a confidence score. A set of rows reading 0.60 should win
+about 60% of the time. Measured over 569 graded games the model runs slightly conservative:
+it said 0.651 and delivered 0.670 on outright winners, and 0.539 against 0.543 actual across
+its spread lines.
+"""
+
+
+PICKS_COLS = ["date", "game_id", "season", "week", "away", "home",
+              "pick", "pick_team", "pick_side", "pick_line", "pick_claim",
+              "pick_prob", "pick_push", "book_line", "book_count",
+              "pick_rule", "cal", "final_margin", "pick_result"]
 
 
 def write_picks(log):
@@ -496,13 +553,21 @@ def write_picks(log):
         print("picks.csv: no published picks in the log yet")
         return
     p = p.drop_duplicates("game_id", keep="last")
-    p["model_line"] = p.get("median_line")
+    # The book's number, not the model's. A reader of this file has no use for the
+    # internal median: they want the line that was on the board, so they can check the
+    # pick against what their own book is posting. book_line is the HOME team's handicap
+    # as posted; pick_line is the same number from the picked team's side. The model's
+    # median stays in predictions.csv and on the Discord row, which is where the
+    # disagreement between model and market is the interesting part.
+    p["book_line"] = p.get("mkt_line")
+    p["book_count"] = p.get("mkt_books")
     for c in PICKS_COLS:
         if c not in p.columns:
             p[c] = ""
-    p["pick_prob"] = pd.to_numeric(p.pick_prob, errors="coerce").round(4)
-    p["pick_line"] = pd.to_numeric(p.pick_line, errors="coerce")
-    p["model_line"] = pd.to_numeric(p.model_line, errors="coerce")
+    for c in ("pick_prob", "pick_push"):
+        p[c] = pd.to_numeric(p[c], errors="coerce").round(4)
+    for c in ("pick_line", "book_line"):
+        p[c] = pd.to_numeric(p[c], errors="coerce")
     p = p[PICKS_COLS].sort_values(["date", "game_id"]).reset_index(drop=True)
     p.to_csv(os.path.join(LOGS, "picks.csv"), index=False)
     open(os.path.join(LOGS, "picks_README.md"), "w").write(DATA_DICT)
@@ -682,24 +747,23 @@ def run(today_str):
         # the row a person reads drift apart.
         _c3 = lambda k: spread.cover3(sp_ph, sp_Ph, sp_Pa, k)
         board["cal"] = board.week < CAL_UNLOCK_WEEK
-        # What p_home +/- the dead band would do to the line, so resolve_picks can see
-        # whether a band edge sits inside the margin without re-deriving the model.
-        _lo = spread.median_line(np.clip(sp_ph - FLIP_MARGIN, .01, .99), sp_Ph, sp_Pa)
-        _hi = spread.median_line(np.clip(sp_ph + FLIP_MARGIN, .01, .99), sp_Ph, sp_Pa)
         # median_team, not pick_side. pick_side is which side the PICK sits on, and on a
         # dog-band row that is the opposite of which side the FAVOURITE sits on, so feeding
         # it into the side decision inverts every held dog row. median_team is always the
         # favourite regardless of which rule published the row.
+        _mkt = market_spreads()
         _prev = {}
         if {"median_team", "pick_rule"} <= set(log.columns):
             for _r in log[log.median_team.notna()].itertuples():
                 _prev[str(_r.game_id)] = {
                     "fav_home": str(_r.median_team) == str(_r.home),
                     "rule": str(getattr(_r, "pick_rule", "")),
+                    "line": float(_r.pick_line) if pd.notna(getattr(_r, "pick_line", None))
+                            else None,
                 }
         board = board.join(pd.DataFrame(
-            resolve_picks(_c3, p, sp_line, _lo, _hi, rows.game_id.astype(str).values,
-                          rows.home.values, rows.away.values, _prev),
+            resolve_picks(_c3, p, sp_line, rows.game_id.astype(str).values,
+                          rows.home.values, rows.away.values, _prev, _mkt),
             index=board.index))
         _mm, _mp = mode_margin(sp_ph, sp_Ph, sp_Pa)
         board["mode_margin"] = _mm
@@ -718,13 +782,17 @@ def run(today_str):
                 f"{r.away} {BF.handicap(r.away_line)}" if r.away_line == r.away_line else None) if x)
             _md = int(r.mode_margin)
             _ms = (f"{r.home} by {_md}" if _md > 0 else f"{r.away} by {-_md}")
-            if r.pick_rule == "dog_band":
-                print(f"      DOG BAND {r.pick_team} {BF.handicap(r.pick_line)} covers "
-                      f"{r.pick_p_cover:.3f}   (median rule would say "
-                      f"{r.median_team} {BF.handicap(r.median_line)})")
+            if r.pick_rule == "market":
+                print(f"      MARKET {r.home} {BF.handicap(r.mkt_line)} "
+                      f"({int(r.mkt_books)} books)  ->  {r.pick_team} "
+                      f"{BF.handicap(r.pick_line)} covers {r.pick_prob:.3f}"
+                      + (f", push {r.pick_push:.3f}" if r.pick_push > 0 else ""))
             else:
-                print(f"      LINE {r.pick_team} {BF.handicap(r.pick_line)}  "
-                      f"wins outright {r.pick_p_win:.3f}")
+                print(f"      NO MARKET, model line {r.pick_team} "
+                      f"{BF.handicap(r.pick_line)}, wins outright {r.pick_prob:.3f}")
+            print("      keys: " + "  ".join(
+                f"{(r.home if (L < 0) == (r.p_home >= .5) else r.away)}"
+                f"{BF.handicap(L)} {r[f'k_{BF.handicap(L)}']:.0%}" for L in KEY_STRIP))
             if r.pick_held:
                 print(f"      HELD  p_home {r.p_home:.4f} is inside the {FLIP_MARGIN:.0%} "
                       f"dead band, keeping last run's pick")
@@ -814,30 +882,40 @@ def run(today_str):
     # read from stored columns, so it covers every graded row in the log including the
     # seasons that predate the dog bands. This is the thing that decides whether the rule
     # stays: it updates every run and it needs no backfill.
-    if DOG_BANDS and {"sp_line", "final_margin"} <= set(log.columns):
-        ab = log[log.sp_line.notna() & log.final_margin.notna()].drop_duplicates("game_id")
-        if len(ab) >= 50:
-            sl = ab.sp_line.values.astype(float)
-            fm = ab.final_margin.values.astype(float)
-            favm = np.where(sl > 0, fm, -fm)          # favourite's margin of victory
-            fired = np.array([dog_band(x) is not None for x in sl])
-            dl = np.array([dog_band(x) or 0.0 for x in sl])
-            med_w = favm > np.abs(sl)                  # median rule: fav covers its line
-            dog_w = favm < dl                          # dog rule: fav held under the line
-            new_w = np.where(fired, dog_w, med_w)
-            def _r(w):
-                a = int(w.sum()); return a, len(w) - a, a / max(len(w), 1)
-            mw, ml_, mh = _r(med_w)
-            nw, nl_, nh = _r(new_w)
-            f2 = 2 * math.sqrt(0.25 / len(ab))
-            print(f"\nRULE A/B on {len(ab)} graded games ({int(fired.sum())} in a dog band)")
-            print(f"  median line only   {mw}-{ml_}  hit {mh:.3f}")
-            print(f"  with dog bands     {nw}-{nl_}  hit {nh:.3f}   "
-                  f"delta {nw - mw:+d} wins, {nl_ - ml_:+d} losses")
-            v = ("clears 2se" if abs(nh - mh) > f2 else "inside 2se, not yet decisive")
-            print(f"  hit delta {nh - mh:+.3f}, 2se {f2:.3f}  [{v}]")
-            print(f"  NOTE graded at the model's own number, so this assumes the dog line "
-                  f"was available. It often is not.")
+    # Skill of the published forecast against publishing the model's own median line.
+    # Brier is reported but is NOT the test: a rule that always published "the dog stays
+    # within 21.5" would score 0.1119, better than anything here, while carrying almost no
+    # information. BSS and resolution are what separate a sharp forecast from a safe one.
+    if {"pick_line", "pick_prob", "final_margin", "p_home", "sp_line"} <= set(log.columns):
+        ab = log[log.pick_prob.notna() & log.final_margin.notna()].drop_duplicates("game_id")
+        if len(ab) >= 30:
+            hs = ab.p_home.values.astype(float) >= 0.5
+            favm = np.where(hs, ab.final_margin.values, -ab.final_margin.values).astype(float)
+            pl = ab.pick_line.values.astype(float)
+            pp = ab.pick_prob.values.astype(float)
+            y = np.where(pl < 0, favm > np.abs(pl), favm < pl).astype(float)
+            br = float(np.mean((pp - y) ** 2))
+            bs = float(y.mean())
+            brb = float(np.mean((bs - y) ** 2))
+            bss = 1 - br / max(brb, 1e-9)
+            res = float(np.mean((pp - bs) ** 2))
+            # the median line, same games, as the thing to beat
+            ym = (favm > np.abs(ab.sp_line.values.astype(float))).astype(float)
+            pm = np.where(hs, ab.p_home.values, 1 - ab.p_home.values).astype(float)
+            brm = float(np.mean((pm - ym) ** 2))
+            bsm = float(ym.mean())
+            bssm = 1 - brm / max(float(np.mean((bsm - ym) ** 2)), 1e-9)
+            print(f"\nFORECAST SKILL on {len(ab)} graded picks")
+            print(f"  published key line   Brier {br:.4f}  BSS {bss:+.3f}  "
+                  f"resolution {res:.4f}  hit {bs:.3f}")
+            print(f"  model median line    Brier {brm:.4f}  BSS {bssm:+.3f}  "
+                  f"hit {bsm:.3f}")
+            print(f"  lines in use: " + ", ".join(
+                f"{k:+g}x{v}" for k, v in sorted(pd.Series(pl).value_counts().items())))
+            if res < 0.005:
+                print("  RESOLUTION COLLAPSE: the board is publishing safe claims that "
+                      "carry no information")
+                alerts.append("NFL resolution")
 
     # The spread head against its own five logged lines. The strongest test available,
     # because these are probabilities the model wrote down at fixed numbers before the
@@ -873,16 +951,19 @@ def run(today_str):
             if not isinstance(r.pick_team, str):
                 skipped += 1
                 continue
-            _dog = r.pick_rule == "dog_band"
+            if r.pick_rule == "market":
+                ctx = (f"model {r.median_team} {BF.handicap(r.median_line)}, "
+                       f"market {r.home} {BF.handicap(r.mkt_line)} "
+                       f"({int(r.mkt_books)} books)")
+            else:
+                ctx = "no market line, model line shown"
             bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
                        f"{r.pick_team} {BF.handicap(r.pick_line)}",
-                       r.game_id,
-                       float(r.pick_p_cover if _dog else r.pick_p_win), incal, int(r.week),
-                       _dog))
+                       r.game_id, float(r.pick_prob), incal, int(r.week), ctx))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
-            for d_, gm, pk, gid, ph_i, incal, wk, is_dog in bd:
+            for d_, gm, pk, gid, ph_i, incal, wk, ctx in bd:
                 # A forecast row, not a board row. BF.line's trailer is "find <price> or
                 # better", which is an instruction to bet, and at the median line the cover
                 # is 50% by construction so any price there is either meaningless or a lie.
@@ -896,9 +977,9 @@ def run(today_str):
                 # model's line beside it, which put two teams and two numbers on one line
                 # and left the reader deciding which was the call. median_team and
                 # median_line are still in predictions.csv for the A/B.
-                _v = "cover" if is_dog else "win"
-                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  {_v} {ph_i:.1%}"
-                notes = []
+                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  cover {ph_i:.1%}"
+                notes_pre = [f"      note: {ctx}"]
+                notes = list(notes_pre)
                 if incal:
                     cal_n += 1
                     notes.append(f"      note: week {wk} calibration, forward test "
@@ -923,6 +1004,8 @@ def run(today_str):
                              # every row forever, so the gate's price check can never fire.
                              # The pick string is what actually moves: a QB ruled out on
                              # Sunday morning shifts the threshold and rewrites this.
+                             # the market number is part of the claim now, so a line move
+                             # reposts even when the model has not budged
                              "match": f"{pk} {ph_i:.0%}",
                              "cal": incal}
     print("\n=== MBM NFL board ===")

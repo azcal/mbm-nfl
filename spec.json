@@ -14,12 +14,21 @@
   "early_until": "2026-09-14",
   "early_weekday": 1,
   "early_dense_days": 7,
-  "dog_bands": [
-    [
-      0.5,
-      2.5,
-      3.5
-    ]
+  "flip_margin": 0.02,
+  "key_numbers": [
+    3,
+    6,
+    7,
+    10,
+    14,
+    21
   ],
-  "flip_margin": 0.02
+  "key_strip": [
+    -2.5,
+    3.5,
+    -5.5,
+    -6.5,
+    7.5
+  ],
+  "odds_regions": "us"
 }
