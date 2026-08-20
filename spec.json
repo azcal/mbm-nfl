@@ -1,1 +1,18 @@
-{"cfg": {"K": 14, "HA": 55, "carry": 0.75, "hl_f": 4, "hl_s": 10, "q_tau": 120, "q_carry": 0.8}, "C": 0.05}
+{
+  "cfg": {
+    "K": 14,
+    "HA": 55,
+    "carry": 0.75,
+    "hl_f": 4,
+    "hl_s": 10,
+    "q_tau": 120,
+    "q_carry": 0.8
+  },
+  "C": 0.05,
+  "horizon_days": 7,
+  "cal_unlock_week": 5,
+
+  "early_until": "2026-09-14",
+  "early_weekday": 1,
+  "early_dense_days": 7
+}

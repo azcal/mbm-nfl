@@ -11,7 +11,7 @@ import math
 
 # Bumped whenever this file changes. Every runner asserts on it at import, so a repo
 # holding an old copy fails in the workflow's import guard instead of rendering wrong.
-VERSION = "2026-08-04"
+VERSION = "2026-08-19"
 
 # Zero on purpose. The board publishes the EXACT price at which a bet breaks even, and the
 # row reads "or better", so choosing a margin is the bettor's job at the book rather than
@@ -86,6 +86,51 @@ def spread_threshold(cover_fn, i, grid, edge=MIN_EDGE, odds=STD_SPREAD_ODDS):
     hi = [k for k, p in zip(grid, ph) if p >= need]
     lo = [k for k, p in zip(grid, ph) if (1 - p) >= need]
     return (max(hi) if hi else None, min(lo) if lo else None)
+
+
+def spread_threshold_push(cover3_fn, i, grid, edge=MIN_EDGE, odds=STD_SPREAD_ODDS):
+    """spread_threshold on a grid that may contain whole numbers, with the push counted.
+
+    A whole-number line is a three-outcome bet. The stake comes back on a push, so what has
+    to clear standard juice is the chance of covering among the games that resolve,
+    cover / (cover + no-cover), rather than P(cover) against everything. Judging a whole
+    number on P(cover) alone understates it by the whole push mass, and in the NFL that is
+    15.0% of games at 3 and 8.3% at 7.
+
+    Worked case, home side, the league's own margin shape and p(home) = 0.62:
+
+        line    cover   push   no-cover   resolves at
+        -2.5    0.566   .000      0.434        56.6%   bet
+        -3      0.477   .089      0.434        52.4%   bet, and a better number
+        -3.5    0.477   .000      0.523        47.7%   pass
+
+    On a half-point-only grid -3 does not exist, so that game published -2.5 and never said
+    the extra half point was still worth taking.
+
+    cover3_fn(k) returns the (home, push, away) triple for the whole slate at line k.
+    Returns (home_line, away_line) in margin space, or None where nothing qualifies.
+    """
+    need = (1 + edge) / odds
+    hi, lo = [], []
+    for k in grid:
+        h, _pu, a = cover3_fn(k)
+        h, a = float(h[i]), float(a[i])
+        live = h + a
+        if live <= 0:
+            continue
+        if h / live >= need:
+            hi.append(k)
+        if a / live >= need:
+            lo.append(k)
+    return (max(hi) if hi else None, min(lo) if lo else None)
+
+
+def handicap(x):
+    """A margin threshold as a bettor reads it: '-3', '+7', '-3.5'. Whole numbers print
+    without a decimal, because a book quotes -3 and a row reading -3.0 looks like a typo
+    for -3.5, which is a different bet 15% of the time."""
+    x = float(x)
+    return f"{x:+.0f}" if x == int(x) else f"{x:+.1f}"
 
 
 def spread_pick(home, away, line_margin):

@@ -3,11 +3,13 @@ MBM NFL daily runner (rebuild v1, frozen spec).
 - Refreshes nflverse games + current-season pbp EPA aggregates
 - Expected starters from depth charts + injury report (fallback: last actual starter)
 - Boards upcoming games (7-day horizon): p(home), model margin, model total
-- CALIBRATION GATE: value lines suppressed through Week 4 on the board AND the push
+- EARLY WINDOW: boards all of Week 1 from the moment the window opens, on a weekly
+  cadence until seven days out, then the normal twice-daily runs. Self-reverting.
+- CALIBRATION: weeks 1 to 4 publish the full priced line, tagged as forward test
 - Grades logged predictions (ties push), rolling metrics + last-150 tripwire
 Usage: python daily_nfl.py [--date YYYY-MM-DD]
 """
-import argparse, io, json, os, sys, math, datetime as dt
+import argparse, io, json, os, re, sys, math, datetime as dt
 import numpy as np, pandas as pd, requests
 from collections import defaultdict
 from sklearn.linear_model import LogisticRegression, Ridge
@@ -29,7 +31,7 @@ import engine_nfl as E
 # job: the runner compares it against sp_ver in the log and rebackfills history when they
 # differ. Folding it in would raise on the string comparison, and bumping it for freshness
 # reasons would trigger a full rebackfill for no reason.
-SHARED_MIN = "2026-08-03"
+SHARED_MIN = "2026-08-19"
 for _mod in (BF, notify, tg_delta):
     _have = getattr(_mod, "VERSION", "")
     if _have < SHARED_MIN:
@@ -53,11 +55,57 @@ HORIZON_DAYS = SPEC.get("horizon_days", 7)
 SP_LINES = [-7.5, -3.5, -0.5, 3.5, 7.5]     # margin thresholds logged for grading
 SP_COLS = ["p_sp_m75", "p_sp_m35", "p_sp_m05", "p_sp_p35", "p_sp_p75"]
 
+# Half points AND whole numbers. The old grid was np.arange(-40.5, 41.0, 1.0), half points
+# only, so the board could never publish -3, -7, -10 or -14. Measured on 2,494 games from
+# 2017 to 2025, an NFL margin lands exactly on one of those four in 33.3% of games, 15.0%
+# on 3 alone. Skipping them meant skipping the third of the distribution where the push
+# does the work. Priced through spread.cover3, which separates the push out instead of
+# handing it to the away side. See board_format.spread_threshold_push.
+KEY_GRID = np.arange(-40.0, 41.0, 0.5)
+
+# --- Week 1 early window -------------------------------------------------------------
+# A date rather than a wider horizon. A horizon big enough to reach Week 1 in August would
+# still be that big in November, where it would park every game on the board for a month.
+# This reaches forward to one fixed date and then stops mattering: once today passes it the
+# board is back on HORIZON_DAYS with no edit, no revert step, nothing to forget.
+EARLY_UNTIL = SPEC.get("early_until")            # "2026-09-14", the last Week 1 game
+EARLY_WEEKDAY = SPEC.get("early_weekday", 1)     # Monday=0, so 1 is Tuesday
+EARLY_DENSE_DAYS = SPEC.get("early_dense_days", 7)
+
+# Which cron fired, set by the workflow. "manual" for workflow_dispatch, which always runs.
+SLOT = os.environ.get("MBM_SLOT", "manual")
+
+# ESPN, because nflverse injuries_2026.parquet 404s until the regular season and the QB
+# layer has therefore been applying no injury filter at all. Probed 2026-08-19: 800 entries
+# live, an athlete id on every one, and all 75 QB rows joining to the depth chart. The
+# join key is espn_id, which nflverse already carries in depth_charts beside gsis_id, so
+# there is no name matching anywhere in this path.
+ESPN_INJ = "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/injuries"
+# site.api.espn.com returns 403 on this route; site.web.api is the one that answers.
+#
+# Questionable is deliberately absent. It is the largest bucket by far (193 of 800 live)
+# and most of it plays. Treating it as out would have benched Mahomes off a Questionable
+# knee three weeks before a game he is expected to start.
+ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
+
 
 def spread_ladder(i, ph, Ph, Pa, exp, home, away, span=4):
-    out = [f"    {'line':>7}  {home + ' covers':>14} {'needs':>7}   {away + ' covers':>14} {'needs':>7}"]
-    for q, p, o1, p2, o2 in spread.ladder(ph[i], Ph[i], Pa[i], exp[i], min_odds, span=span):
-        out.append(f"    {q:>+7.1f}  {p:>14.3f} {o1:>7.2f}   {p2:>14.3f} {o2:>7.2f}")
+    """Console-only ladder, now stepping every half point so the whole numbers appear.
+
+    A push column comes with them. At -3 the push is the third of the row that decides
+    whether the line is a bet, and a ladder that prints cover and no-cover without it
+    reads as though 3 and 3.5 are the same proposition.
+    """
+    out = [f"    {'line':>7}  {home + ' cov':>12} {'needs':>7}  {'push':>6}  "
+           f"{away + ' cov':>12} {'needs':>7}"]
+    lo = math.floor(exp[i]) - span + 0.5
+    for n in range(int(4 * span) + 1):
+        k = lo + n * 0.5
+        h, pu, a = spread.cover3(ph[i:i+1], Ph[i:i+1], Pa[i:i+1], k)
+        h, pu, a = float(h[0]), float(pu[0]), float(a[0])
+        live = max(h + a, 1e-9)
+        out.append(f"    {-k:>+7.1f}  {h:>12.3f} {min_odds(h / live):>7.2f}  "
+                   f"{pu:>6.3f}  {a:>12.3f} {min_odds(a / live):>7.2f}")
     return out
 
 
@@ -89,8 +137,36 @@ def refresh_current_pbp(season):
         ["game_id","passer_player_id"]).agg(db=("qb_epa","size"), qb_epa_sum=("qb_epa","sum")).reset_index()
     return t, q
 
+def espn_outs():
+    """ESPN athlete ids listed as unavailable. Empty set on any failure, so a bad response
+    degrades to the nflverse path rather than benching nobody loudly or everybody quietly.
+
+    The id is not a field on the payload. It sits in the playercard URL, which is stable
+    and present on every entry; 800 of 800 parsed on the probe run.
+    """
+    try:
+        j = requests.get(ESPN_INJ, headers={**H, "Accept": "application/json"},
+                         timeout=60).json()
+        out = set()
+        for team in j.get("injuries", []):
+            for it in team.get("injuries", []):
+                if str(it.get("status", "")).strip().lower() not in ESPN_OUT:
+                    continue
+                for link in (it.get("athlete") or {}).get("links", []):
+                    m = re.search(r"/id/(\d+)/", link.get("href", ""))
+                    if m:
+                        out.add(m.group(1))
+                        break
+        print(f"ESPN injuries: {len(out)} player(s) unavailable "
+              f"({'/'.join(sorted(ESPN_OUT))})")
+        return out
+    except Exception as ex:
+        print("ESPN injury feed unavailable:", type(ex).__name__)
+        return set()
+
+
 def expected_starters(season):
-    """team -> qb gsis id, from depth charts minus injury Outs; {} on any failure."""
+    """team -> qb gsis id, from depth charts minus everyone ruled out; {} on any failure."""
     try:
         r = requests.get(f"{NV}/injuries/injuries_{season}.parquet", headers=H, timeout=120)
         inj = pd.read_parquet(io.BytesIO(r.content)) if r.status_code == 200 else pd.DataFrame()
@@ -98,6 +174,11 @@ def expected_starters(season):
         if len(inj) and "report_status" in inj.columns:
             w = inj[inj.week == inj.week.max()]
             outs = set(w.loc[w.report_status.astype(str).str.lower() == "out", "gsis_id"].dropna())
+        else:
+            # Not an error. This file does not exist until the regular season injury
+            # reports start, which is exactly the stretch the early window runs in.
+            print(f"nflverse injuries_{season} not published yet, ESPN is carrying this")
+        eouts = espn_outs()
         r = requests.get(f"{NV}/depth_charts/depth_charts_{season}.parquet", headers=H, timeout=120)
         if r.status_code != 200:
             return {}
@@ -109,18 +190,65 @@ def expected_starters(season):
         qb = dc[dc[pos].astype(str).str.upper() == "QB"].copy()
         wk = next((c for c in ("week", "dt") if c in qb.columns), None)
         if wk:
-            qb = qb[qb[wk] == qb[wk].max()]
+            # Latest snapshot PER TEAM, not one global max. The file is a daily scrape and
+            # every team currently shares a timestamp, so the two agree today. On the day
+            # one team is scraped a second late, a global max keeps that team and silently
+            # drops the other 31 to the last-starter fallback, which is a board-wide
+            # mispricing that prints no error.
+            qb = qb[qb[wk] == qb.groupby(tcol)[wk].transform("max")]
         qb[dep] = pd.to_numeric(qb[dep], errors="coerce")
-        out = {}
+        eid = "espn_id" if "espn_id" in qb.columns else None
+        out, benched = {}, []
         for tm, grp in qb.sort_values(dep).groupby(tcol):
-            for gid in grp[idc]:
-                if gid == gid and gid not in outs:
-                    out[E.REN.get(tm, tm)] = gid
-                    break
+            for _, row in grp.iterrows():
+                gid = row[idc]
+                if gid != gid:
+                    continue
+                if gid in outs or (eid and str(row[eid]) in eouts):
+                    benched.append(f"{tm} {row.get('player_name', gid)}")
+                    continue
+                out[E.REN.get(tm, tm)] = gid
+                break
+        print(f"expected starters: {len(out)}/32 teams resolved from the depth chart")
+        if benched:
+            print("  ruled out, next man up: " + ", ".join(benched))
         return out
     except Exception as ex:
         print("depth-chart feed unavailable, using last-starter fallback:", type(ex).__name__)
         return {}
+
+
+def board_until(today):
+    """Last game date to board. HORIZON_DAYS normally, reaching to EARLY_UNTIL while the
+    early window is open. max() rather than a swap, so the window can only ever widen the
+    board and never shorten it."""
+    hi = today + pd.Timedelta(days=HORIZON_DAYS)
+    if EARLY_UNTIL and today <= pd.Timestamp(EARLY_UNTIL):
+        hi = max(hi, pd.Timestamp(EARLY_UNTIL))
+    return hi
+
+
+def cadence_skip(today, first_game):
+    """True when this scheduled run should do nothing.
+
+    Both crons fire every day and always will; GitHub Actions cannot express "weekly until
+    a date, then twice daily", and a workflow that rewrites its own schedule is a worse
+    problem than an early exit. So the cadence lives here, where it can be read.
+
+    Weekly while the first boarded game is more than EARLY_DENSE_DAYS away, because nothing
+    moves a Week 1 line in August except a depth chart change, and those are worth one
+    look a week. Inside that, both runs, which is the normal in-season behaviour arriving
+    on its own.
+    """
+    if SLOT == "manual" or not EARLY_UNTIL:
+        return False
+    if today > pd.Timestamp(EARLY_UNTIL) or first_game is None:
+        return False
+    days = (first_game - today).days
+    if days <= EARLY_DENSE_DAYS:
+        return False
+    return not (SLOT == "am" and today.weekday() == EARLY_WEEKDAY)
+
 
 def run(today_str):
     today = pd.Timestamp(today_str)
@@ -139,7 +267,21 @@ def run(today_str):
     for c in ("home_team", "away_team"):
         g[c] = g[c].replace(E.REN)
     g["date"] = pd.to_datetime(g.gameday)
-    upcoming = g[g.result.isna() & (g.date >= today) & (g.date <= today + pd.Timedelta(days=HORIZON_DAYS))].copy()
+    hi = board_until(today)
+    upcoming = g[g.result.isna() & (g.date >= today) & (g.date <= hi)].copy()
+
+    # Before the fit and before any feed is touched, so a skipped run costs seconds.
+    first_game = upcoming.date.min() if len(upcoming) else None
+    if cadence_skip(today, first_game):
+        d = (first_game - today).days
+        print(f"weekly cadence: {len(upcoming)} game(s) boarded, first in {d} days, "
+              f"next scheduled work is the {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][EARLY_WEEKDAY]}"
+              f" morning run. Twice daily from {d - EARLY_DENSE_DAYS} day(s) out.")
+        return
+    if EARLY_UNTIL and today <= pd.Timestamp(EARLY_UNTIL):
+        print(f"early window open: boarding through {pd.Timestamp(EARLY_UNTIL):%Y-%m-%d} "
+              f"({len(upcoming)} game(s)); reverts to a {HORIZON_DAYS}-day horizon by itself")
+
     exp = expected_starters(season)
     last_starter = {}
     for r in g[g.result.notna()].sort_values("date").itertuples():
@@ -248,14 +390,14 @@ def run(today_str):
         for bi, ((idx, r), tot, incal) in enumerate(zip(board.iterrows(), totals, cal.values)):
             mgn = sp_exp[bi]
             side = f"model: {r.home} by {mgn:.1f}" if mgn > 0 else f"model: {r.away} by {-mgn:.1f}"
-            vals = (f"value: {r.home} >= {min_odds(r.p_home):.2f} / {r.away} >= {min_odds(1-r.p_home):.2f}"
-                    if not incal else "CALIBRATION thru Wk4: predictions only, no betting")
+            vals = f"value: {r.home} >= {min_odds(r.p_home):.2f} / {r.away} >= {min_odds(1-r.p_home):.2f}"
+            if incal:
+                vals += f"  [wk {int(r.week)} calibration]"
             print(f"{r.away:>3} @ {r.home:<3}  p(home)={r.p_home:.3f}  {side}, total {tot:.1f}  | {vals}")
-            if not incal:
-                for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
-                    print(ln)
+            for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
+                print(ln)
     else:
-        print(f"no games in the next {HORIZON_DAYS} days")
+        print(f"no games on or before {hi:%Y-%m-%d}")
 
     fin = g.set_index("game_id")["result"]
     log["result"] = log.game_id.map(fin)
@@ -284,54 +426,48 @@ def run(today_str):
 
     push, skipped, cal_n = {}, 0, 0
     if board is not None:
-        _grid = np.arange(-40.5, 41.0, 1.0)
-        _cf = lambda k: spread.cover(sp_ph, sp_Ph, sp_Pa, k)
+        _c3 = lambda k: spread.cover3(sp_ph, sp_Ph, sp_Pa, k)
         bd = []
         for bi, (_, r) in enumerate(board.iterrows()):
+            # Weeks 1 to 4 now publish the same priced line every other week does, carrying
+            # a tag instead of a blank. Suppressing the number never protected anyone: it
+            # removed the record. A forward test that prints nothing for its first four
+            # weeks cannot be graded on its first four weeks.
             incal = bool(r.week < CAL_UNLOCK_WEEK)
-            if incal:
-                # The calibration gate was checked in the console print and nowhere else,
-                # so weeks 1 to 4 were publishing priced value lines to the channel. A
-                # calibration row now carries the model's own line and no price at all.
-                bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
-                           BF.spread_pick(r.home, r.away, float(sp_line[bi])),
-                           r.game_id, float(p[bi]), True, int(r.week)))
-                continue
-            kh, ka = BF.spread_threshold(_cf, bi, _grid)
+            kh, ka = BF.spread_threshold_push(_c3, bi, KEY_GRID)
             # Two actionable lines per game, one each side. Together they bound the
             # zone where neither side is worth taking at standard juice.
             parts = []
             if kh is not None:
-                parts.append(f"{r.home} {-kh:+.1f}")
+                parts.append(f"{r.home} {BF.handicap(-kh)}")
             if ka is not None:
-                parts.append(f"{r.away} {ka:+.1f}")
+                parts.append(f"{r.away} {BF.handicap(ka)}")
             if not parts:
                 skipped += 1
                 continue
             bd.append((str(r.date)[:10], f"{r.away} @ {r.home}", " / ".join(parts),
-                       r.game_id, float(p[bi]), False, int(r.week)))
+                       r.game_id, float(p[bi]), incal, int(r.week)))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
             for d_, gm, pk, gid, ph_i, incal, wk in bd:
+                # The probability passed here exists only to make price() print the
+                # standard spread number. It has to track MIN_EDGE: hardcoding 1.05
+                # printed 1.91 while the edge was 5% and 1.82 once it went to zero,
+                # and 1.82 on a 52.36% cover is -4.7% EV.
+                ln = BF.line(d_, gm, pk,
+                             (1 + BF.MIN_EDGE) / BF.STD_SPREAD_ODDS,
+                             w_game=wg, w_pick=wp)
+                notes = []
                 if incal:
-                    ln = (f"{d_}  {gm}  ·  calibration week {wk}, model {pk}, "
-                          f"no betting until Week {CAL_UNLOCK_WEEK}")
                     cal_n += 1
-                else:
-                    # The probability passed here exists only to make price() print the
-                    # standard spread number. It has to track MIN_EDGE: hardcoding 1.05
-                    # printed 1.91 while the edge was 5% and 1.82 once it went to zero,
-                    # and 1.82 on a 52.36% cover is -4.7% EV.
-                    ln = BF.line(d_, gm, pk,
-                                 (1 + BF.MIN_EDGE) / BF.STD_SPREAD_ODDS,
-                                 w_game=wg, w_pick=wp)
-                    # Live-entry note keyed off the moneyline favourite, not the spread.
-                    # Only fires where the pregame moneyline is too short to take at all.
-                    fav_p = max(ph_i, 1 - ph_i)
-                    note = BF.live_note("NFL", fav_p)
-                    if note:
-                        ln = "\n".join([ln] + note)
+                    notes.append(f"      week {wk} calibration, forward test until "
+                                 f"Week {CAL_UNLOCK_WEEK}")
+                # Live-entry note keyed off the moneyline favourite rather than the
+                # spread. Only fires where the pregame moneyline is too short to take.
+                notes += BF.live_note("NFL", max(ph_i, 1 - ph_i))
+                if notes:
+                    ln = "\n".join([ln] + notes)
                 push[gid] = {"line": ln,
                              "min_odds": BF.STD_SPREAD_ODDS,
                              # min_odds is a module constant on this board, identical on
