@@ -52,6 +52,44 @@ jobs:
           # override: any time you want a board on a non-Tuesday, run it by hand.
           MBM_SLOT: ${{ github.event_name != 'schedule' && 'manual' || ((github.event.schedule == '0 15 * 3-10 *' || github.event.schedule == '0 16 * 1-2,11-12 *') && 'am' || 'pm') }}
 
+      # Mirror picks.csv into a separate public repo. Push from here rather than pull from
+      # there: no schedule to keep in sync, and the file lands the moment it is generated.
+      #
+      # Both PICKS_REPO and the token must be set or the step no-ops. That is deliberate,
+      # so this workflow keeps working unchanged in a fork or before the secret exists.
+      - name: publish picks
+        env:
+          PICKS_TOKEN: ${{ secrets.PICKS_REPO_TOKEN }}
+          # owner/repo of the PUBLIC repo. Edit this line, leave it empty to disable.
+          PICKS_REPO: ""
+        run: |
+          set -e
+          if [ -z "$PICKS_TOKEN" ] || [ -z "$PICKS_REPO" ]; then
+            echo "publish target not configured, skipping"
+            exit 0
+          fi
+          if [ ! -f logs/picks.csv ]; then
+            echo "no picks.csv this run (cadence skip or empty board)"
+            exit 0
+          fi
+          TMP=$(mktemp -d)
+          git clone --quiet --depth 1 \
+            "https://x-access-token:$PICKS_TOKEN@github.com/$PICKS_REPO.git" "$TMP/pub"
+          mkdir -p "$TMP/pub/data"
+          cp logs/picks.csv "$TMP/pub/data/picks.csv"
+          cp logs/picks_README.md "$TMP/pub/data/README.md"
+          cd "$TMP/pub"
+          git config user.name mbm-bot
+          git config user.email bot@mbm
+          git add data
+          if git diff --cached --quiet; then
+            echo "picks unchanged, nothing published"
+            exit 0
+          fi
+          git commit -q -m "picks $(date -u +%Y-%m-%d\ %H:%M)Z"
+          git push -q
+          echo "published to $PICKS_REPO"
+
       # Two things the original commit step got wrong.
       #
       # It failed outright when the remote had moved since checkout, which happens whenever
