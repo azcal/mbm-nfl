@@ -51,6 +51,10 @@ jobs:
           # workflow_dispatch resolves to "manual", which always runs in full. That is the
           # override: any time you want a board on a non-Tuesday, run it by hand.
           MBM_SLOT: ${{ github.event_name != 'schedule' && 'manual' || ((github.event.schedule == '0 15 * 3-10 *' || github.event.schedule == '0 16 * 1-2,11-12 *') && 'am' || 'pm') }}
+          # The Odds API. A repository secret is NOT visible to a step unless it is named
+          # here, so adding the secret alone left the runner reading an empty string and
+          # falling back to model lines on every game while the credit counter stayed at 0.
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
 
       # Mirror picks.csv into a separate public repo. Push from here rather than pull from
       # there: no schedule to keep in sync, and the file lands the moment it is generated.
