@@ -16,7 +16,8 @@ file, so whether a probability beats the odds at your book is entirely your call
 | `pick_side` | whether that team is `home` or `away` in this game |
 | `pick_line` | the handicap **on `pick_team`**, taken from the book line. Negative lays points, positive takes them. Not a home-side number; `pick_side` tells you which end it belongs to. |
 | `book_line` | the same number as a sportsbook posts it, on the **home** team. Median across `book_count` books. Empty when no market line was available. |
-| `book_count` | how many books went into that median |
+| `book_count` | how many books post that exact number |
+| `book_total` | how many books priced the game at all. `3` of `9` is a market that cannot agree with itself; `3` of `3` is just a thin one. |
 | `pick_claim` | what is asserted: `covers` or `wins outright` |
 | `pick_prob` | probability of **that claim**, with any push excluded |
 | `pick_push` | chance the game lands exactly on `pick_line`. Non-zero only on whole numbers, where it reaches 9-10% at 3. |
