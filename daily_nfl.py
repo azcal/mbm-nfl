@@ -231,41 +231,87 @@ def expected_starters(season):
         return {}
 
 
-def resolve_picks(cover3_fn, ph, home, away):
-    """One side per game, plus everything a grader needs later.
+def resolve_picks(cover3_fn, ph, sp_line, home, away):
+    """The model's own line per game, plus the thresholds kept for the record.
 
-    The side comes from the moneyline. spread.median_line already forces sp_line onto the
-    same side as p_home, so anchoring the spread here means the published pick can never
-    contradict the winner head, which is the only output on this board with 569 graded
-    games behind it. A rule that read the mean margin instead would have taken PIT in
-    ATL @ PIT, where the mean says PIT by 0.8 and the moneyline says ATL at 50.4%.
+    pick_line is the MEDIAN, spread.median_line's number: the half point where the picked
+    team covers closest to 50%. That is the most likely result and it is what the board
+    publishes. Verified unbiased across 569 graded games, 299-270-0, cover 0.525 against a
+    0.500 target with 2se = 0.042.
 
-    Both thresholds are still computed and both are written to the log. The board shows the
-    one side; the row keeps the pair, so asking later whether the other side was live does
-    not need a rerun.
+    It is deliberately no longer the break-even threshold this returned before. A threshold
+    is an instruction to bet and whether to bet belongs to the reader. Both thresholds are
+    still computed and still written to the log as home_line and away_line, so a machine
+    reading the file keeps everything; the board simply stops acting on them.
 
-    pick_line is the book's handicap on the picked team, negative laying points and positive
-    taking them, which makes grading margin_for_pick + pick_line with zero a push.
+    pick_p_win is P(picked team wins outright), which is the number the calibration claim
+    attaches to. It has 569 graded games behind it and runs conservative: says 0.651,
+    delivers 0.670. P(cover pick_line) is logged but not published, because median_line
+    puts it at 50% on every row by construction and it therefore says nothing.
+
+    pick_mode is the single likeliest exact margin. On a half-point line the push is always
+    zero, so this is where the 3-6-7 structure actually shows up, and it belongs in the log
+    rather than being invisible.
     """
     out = []
     for i in range(len(ph)):
         kh, ka = BF.spread_threshold_push(cover3_fn, i, KEY_GRID)
         home_side = float(ph[i]) >= 0.5
-        k = kh if home_side else ka
-        row = {"pick_team": None, "pick_side": "home" if home_side else "away",
-               "pick_line": np.nan, "pick_p": np.nan, "pick_push": np.nan,
-               "home_line": -kh if kh is not None else np.nan,
-               "away_line": ka if ka is not None else np.nan}
-        if k is not None:
-            h, pu, a = cover3_fn(k)
-            cov = float(h[i]) if home_side else float(a[i])
-            oth = float(a[i]) if home_side else float(h[i])
-            row.update(pick_team=str(home[i] if home_side else away[i]),
-                       pick_line=float(-k if home_side else k),
-                       pick_p=cov / max(cov + oth, 1e-9),
-                       pick_push=float(pu[i]))
-        out.append(row)
+        med = float(sp_line[i])
+        h, pu, a = cover3_fn(med)
+        cov = float(h[i]) if home_side else float(a[i])
+        oth = float(a[i]) if home_side else float(h[i])
+        out.append({
+            "pick_team": str(home[i] if home_side else away[i]),
+            "pick_side": "home" if home_side else "away",
+            "pick_line": float(-med if home_side else med),
+            "pick_p_win": float(ph[i]) if home_side else float(1.0 - ph[i]),
+            "pick_p_cover": cov / max(cov + oth, 1e-9),
+            "home_line": -kh if kh is not None else np.nan,
+            "away_line": ka if ka is not None else np.nan,
+        })
     return out
+
+
+def mode_margin(ph, Ph, Pa):
+    """Likeliest exact margin per game, signed from the home side, and its probability."""
+    j = np.arange(1, spread.JMAX + 1)
+    hm = Ph * np.asarray(ph, float)[:, None]
+    am = Pa * (1 - np.asarray(ph, float))[:, None]
+    both = np.hstack([am[:, ::-1], hm])
+    grid = np.hstack([-j[::-1], j])
+    k = both.argmax(axis=1)
+    return grid[k], both[np.arange(len(k)), k]
+
+
+def reliability(p, y, label, edges=(0.0, .15, .30, .40, .50, .60, .70, .85, 1.01), min_n=25):
+    """Said versus happened, in buckets. Returns True if any bucket OVERCLAIMS by 2se.
+
+    Only overclaiming trips. A board that says 67% and delivers 70% is doing the thing it
+    was asked to do, so treating that as a failure would be backwards.
+    """
+    p, y = np.asarray(p, float), np.asarray(y, float)
+    ok = np.isfinite(p) & np.isfinite(y)
+    p, y = p[ok], y[ok]
+    if len(p) < min_n:
+        return False
+    print(f"\n{label}  n={len(p)}")
+    print(f"{'bucket':>12} {'n':>6} {'said':>7} {'actual':>7} {'gap':>7}  verdict")
+    over = False
+    for lo, hi in zip(edges, edges[1:]):
+        m = (p >= lo) & (p < hi)
+        if m.sum() < min_n:
+            continue
+        said, act = p[m].mean(), y[m].mean()
+        se = math.sqrt(max(said * (1 - said), 1e-9) / m.sum())
+        bad = (said - act) > 2 * se
+        over |= bad
+        v = "OVERCLAIM" if bad else ("ok" if abs(act - said) <= 2 * se else "conservative")
+        print(f"{lo:.2f}-{min(hi, 1.0):.2f} {m.sum():>11} {said:>7.3f} {act:>7.3f} "
+              f"{act - said:>+7.3f}  {v}")
+    print(f"{'pooled':>12} {len(p):>6} {p.mean():>7.3f} {y.mean():>7.3f} "
+          f"{y.mean() - p.mean():>+7.3f}")
+    return over
 
 
 def board_until(today):
@@ -441,7 +487,11 @@ def run(today_str):
         _c3 = lambda k: spread.cover3(sp_ph, sp_Ph, sp_Pa, k)
         board["cal"] = board.week < CAL_UNLOCK_WEEK
         board = board.join(pd.DataFrame(
-            resolve_picks(_c3, p, rows.home.values, rows.away.values), index=board.index))
+            resolve_picks(_c3, p, sp_line, rows.home.values, rows.away.values),
+            index=board.index))
+        _mm, _mp = mode_margin(sp_ph, sp_Ph, sp_Pa)
+        board["mode_margin"] = _mm
+        board["mode_p"] = _mp
         log = pd.concat([log[~log.game_id.isin(board.game_id)], board], ignore_index=True)
         print("\n--- NFL detail: model margin, total, spread ladder ---")
         for bi, ((idx, r), tot, incal) in enumerate(zip(board.iterrows(), totals, cal.values)):
@@ -454,11 +504,12 @@ def run(today_str):
             _band = " / ".join(x for x in (
                 f"{r.home} {BF.handicap(r.home_line)}" if r.home_line == r.home_line else None,
                 f"{r.away} {BF.handicap(r.away_line)}" if r.away_line == r.away_line else None) if x)
-            _pk = (f"{r.pick_team} {BF.handicap(r.pick_line)} "
-                   f"(covers {r.pick_p:.3f}, push {r.pick_push:.3f})"
-                   if isinstance(r.pick_team, str) else "no line qualifies on the model's side")
-            print(f"      PICK {_pk}")
-            print(f"      both sides live at: {_band}")
+            _md = int(r.mode_margin)
+            _ms = (f"{r.home} by {_md}" if _md > 0 else f"{r.away} by {-_md}")
+            print(f"      LINE {r.pick_team} {BF.handicap(r.pick_line)}  "
+                  f"wins outright {r.pick_p_win:.3f}  covers own line {r.pick_p_cover:.3f}")
+            print(f"      likeliest exact margin {_ms} at {r.mode_p:.3f}")
+            print(f"      break-even thresholds (logged, not published): {_band}")
             for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
                 print(ln)
     else:
@@ -489,29 +540,50 @@ def run(today_str):
                 alerts.append("NFL winner")
         dec.to_csv(os.path.join(LOGS, "graded.csv"), index=False)
 
-    # Against the spread, on the side the board actually published. The moneyline grade
-    # above says whether the winner head is calibrated; it says nothing about whether the
-    # published handicap beat the number. Those are different questions and only this one
-    # is about the board.
-    if "pick_line" in log.columns:
-        ats = log[log.pick_line.notna() & log.final_margin.notna()].copy()
-        if len(ats) >= 20:
-            mp = np.where(ats.pick_side.values == "home",
-                          ats.final_margin.values, -ats.final_margin.values)
-            e = mp + ats.pick_line.values.astype(float)
-            win, loss, pu = int((e > 0).sum()), int((e < 0).sum()), int((e == 0).sum())
-            dec_n = win + loss
-            if dec_n:
-                hit = win / dec_n
-                roi = (win * (BF.STD_SPREAD_ODDS - 1) - loss) / dec_n
-                print(f"\nATS grade, published pick only: n={len(ats)}  "
-                      f"{win}-{loss}-{pu}  hit={hit:.3f}  "
-                      f"ROI={roi:+.1%} at {BF.STD_SPREAD_ODDS:.2f}  "
-                      f"[break-even {1 / BF.STD_SPREAD_ODDS:.3f}]")
-                # 52.4% is the number to clear, not 50%. A board can pick winners and
-                # still lose money, which is the whole reason this line exists.
-                if dec_n >= 100 and hit < 1 / BF.STD_SPREAD_ODDS:
-                    alerts.append("NFL spread")
+    # Calibration is the spec now, so it is what gets measured. ROI and hit rate are not
+    # reported here on purpose: the board publishes a forecast and no longer says whether
+    # to bet, so profit belongs to whoever decides that against a market number this
+    # runner never sees. Grading the board on money it never told anyone to risk would be
+    # measuring the wrong thing.
+    if "pick_p_win" in log.columns:
+        c = log[log.pick_p_win.notna() & log.final_margin.notna()]
+        if len(c):
+            won = np.where(c.pick_side.values == "home",
+                           c.final_margin.values > 0, c.final_margin.values < 0)
+            if reliability(c.pick_p_win.values, won.astype(float),
+                           "CALIBRATION: picked team wins outright"):
+                alerts.append("NFL winner calibration")
+            # Does the published line actually split even? A median that drifts off 50%
+            # is a biased forecast even when the winner head is calibrated.
+            mp = np.where(c.pick_side.values == "home",
+                          c.final_margin.values, -c.final_margin.values)
+            e = mp + c.pick_line.values.astype(float)
+            w_, l_ = int((e > 0).sum()), int((e < 0).sum())
+            if w_ + l_ >= 30:
+                cov = w_ / (w_ + l_)
+                se2 = 2 * math.sqrt(0.25 / (w_ + l_))
+                print(f"\nPUBLISHED LINE: {w_}-{l_}-{int((e == 0).sum())}  "
+                      f"covers {cov:.3f}  target 0.500  2se {se2:.3f}  "
+                      f"[{'unbiased' if abs(cov - .5) <= se2 else 'BIASED'}]")
+
+    # The spread head against its own five logged lines. The strongest test available,
+    # because these are probabilities the model wrote down at fixed numbers before the
+    # game and they grade directly against the final margin. No refit, no approximation.
+    if log.final_margin.notna().any():
+        gg = log[log.final_margin.notna()]
+        pp, yy = [], []
+        for k, col in zip(SP_LINES, SP_COLS):
+            if col not in gg.columns:
+                continue
+            v = pd.to_numeric(gg[col], errors="coerce").values
+            m = np.isfinite(v)
+            pp.append(v[m])
+            yy.append((gg.final_margin.values[m] > k).astype(float))
+        if pp:
+            if reliability(np.concatenate(pp), np.concatenate(yy),
+                           "CALIBRATION: spread head pooled over lines "
+                           + ", ".join(f"{k:+g}" for k in SP_LINES)):
+                alerts.append("NFL spread calibration")
 
     push, skipped, cal_n = {}, 0, 0
     if board is not None:
@@ -530,35 +602,43 @@ def run(today_str):
                 continue
             bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
                        f"{r.pick_team} {BF.handicap(r.pick_line)}",
-                       r.game_id, float(p[bi]), incal, int(r.week)))
+                       r.game_id, float(r.pick_p_win), incal, int(r.week)))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
             for d_, gm, pk, gid, ph_i, incal, wk in bd:
-                # The probability passed here exists only to make price() print the
-                # standard spread number. It has to track MIN_EDGE: hardcoding 1.05
-                # printed 1.91 while the edge was 5% and 1.82 once it went to zero,
-                # and 1.82 on a 52.36% cover is -4.7% EV.
-                ln = BF.line(d_, gm, pk,
-                             (1 + BF.MIN_EDGE) / BF.STD_SPREAD_ODDS,
-                             w_game=wg, w_pick=wp)
+                # A forecast row, not a board row. BF.line's trailer is "find <price> or
+                # better", which is an instruction to bet, and at the median line the cover
+                # is 50% by construction so any price there is either meaningless or a lie.
+                # notify.FORECAST renders this shape; it is matched ahead of notify.HEADER,
+                # which would otherwise swallow any date followed by two spaces.
+                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  win {ph_i:.1%}"
                 notes = []
                 if incal:
                     cal_n += 1
-                    notes.append(f"      week {wk} calibration, forward test until "
-                                 f"Week {CAL_UNLOCK_WEEK}")
-                # Live-entry note keyed off the moneyline favourite rather than the
-                # spread. Only fires where the pregame moneyline is too short to take.
-                notes += BF.live_note("NFL", max(ph_i, 1 - ph_i))
+                    notes.append(f"      note: week {wk} calibration, forward test "
+                                 f"until Week {CAL_UNLOCK_WEEK}")
+                # BF.live_note is deliberately not called. Its windows are moneyline
+                # prices and this is a spread board, so a row read "Back JAX -6" and then
+                # quoted 2.00 to 2.35, which is the price on Jacksonville to win outright
+                # and has nothing to do with the handicap directly above it. Three of
+                # sixteen Week 1 rows carried it and all three were the same mismatch.
+                #
+                # LIVE_WINDOWS keeps its NFL row in board_format.py, which is untouched, so
+                # NBA, NCAAF and WNBA are unaffected and a moneyline NFL board could still
+                # use it. ph_i stays in the unpack below purely to hold the tuple shape.
                 if notes:
                     ln = "\n".join([ln] + notes)
                 push[gid] = {"line": ln,
                              "min_odds": BF.STD_SPREAD_ODDS,
+                             # The pick string carries the win probability to the nearest
+                             # whole point, so a QB change that moves the number reposts
+                             # while sub-point drift between runs does not.
                              # min_odds is a module constant on this board, identical on
                              # every row forever, so the gate's price check can never fire.
                              # The pick string is what actually moves: a QB ruled out on
                              # Sunday morning shifts the threshold and rewrites this.
-                             "match": pk,
+                             "match": f"{pk} {ph_i:.0%}",
                              "cal": incal}
     print("\n=== MBM NFL board ===")
     for _v in push.values():
