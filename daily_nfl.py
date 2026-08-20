@@ -178,6 +178,25 @@ ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
 # Empty list disables it and the board reverts to publishing the median line.
 DOG_BANDS = [tuple(map(float, b)) for b in SPEC.get("dog_bands", [])]
 
+# Dead band around every threshold that decides what gets published, in p_home points.
+#
+# Both decisions the board makes are hard cuts on a continuous quantity: which team is the
+# favourite turns on p_home crossing 0.50, and whether the dog band fires turns on the
+# median line crossing 2.5. median_line runs a grid spaced a full point apart, so a half
+# point of probability can swing the line a whole point and change the published team.
+#
+# Measured on the Week 1 board: three of sixteen games flipped between two consecutive
+# runs, six of sixteen sat within two points of a boundary, and BUF @ HOU was one
+# thousandth away from flipping and survived on luck. ATL @ PIT changed teams on a p_home
+# move of under seven tenths of a point while the model's actual view barely moved:
+# PIT +3.5 at 65.6% became ATL +3.5 at 61.8%, which is the same read of a pick'em game.
+#
+# So the decision is sticky inside the dead band and the probability never is. A pick that
+# holds is still repriced every run; it just does not change teams because a threshold
+# wobbled. Past the dead band it flips normally, so a QB ruled out still moves the board
+# and nothing gets stuck.
+FLIP_MARGIN = float(SPEC.get("flip_margin", 0.02))
+
 
 def dog_band(fav_line):
     """Dog line to publish for a model favourite of fav_line points, or None to use the
@@ -317,7 +336,7 @@ def expected_starters(season):
         return {}
 
 
-def resolve_picks(cover3_fn, ph, sp_line, home, away):
+def resolve_picks(cover3_fn, ph, sp_line, sp_lo, sp_hi, gid, home, away, prev):
     """The model's own line per game, plus the thresholds kept for the record.
 
     pick_line is the MEDIAN, spread.median_line's number: the half point where the picked
@@ -342,19 +361,49 @@ def resolve_picks(cover3_fn, ph, sp_line, home, away):
     out = []
     for i in range(len(ph)):
         kh, ka = BF.spread_threshold_push(cover3_fn, i, KEY_GRID)
-        home_side = float(ph[i]) >= 0.5
+        p = float(ph[i])
         med = float(sp_line[i])
+        was = prev.get(str(gid[i])) if prev else None
+
+        # --- side, with a dead band around 0.50 -------------------------------------
+        if p > 0.5 + FLIP_MARGIN:
+            home_side = True
+        elif p < 0.5 - FLIP_MARGIN:
+            home_side = False
+        elif was is not None and "fav_home" in was:
+            home_side = bool(was["fav_home"])
+        else:
+            home_side = p >= 0.5
+
+        # --- band membership, with the same dead band expressed through the line ----
+        # The line is quantised, so there is no room for a buffer in line space. Ask the
+        # model what line p_home +/- the margin would produce instead: if the two land on
+        # opposite sides of the band edge, the boundary is inside the dead band.
+        fresh = dog_band(med) is not None
+        edge = (dog_band(float(sp_lo[i])) is not None) != (dog_band(float(sp_hi[i])) is not None)
+        if edge and was and was.get("rule") in ("median", "dog_band"):
+            use_band = was["rule"] == "dog_band"
+        else:
+            use_band = fresh
+        # True when stickiness actually overrode what this run would have said on its own.
+        held = (home_side != (p >= 0.5)) or (use_band != fresh)
+
         fav = str(home[i] if home_side else away[i])
         dog = str(away[i] if home_side else home[i])
-        row = {"median_team": fav, "median_line": -abs(med),
+        row = {"median_team": fav, "median_line": -abs(med), "pick_held": held,
                "home_line": -kh if kh is not None else np.nan,
                "away_line": ka if ka is not None else np.nan}
-        D = dog_band(med)
+        # A pick held inside the band keeps the band's line even though the current median
+        # has stepped outside it. DOG_BANDS[0] is the fallback because a held row is by
+        # definition sitting on the edge of the first band it left.
+        D = dog_band(med) if use_band else None
+        if D is None and use_band and DOG_BANDS:
+            D = float(DOG_BANDS[0][2])
         if D is None:
             h, pu, a = cover3_fn(med)
             cov = float(h[i]) if home_side else float(a[i])
             oth = float(a[i]) if home_side else float(h[i])
-            pw = float(ph[i]) if home_side else float(1.0 - ph[i])
+            pw = p if home_side else 1.0 - p
             row.update(pick_rule="median", pick_team=fav,
                        pick_side="home" if home_side else "away",
                        pick_line=-abs(med),
@@ -362,10 +411,6 @@ def resolve_picks(cover3_fn, ph, sp_line, home, away):
                        pick_claim="wins outright", pick_prob=pw,
                        pick_p_win=pw, pick_p_cover=cov / max(cov + oth, 1e-9))
         else:
-            # Sign flips with the favourite. A home favourite means the dog is the away
-            # team, which covers when the margin stays under +D; an away favourite means
-            # the dog is at home and covers when the margin stays above -D. Getting this
-            # backwards publishes the favourite while calling it the dog.
             k = D if home_side else -D
             h, pu, a = cover3_fn(k)
             cov = float(a[i]) if home_side else float(h[i])
@@ -376,7 +421,7 @@ def resolve_picks(cover3_fn, ph, sp_line, home, away):
                        pick_line=float(D),
                        pick=f"{dog} {BF.handicap(D)}",
                        pick_claim="covers", pick_prob=pc,
-                       pick_p_win=float(1.0 - ph[i]) if home_side else float(ph[i]),
+                       pick_p_win=(1.0 - p) if home_side else p,
                        pick_p_cover=pc)
         out.append(row)
     return out
@@ -637,8 +682,24 @@ def run(today_str):
         # the row a person reads drift apart.
         _c3 = lambda k: spread.cover3(sp_ph, sp_Ph, sp_Pa, k)
         board["cal"] = board.week < CAL_UNLOCK_WEEK
+        # What p_home +/- the dead band would do to the line, so resolve_picks can see
+        # whether a band edge sits inside the margin without re-deriving the model.
+        _lo = spread.median_line(np.clip(sp_ph - FLIP_MARGIN, .01, .99), sp_Ph, sp_Pa)
+        _hi = spread.median_line(np.clip(sp_ph + FLIP_MARGIN, .01, .99), sp_Ph, sp_Pa)
+        # median_team, not pick_side. pick_side is which side the PICK sits on, and on a
+        # dog-band row that is the opposite of which side the FAVOURITE sits on, so feeding
+        # it into the side decision inverts every held dog row. median_team is always the
+        # favourite regardless of which rule published the row.
+        _prev = {}
+        if {"median_team", "pick_rule"} <= set(log.columns):
+            for _r in log[log.median_team.notna()].itertuples():
+                _prev[str(_r.game_id)] = {
+                    "fav_home": str(_r.median_team) == str(_r.home),
+                    "rule": str(getattr(_r, "pick_rule", "")),
+                }
         board = board.join(pd.DataFrame(
-            resolve_picks(_c3, p, sp_line, rows.home.values, rows.away.values),
+            resolve_picks(_c3, p, sp_line, _lo, _hi, rows.game_id.astype(str).values,
+                          rows.home.values, rows.away.values, _prev),
             index=board.index))
         _mm, _mp = mode_margin(sp_ph, sp_Ph, sp_Pa)
         board["mode_margin"] = _mm
@@ -664,6 +725,9 @@ def run(today_str):
             else:
                 print(f"      LINE {r.pick_team} {BF.handicap(r.pick_line)}  "
                       f"wins outright {r.pick_p_win:.3f}")
+            if r.pick_held:
+                print(f"      HELD  p_home {r.p_home:.4f} is inside the {FLIP_MARGIN:.0%} "
+                      f"dead band, keeping last run's pick")
             print(f"      likeliest exact margin {_ms} at {r.mode_p:.3f}")
             print(f"      break-even thresholds (logged, not published): {_band}")
             for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
