@@ -46,11 +46,14 @@ DISCORD_LIMIT = 3800  # embed description cap is 4096; leave room
 # "2026-07-31  SEA @ ATL   ATL   find 1.32 / -312 or better"
 BOARD = re.compile(r"^(\d{4}-\d{2}-\d{2})\s+(.+?)\s{2,}(\S.*?)\s+find\s+(.+?)\s+or better\s*$")
 # "2026-09-13  NO @ DET   DET -4.5   win 67.5%"
+# "2026-09-13  GB @ MIN   MIN +3.5   cover 53.9%  model GB -3.5"
 # A forecast row: the model's own line and the probability behind it, with no price and no
 # instruction. Must be tried BEFORE header, which matches any date followed by two spaces
 # and would swallow it. board is tried first and cannot collide, since it requires the
 # "find ... or better" trailer this row deliberately does not have.
-FORECAST = re.compile(r"^(\d{4}-\d{2}-\d{2})\s+(.+?)\s{2,}(\S.*?)\s{2,}win\s+([\d.]+%)\s*$")
+FORECAST = re.compile(
+    r"^(\d{4}-\d{2}-\d{2})\s+(.+?)\s{2,}(\S.*?)\s{2,}(win|cover)\s+([\d.]+%)"
+    r"(?:\s{2,}model\s+(\S.*?))?\s*$")
 # "      note: week 1 calibration, forward test until Week 5"
 # Without this the tag falls through to the raw handler and renders as an inline code span,
 # which reads as though the text were code. Subtext is what it is.
@@ -100,11 +103,17 @@ def _render(lines):
             continue
         m = FORECAST.match(ln)
         if m:
-            _, game, pick, pct = m.groups()
+            _, game, pick, verb, pct, model = m.groups()
             if out and out[-1] != "":
                 out.append("")
             out.append(f"**{game.strip()}**")
-            out.append(f"Model line **{pick.strip()}** \u00b7 wins outright **{pct}**")
+            if model:
+                # dog-band row: the pick is a different team at a different number, so the
+                # model's own line has to stay visible or the reader cannot see the gap
+                out.append(f"Model line **{model.strip()}** \u00b7 "
+                           f"**{pick.strip()}** covers **{pct}**")
+            else:
+                out.append(f"Model line **{pick.strip()}** \u00b7 wins outright **{pct}**")
             continue
         m = HEADER.match(ln)
         if m:

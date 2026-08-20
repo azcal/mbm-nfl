@@ -101,6 +101,30 @@ ESPN_INJ = "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/injur
 # knee three weeks before a game he is expected to start.
 ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
 
+# --- dog bands -----------------------------------------------------------------------
+# [fav_line_low, fav_line_high, dog_line]. Where the model makes a team a favourite by
+# between low and high, publish the DOG at dog_line instead of the favourite at the model
+# line. Measured over 569 graded games 2024-25: a model favourite of 0.5 to 3.5 wins by
+# four or more only 42.7% of the time, so the dog at +3.5 landed 57.6%.
+#
+# Two things this cannot do, both worth remembering when the season starts arguing back.
+# The +18 net games that justified it were graded at the model's own number, so they
+# assume +3.5 was on the board when it often was not: on the live Week 1 slate the rule
+# fired 12 times and DraftKings had the number 5 times. And +18 on 569 games is inside
+# 2se. Both fixes need a market feed this runner does not have.
+#
+# Empty list disables it and the board reverts to publishing the median line.
+DOG_BANDS = [tuple(map(float, b)) for b in SPEC.get("dog_bands", [])]
+
+
+def dog_band(fav_line):
+    """Dog line to publish for a model favourite of fav_line points, or None to use the
+    median. First matching band wins, so order them narrow to wide in spec.json."""
+    for lo, hi, d in DOG_BANDS:
+        if lo <= abs(float(fav_line)) <= hi:
+            return float(d)
+    return None
+
 
 def spread_ladder(i, ph, Ph, Pa, exp, home, away, span=4):
     """Console-only ladder, now stepping every half point so the whole numbers appear.
@@ -258,18 +282,36 @@ def resolve_picks(cover3_fn, ph, sp_line, home, away):
         kh, ka = BF.spread_threshold_push(cover3_fn, i, KEY_GRID)
         home_side = float(ph[i]) >= 0.5
         med = float(sp_line[i])
-        h, pu, a = cover3_fn(med)
-        cov = float(h[i]) if home_side else float(a[i])
-        oth = float(a[i]) if home_side else float(h[i])
-        out.append({
-            "pick_team": str(home[i] if home_side else away[i]),
-            "pick_side": "home" if home_side else "away",
-            "pick_line": float(-med if home_side else med),
-            "pick_p_win": float(ph[i]) if home_side else float(1.0 - ph[i]),
-            "pick_p_cover": cov / max(cov + oth, 1e-9),
-            "home_line": -kh if kh is not None else np.nan,
-            "away_line": ka if ka is not None else np.nan,
-        })
+        fav = str(home[i] if home_side else away[i])
+        dog = str(away[i] if home_side else home[i])
+        row = {"median_team": fav, "median_line": -abs(med),
+               "home_line": -kh if kh is not None else np.nan,
+               "away_line": ka if ka is not None else np.nan}
+        D = dog_band(med)
+        if D is None:
+            h, pu, a = cover3_fn(med)
+            cov = float(h[i]) if home_side else float(a[i])
+            oth = float(a[i]) if home_side else float(h[i])
+            row.update(pick_rule="median", pick_team=fav,
+                       pick_side="home" if home_side else "away",
+                       pick_line=-abs(med),
+                       pick_p_win=float(ph[i]) if home_side else float(1.0 - ph[i]),
+                       pick_p_cover=cov / max(cov + oth, 1e-9))
+        else:
+            # Sign flips with the favourite. A home favourite means the dog is the away
+            # team, which covers when the margin stays under +D; an away favourite means
+            # the dog is at home and covers when the margin stays above -D. Getting this
+            # backwards publishes the favourite while calling it the dog.
+            k = D if home_side else -D
+            h, pu, a = cover3_fn(k)
+            cov = float(a[i]) if home_side else float(h[i])
+            oth = float(h[i]) if home_side else float(a[i])
+            row.update(pick_rule="dog_band", pick_team=dog,
+                       pick_side="away" if home_side else "home",
+                       pick_line=float(D),
+                       pick_p_win=float(1.0 - ph[i]) if home_side else float(ph[i]),
+                       pick_p_cover=cov / max(cov + oth, 1e-9))
+        out.append(row)
     return out
 
 
@@ -506,8 +548,13 @@ def run(today_str):
                 f"{r.away} {BF.handicap(r.away_line)}" if r.away_line == r.away_line else None) if x)
             _md = int(r.mode_margin)
             _ms = (f"{r.home} by {_md}" if _md > 0 else f"{r.away} by {-_md}")
-            print(f"      LINE {r.pick_team} {BF.handicap(r.pick_line)}  "
-                  f"wins outright {r.pick_p_win:.3f}  covers own line {r.pick_p_cover:.3f}")
+            if r.pick_rule == "dog_band":
+                print(f"      DOG BAND {r.pick_team} {BF.handicap(r.pick_line)} covers "
+                      f"{r.pick_p_cover:.3f}   (median rule would say "
+                      f"{r.median_team} {BF.handicap(r.median_line)})")
+            else:
+                print(f"      LINE {r.pick_team} {BF.handicap(r.pick_line)}  "
+                      f"wins outright {r.pick_p_win:.3f}")
             print(f"      likeliest exact margin {_ms} at {r.mode_p:.3f}")
             print(f"      break-even thresholds (logged, not published): {_band}")
             for ln in spread_ladder(bi, sp_ph, sp_Ph, sp_Pa, sp_exp, r.home, r.away):
@@ -566,6 +613,35 @@ def run(today_str):
                       f"covers {cov:.3f}  target 0.500  2se {se2:.3f}  "
                       f"[{'unbiased' if abs(cov - .5) <= se2 else 'BIASED'}]")
 
+    # Running A/B of the two rules, recomputed from sp_line and final_margin rather than
+    # read from stored columns, so it covers every graded row in the log including the
+    # seasons that predate the dog bands. This is the thing that decides whether the rule
+    # stays: it updates every run and it needs no backfill.
+    if DOG_BANDS and {"sp_line", "final_margin"} <= set(log.columns):
+        ab = log[log.sp_line.notna() & log.final_margin.notna()].drop_duplicates("game_id")
+        if len(ab) >= 50:
+            sl = ab.sp_line.values.astype(float)
+            fm = ab.final_margin.values.astype(float)
+            favm = np.where(sl > 0, fm, -fm)          # favourite's margin of victory
+            fired = np.array([dog_band(x) is not None for x in sl])
+            dl = np.array([dog_band(x) or 0.0 for x in sl])
+            med_w = favm > np.abs(sl)                  # median rule: fav covers its line
+            dog_w = favm < dl                          # dog rule: fav held under the line
+            new_w = np.where(fired, dog_w, med_w)
+            def _r(w):
+                a = int(w.sum()); return a, len(w) - a, a / max(len(w), 1)
+            mw, ml_, mh = _r(med_w)
+            nw, nl_, nh = _r(new_w)
+            f2 = 2 * math.sqrt(0.25 / len(ab))
+            print(f"\nRULE A/B on {len(ab)} graded games ({int(fired.sum())} in a dog band)")
+            print(f"  median line only   {mw}-{ml_}  hit {mh:.3f}")
+            print(f"  with dog bands     {nw}-{nl_}  hit {nh:.3f}   "
+                  f"delta {nw - mw:+d} wins, {nl_ - ml_:+d} losses")
+            v = ("clears 2se" if abs(nh - mh) > f2 else "inside 2se, not yet decisive")
+            print(f"  hit delta {nh - mh:+.3f}, 2se {f2:.3f}  [{v}]")
+            print(f"  NOTE graded at the model's own number, so this assumes the dog line "
+                  f"was available. It often is not.")
+
     # The spread head against its own five logged lines. The strongest test available,
     # because these are probabilities the model wrote down at fixed numbers before the
     # game and they grade directly against the final margin. No refit, no approximation.
@@ -600,19 +676,26 @@ def run(today_str):
             if not isinstance(r.pick_team, str):
                 skipped += 1
                 continue
+            _dog = r.pick_rule == "dog_band"
             bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
                        f"{r.pick_team} {BF.handicap(r.pick_line)}",
-                       r.game_id, float(r.pick_p_win), incal, int(r.week)))
+                       r.game_id,
+                       float(r.pick_p_cover if _dog else r.pick_p_win), incal, int(r.week),
+                       f"{r.median_team} {BF.handicap(r.median_line)}" if _dog else None))
         if bd:
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
-            for d_, gm, pk, gid, ph_i, incal, wk in bd:
+            for d_, gm, pk, gid, ph_i, incal, wk, mdl in bd:
                 # A forecast row, not a board row. BF.line's trailer is "find <price> or
                 # better", which is an instruction to bet, and at the median line the cover
                 # is 50% by construction so any price there is either meaningless or a lie.
                 # notify.FORECAST renders this shape; it is matched ahead of notify.HEADER,
                 # which would otherwise swallow any date followed by two spaces.
-                ln = f"{d_}  {gm:<{wg}}  {pk:<{wp}}  win {ph_i:.1%}"
+                # Two verbs on purpose. A median row states who wins outright; a dog-band
+                # row states how often a different team covers a different number, and
+                # calling both "win" would publish a 53.9% cover as a 53.9% win.
+                ln = (f"{d_}  {gm:<{wg}}  {pk:<{wp}}  cover {ph_i:.1%}  model {mdl}"
+                      if mdl else f"{d_}  {gm:<{wg}}  {pk:<{wp}}  win {ph_i:.1%}")
                 notes = []
                 if incal:
                     cal_n += 1

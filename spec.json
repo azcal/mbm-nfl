@@ -11,8 +11,14 @@
   "C": 0.05,
   "horizon_days": 7,
   "cal_unlock_week": 5,
-
   "early_until": "2026-09-14",
   "early_weekday": 1,
-  "early_dense_days": 7
+  "early_dense_days": 7,
+  "dog_bands": [
+    [
+      0.5,
+      3.5,
+      3.5
+    ]
+  ]
 }
