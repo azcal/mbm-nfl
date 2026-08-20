@@ -180,14 +180,32 @@ def market_spreads():
             if ht not in ODDS_TEAM or at not in ODDS_TEAM:
                 unknown.update(t for t in (ht, at) if t not in ODDS_TEAM)
                 continue
-            per_book = []
+            per_book, detail = [], []
             for bk in ev.get("bookmakers", []):
-                q = [float(o["point"]) for mk in bk.get("markets", [])
-                     if mk.get("key") == "spreads"
-                     for o in mk.get("outcomes", [])
-                     if o.get("name") == ht and o.get("point") is not None]
-                if q:
-                    per_book.append(float(np.median(q)))
+                for mk in bk.get("markets", []):
+                    if mk.get("key") != "spreads":
+                        continue
+                    outs = mk.get("outcomes", [])
+                    # A main-line spreads market has exactly two outcomes, one per team,
+                    # with opposite points. Anything longer is an alternate ladder inside
+                    # the same market entry and has no single line to read.
+                    #
+                    # This replaces taking the median of a book's quotes, which is what
+                    # produced HOU PK on a market sitting at 1.5: an alternate ladder is
+                    # symmetric about the main line, so its median is always zero. The
+                    # guard against phantom numbers was itself minting one.
+                    if len(outs) != 2:
+                        continue
+                    hp_ = [o.get("point") for o in outs if o.get("name") == ht]
+                    ap_ = [o.get("point") for o in outs if o.get("name") == at]
+                    if len(hp_) != 1 or len(ap_) != 1 or hp_[0] is None or ap_[0] is None:
+                        continue
+                    # the two sides must mirror each other, or this is not one line
+                    if abs(float(hp_[0]) + float(ap_[0])) > 1e-6:
+                        continue
+                    per_book.append(float(hp_[0]))
+                    detail.append(f"{bk.get('key', '?')}:{float(hp_[0]):+g}")
+                    break
             if not per_book:
                 continue
             cnt = {}
@@ -199,17 +217,20 @@ def market_spreads():
             out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (line, cnt[line])
             if max(per_book) - min(per_book) >= 1.0:
                 split.append((ODDS_TEAM[at], ODDS_TEAM[ht], min(per_book),
-                              max(per_book), line, cnt[line], len(per_book)))
+                              max(per_book), line, cnt[line], len(per_book),
+                              " ".join(sorted(detail))))
         if unknown:
             # A rename or an expansion team lands here. Loud, because a silent miss would
             # just look like a game with no market line.
             print(f"odds feed: UNMAPPED TEAM NAMES {sorted(unknown)}, add them to ODDS_TEAM")
         print(f"market: {len(out)} game(s) priced, {left or '?'} API credits left")
-        for a_, h_, lo, hi, ln, c, nb in split[:12]:
-            # Printed rather than swallowed: a market this split is either a stale book in
-            # the sample or real news the model has not seen, and both are worth a look.
-            print(f"  SPLIT MARKET {a_} @ {h_}: books range {lo:+g} to {hi:+g}, "
-                  f"taking {ln:+g} ({c}/{nb} books)")
+        for a_, h_, lo, hi, ln, c, nb, det in split[:12]:
+            # Every book's number is printed, not just the range. A consensus that looks
+            # wrong is either a stale book, real news the model has not seen, or a parsing
+            # fault, and only the raw per-book values tell those three apart.
+            print(f"  SPLIT MARKET {a_} @ {h_}: taking {ln:+g} ({c}/{nb} books), "
+                  f"range {lo:+g} to {hi:+g}")
+            print(f"    per book: {det}")
         return out
     except Exception as ex:
         print("odds feed unavailable:", type(ex).__name__)
