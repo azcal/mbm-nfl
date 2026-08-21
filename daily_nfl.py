@@ -550,6 +550,9 @@ file, so whether a probability beats the odds at your book is entirely your call
 | `pick_line` | the handicap **on `pick_team`**, taken from the book line. Negative lays points, positive takes them. Not a home-side number; `pick_side` tells you which end it belongs to. |
 | `book_line` | the same number as a sportsbook posts it, on the **home** team. Median across `book_count` books. Empty when no market line was available. |
 | `book_count` | how many books post that exact number |
+| `model_spread` | the model's own line on the **home** team, negative meaning home favoured. What it thinks; `book_line` is what the market says. |
+| `home_win_prob` | P(home team wins outright), 0 to 1 |
+| `model_total` | the model's projected combined score |
 | `book_total` | how many books priced the game at all. `3` of `9` is a market that cannot agree with itself; `3` of `3` is just a thin one. |
 | `pick_claim` | what is asserted: `covers` or `wins outright` |
 | `pick_prob` | probability of **that claim**, with any push excluded |
@@ -589,6 +592,7 @@ its spread lines.
 PICKS_COLS = ["date", "game_id", "season", "week", "away", "home",
               "pick", "pick_team", "pick_side", "pick_line", "pick_claim",
               "pick_prob", "pick_push", "book_line", "book_count", "book_total",
+              "model_spread", "home_win_prob", "model_total",
               "pick_rule", "cal", "final_margin", "pick_result"]
 
 
@@ -623,12 +627,21 @@ def write_picks(log):
     p["book_line"] = p.get("mkt_line")
     p["book_count"] = p.get("mkt_books")
     p["book_total"] = p.get("mkt_books_total")
+    # The model's own numbers, on the HOME team, alongside the market's. book_line is what
+    # the pick was priced against; model_spread is where this model thinks the game sits.
+    # sp_line is a margin (positive means home wins by that much) and a spread is a
+    # handicap, so the sign flips: a home favourite by 3.5 is model_spread -3.5.
+    p["model_spread"] = -pd.to_numeric(p.get("sp_line"), errors="coerce")
+    p["home_win_prob"] = pd.to_numeric(p.get("p_home"), errors="coerce")
+    p["model_total"] = pd.to_numeric(p.get("model_total"), errors="coerce")
     for c in PICKS_COLS:
         if c not in p.columns:
             p[c] = ""
-    for c in ("pick_prob", "pick_push"):
+    for c in ("pick_prob", "pick_push", "home_win_prob"):
         p[c] = pd.to_numeric(p[c], errors="coerce").round(4)
-    for c in ("pick_line", "book_line"):
+    for c in ("model_total",):
+        p[c] = pd.to_numeric(p[c], errors="coerce").round(2)
+    for c in ("pick_line", "book_line", "model_spread"):
         p[c] = pd.to_numeric(p[c], errors="coerce")
     p = p[PICKS_COLS].sort_values(["date", "game_id"]).reset_index(drop=True)
     p.to_csv(os.path.join(LOGS, "picks.csv"), index=False)
@@ -827,6 +840,7 @@ def run(today_str):
             resolve_picks(_c3, p, sp_line, rows.game_id.astype(str).values,
                           rows.home.values, rows.away.values, _prev, _mkt),
             index=board.index))
+        board["model_total"] = totals
         _mm, _mp = mode_margin(sp_ph, sp_Ph, sp_Pa)
         board["mode_margin"] = _mm
         board["mode_p"] = _mp
