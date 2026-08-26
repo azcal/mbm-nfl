@@ -113,6 +113,11 @@ ESPN_INJ = "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/injur
 # knee three weeks before a game he is expected to start.
 ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
 
+# team -> expected starter name, filled by expected_starters. The gsis id is what the model
+# uses; the name is what a human reading an export needs, and losing it meant every
+# qb_status column would have read "unknown" on a board where all 32 resolved.
+QB_NAMES = {}
+
 # --- market lines ---------------------------------------------------------------------
 # The Odds API v4. Key lives in the ODDS_API_KEY secret and is read from the environment;
 # it is never written to a log, a file or a board row.
@@ -123,8 +128,10 @@ ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
 # a number per game instead of forcing a third of the slate onto +3.5, which is what
 # collapsed resolution on every fixed-list variant tested.
 #
-# One call per run, one region, one market, so one credit. Roughly 60 a month against a
-# 500 free-tier allowance. Remaining quota is printed from the response header.
+# One call per run, one region, three markets, so three credits. Roughly 180 a month
+# against a 500 free-tier allowance. Remaining quota is printed from the response header.
+# totals and h2h are pulled for the export's reference columns; the board itself only uses
+# spreads, so a missing total or moneyline costs nothing on Discord.
 ODDS_API = "https://api.the-odds-api.com/v4/sports/americanfootball_nfl/odds"
 ODDS_REGIONS = SPEC.get("odds_regions", "us")
 
@@ -168,7 +175,7 @@ def market_spreads():
         return {}
     try:
         r = requests.get(ODDS_API, headers=H, timeout=60, params={
-            "apiKey": key, "regions": ODDS_REGIONS, "markets": "spreads",
+            "apiKey": key, "regions": ODDS_REGIONS, "markets": "spreads,totals,h2h",
             "oddsFormat": "american"})
         left = r.headers.get("x-requests-remaining")
         if r.status_code != 200:
@@ -180,6 +187,19 @@ def market_spreads():
             if ht not in ODDS_TEAM or at not in ODDS_TEAM:
                 unknown.update(t for t in (ht, at) if t not in ODDS_TEAM)
                 continue
+            tot_book, ml_book = [], []
+            for bk in ev.get("bookmakers", []):
+                for mk in bk.get("markets", []):
+                    outs = mk.get("outcomes", [])
+                    if mk.get("key") == "totals" and len(outs) == 2:
+                        pts = [o.get("point") for o in outs if o.get("point") is not None]
+                        if len(pts) == 2 and abs(float(pts[0]) - float(pts[1])) < 1e-6:
+                            tot_book.append(float(pts[0]))
+                    elif mk.get("key") == "h2h" and len(outs) == 2:
+                        hm_ = [o.get("price") for o in outs if o.get("name") == ht]
+                        aw_ = [o.get("price") for o in outs if o.get("name") == at]
+                        if len(hm_) == 1 and len(aw_) == 1 and None not in (hm_[0], aw_[0]):
+                            ml_book.append((float(hm_[0]), float(aw_[0])))
             per_book, detail = [], []
             for bk in ev.get("bookmakers", []):
                 for mk in bk.get("markets", []):
@@ -218,7 +238,22 @@ def market_spreads():
             # are opposite readings: the first is a thin market, the second is a market
             # that cannot agree with itself. BUF @ HOU is 3 of 9, which is the weakest
             # anchor on the board and should look like it.
-            out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (line, cnt[line], len(per_book))
+            # Mode for the total too, same reason as the spread: a median of a split
+            # market lands on a number nobody posts. Moneylines are averaged instead,
+            # because a price is continuous and books genuinely differ by a few cents
+            # rather than clustering on quoted rungs.
+            t_line = None
+            if tot_book:
+                tc = {}
+                for v in tot_book:
+                    tc[v] = tc.get(v, 0) + 1
+                tmed = float(np.median(tot_book))
+                t_line = min((v for v, c in tc.items() if c == max(tc.values())),
+                             key=lambda v: abs(v - tmed))
+            h_ml = float(np.median([x[0] for x in ml_book])) if ml_book else None
+            a_ml = float(np.median([x[1] for x in ml_book])) if ml_book else None
+            out[(ODDS_TEAM[at], ODDS_TEAM[ht])] = (line, cnt[line], len(per_book),
+                                                   t_line, h_ml, a_ml)
             if max(per_book) - min(per_book) >= 1.0:
                 split.append((ODDS_TEAM[at], ODDS_TEAM[ht], min(per_book),
                               max(per_book), line, cnt[line], len(per_book),
@@ -374,7 +409,7 @@ def expected_starters(season):
             qb = qb[qb[wk] == qb.groupby(tcol)[wk].transform("max")]
         qb[dep] = pd.to_numeric(qb[dep], errors="coerce")
         eid = "espn_id" if "espn_id" in qb.columns else None
-        out, benched = {}, []
+        out, names, benched = {}, {}, []
         for tm, grp in qb.sort_values(dep).groupby(tcol):
             for _, row in grp.iterrows():
                 gid = row[idc]
@@ -384,7 +419,9 @@ def expected_starters(season):
                     benched.append(f"{tm} {row.get('player_name', gid)}")
                     continue
                 out[E.REN.get(tm, tm)] = gid
+                names[E.REN.get(tm, tm)] = str(row.get("player_name", "") or "")
                 break
+        QB_NAMES.update(names)
         print(f"expected starters: {len(out)}/32 teams resolved from the depth chart")
         if benched:
             print("  ruled out, next man up: " + ", ".join(benched))
@@ -447,7 +484,8 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
                "home_line": -kh if kh is not None else np.nan,
                "away_line": ka if ka is not None else np.nan,
                "mkt_line": np.nan, "mkt_books": 0, "mkt_books_total": 0,
-               "mkt_agree": np.nan}
+               "mkt_agree": np.nan, "ref_total": np.nan,
+               "ref_home_ml": np.nan, "ref_away_ml": np.nan}
 
         m = mkt.get((aw, hm))
         if m is not None:
@@ -455,7 +493,10 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
             # mkt_line is the HOME team's handicap, so the margin threshold for the home
             # side to cover is its negative. A whole-number market line can push, so the
             # probability is taken over the games that resolve.
-            mline, nbk, ntot = m
+            mline, nbk, ntot = m[0], m[1], m[2]
+            row.update(ref_total=m[3] if m[3] is not None else np.nan,
+                       ref_home_ml=m[4] if m[4] is not None else np.nan,
+                       ref_away_ml=m[5] if m[5] is not None else np.nan)
             h, pu, a = cover3_fn(-float(mline))
             hc, ac, pushm = float(h[i]), float(a[i]), float(pu[i])
             live = max(hc + ac, 1e-9)
@@ -587,6 +628,170 @@ about 60% of the time. Measured over 569 graded games the model runs slightly co
 it said 0.651 and delivered 0.670 on outright winners, and 0.539 against 0.543 actual across
 its spread lines.
 """
+
+
+
+# --- edgedesk export ------------------------------------------------------------------
+# A second published file in the 44-column EdgeDesk layout, written alongside picks.csv so
+# neither format constrains the other. Same numbers, different shape.
+#
+# Three judgement calls, made here rather than left blank:
+#
+# model_home_line is the MEDIAN, not the negated mean. The reference file sets
+# line = -margin exactly, which is only right when the margin distribution is symmetric.
+# NFL margins are not: they hump at 3 and 7 and drag the mean past the median, and
+# median_line exists precisely so the published line is the number where the game is a
+# coin flip. A column named "line" holding a negated mean would be the wrong quantity
+# under the right name, so the relationship is broken on purpose and said so here.
+#
+# p_total_pick_pct and total_push_pct are left EMPTY. Those need a distribution over the
+# total; this model produces a point estimate from a Ridge and nothing else. total_pick is
+# still filled, because comparing two point estimates is a real directional call, but
+# putting a number in a probability column the model cannot compute would be inventing one.
+#
+# recommendation_* are derived from facts the model already knows: the calibration window,
+# and how far the model sits from the market. The basis string is spec-editable so the
+# disclosure is the creator's own words, and its default states measured results rather
+# than an opinion.
+EXPORT_COLS = [
+    "season", "week", "game_id", "kickoff_local", "away_team", "home_team",
+    "model_version", "feature_version", "ratings_basis",
+    "model_home_margin", "model_home_line", "model_fair_total", "home_win_prob_pct",
+    "model_fair_home_ml", "model_fair_away_ml",
+    "ref_home_line", "ref_total", "ref_home_ml", "ref_away_ml", "ref_source",
+    "spread_gap_pts", "total_gap_pts",
+    "spread_pick", "p_spread_pick_pct", "spread_push_pct",
+    "total_pick", "p_total_pick_pct", "total_push_pct",
+    "ml_pick", "p_ml_pick_pct",
+    "recommendation_spread", "recommendation_total", "recommendation_basis",
+    "qb_status", "data_status", "unproven", "generated_at",
+    "home_score", "away_score", "final_margin", "final_total",
+    "spread_result", "total_result", "ml_result",
+]
+
+MODEL_VERSION = SPEC.get("model_version", "mbm_nfl_v1")
+FEATURE_VERSION = SPEC.get("feature_version", "nfl_fv1")
+RATINGS_BASIS = SPEC.get("ratings_basis",
+                         "trained 2018-2025, frozen; 2026 is a forward test")
+REC_BASIS = SPEC.get("recommendation_basis",
+                     "Weeks 1-4 are the calibration window and publish forecasts only. "
+                     "Measured 2024-25 walk-forward: moneyline hit 67.0%, log loss 0.6224, "
+                     "calibration gap +0.019. Against real closing spreads the board has "
+                     "not demonstrated an edge; research only until graded CLV says "
+                     "otherwise.")
+LEAN_PTS = float(SPEC.get("research_lean_pts", 1.5))
+
+
+def fair_ml(q):
+    """Vig-free American price for a probability. Matches the reference file exactly."""
+    q = min(max(float(q), 0.01), 0.99)
+    return int(round(-100 / (1 / q - 1))) if q >= 0.5 else int(round(100 / (1 / (1 - q) - 1)))
+
+
+def write_export(log, sched):
+    """The 44-column export. Rebuilt in full from the log every run."""
+    if "pick_team" not in log.columns:
+        return
+    d = log[log.pick_team.notna() & (log.pick_team.astype(str) != "")].copy()
+    if not len(d):
+        return
+    d = d.drop_duplicates("game_id", keep="last")
+    num = lambda c: pd.to_numeric(d.get(c), errors="coerce")
+
+    ko, hs, as_ = {}, {}, {}
+    if sched is not None and len(sched):
+        for r in sched.itertuples():
+            gd, gt = getattr(r, "gameday", None), getattr(r, "gametime", None)
+            if gd and isinstance(gt, str) and ":" in gt:
+                ko[str(r.game_id)] = f"{gd} {gt}"
+            hs[str(r.game_id)] = getattr(r, "home_score", np.nan)
+            as_[str(r.game_id)] = getattr(r, "away_score", np.nan)
+    gid = d.game_id.astype(str)
+
+    o = pd.DataFrame(index=d.index)
+    o["season"] = num("season").astype("Int64")
+    o["week"] = num("week").astype("Int64")
+    o["game_id"] = gid
+    o["kickoff_local"] = gid.map(ko)
+    o["away_team"], o["home_team"] = d.away, d.home
+    o["model_version"], o["feature_version"] = MODEL_VERSION, FEATURE_VERSION
+    o["ratings_basis"] = RATINGS_BASIS
+
+    o["model_home_margin"] = num("sp_margin").round(2)
+    o["model_home_line"] = (-num("sp_line")).round(2)
+    o["model_fair_total"] = num("model_total").round(1)
+    ph = num("p_home")
+    o["home_win_prob_pct"] = (ph * 100).round(1)
+    o["model_fair_home_ml"] = [fair_ml(v) if v == v else None for v in ph]
+    o["model_fair_away_ml"] = [fair_ml(1 - v) if v == v else None for v in ph]
+
+    o["ref_home_line"] = num("mkt_line")
+    o["ref_total"] = num("ref_total")
+    o["ref_home_ml"] = num("ref_home_ml").astype("Int64")
+    o["ref_away_ml"] = num("ref_away_ml").astype("Int64")
+    nb = num("mkt_books_total").fillna(0).astype(int)
+    o["ref_source"] = [f"The Odds API consensus across {n} book(s) "
+                       f"(reference, not a live bettable quote)" if n else ""
+                       for n in nb]
+
+    # Opposite directions, matching the reference file. Verified on three of its rows.
+    o["spread_gap_pts"] = (o.ref_home_line - o.model_home_line).round(2)
+    o["total_gap_pts"] = (o.model_fair_total - o.ref_total).round(2)
+
+    o["spread_pick"] = d.pick_team
+    o["p_spread_pick_pct"] = (num("pick_prob") * 100).round(1)
+    o["spread_push_pct"] = (num("pick_push") * 100).round(1)
+
+    # Direction only. See the note above EXPORT_COLS on why the two probability columns
+    # beside it stay empty.
+    o["total_pick"] = np.where(o.total_gap_pts.isna(), "",
+                               np.where(o.total_gap_pts > 0, "Over", "Under"))
+    o["p_total_pick_pct"] = ""
+    o["total_push_pct"] = ""
+
+    o["ml_pick"] = np.where(ph >= .5, d.home, d.away)
+    o["p_ml_pick_pct"] = (np.maximum(ph, 1 - ph) * 100).round(1)
+
+    cal = d.get("cal", pd.Series(False, index=d.index)).astype(str).str.lower().eq("true")
+    lean = o.spread_gap_pts.abs() >= LEAN_PTS
+    o["recommendation_spread"] = np.where(cal, "CALIBRATION",
+                                          np.where(lean.fillna(False), "RESEARCH_LEAN", "PASS"))
+    tlean = o.total_gap_pts.abs() >= LEAN_PTS
+    o["recommendation_total"] = np.where(cal, "CALIBRATION",
+                                         np.where(tlean.fillna(False), "RESEARCH_LEAN", "PASS"))
+    o["recommendation_basis"] = REC_BASIS
+
+    o["qb_status"] = [f"home QB {QB_NAMES.get(h) or 'unknown'}; "
+                      f"away QB {QB_NAMES.get(a) or 'unknown'}"
+                      for h, a in zip(d.home, d.away)]
+    fm = num("final_margin")
+    o["data_status"] = np.where(fm.notna(), "FINAL", "PREDICTED")
+    o["unproven"] = bool(SPEC.get("unproven", True))
+    o["generated_at"] = dt.datetime.now(dt.timezone.utc).isoformat(
+        timespec="milliseconds").replace("+00:00", "Z")
+
+    o["home_score"] = gid.map(hs)
+    o["away_score"] = gid.map(as_)
+    o["final_margin"] = fm
+    o["final_total"] = o.home_score + o.away_score
+    mp = np.where(d.pick_side.values == "home", fm, -fm)
+    pl = num("pick_line")
+    e = mp + pl
+    o["spread_result"] = np.where(~np.isfinite(e), "",
+                                  np.where(e > 0, "WIN", np.where(e < 0, "LOSS", "PUSH")))
+    tg = o.final_total - o.ref_total
+    o["total_result"] = np.where(o.total_pick.eq("") | tg.isna(), "",
+                                 np.where(tg == 0, "PUSH",
+                                          np.where((tg > 0) == o.total_pick.eq("Over"),
+                                                   "WIN", "LOSS")))
+    mlm = np.where(ph >= .5, fm, -fm)
+    o["ml_result"] = np.where(~np.isfinite(mlm), "",
+                              np.where(mlm > 0, "WIN", np.where(mlm < 0, "LOSS", "PUSH")))
+
+    o = o[EXPORT_COLS].sort_values(["season", "week", "game_id"]).reset_index(drop=True)
+    o.to_csv(os.path.join(LOGS, "edgedesk_export.csv"), index=False)
+    filled = int(o.ref_home_line.notna().sum())
+    print(f"edgedesk_export.csv: {len(o)} row(s), {filled} with a market line")
 
 
 PICKS_COLS = ["date", "game_id", "season", "week", "away", "home",
@@ -909,6 +1114,7 @@ def run(today_str):
     # there, so neither consumer constrains the other.
     log.to_csv(pred_path, index=False)
     write_picks(log)
+    write_export(log, g)
     dec = log[log.result.notna() & (log.result != 0)]
     if len(dec) >= 30:
         y = (dec.result > 0).astype(int).values
