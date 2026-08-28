@@ -118,6 +118,24 @@ ESPN_OUT = {"out", "injured reserve", "suspension", "doubtful"}
 # qb_status column would have read "unknown" on a board where all 32 resolved.
 QB_NAMES = {}
 
+# --- display names --------------------------------------------------------------------
+# Applied ONLY where a row is published: the Discord board, picks.csv and the export.
+# Never to the model's own keys.
+#
+# nflverse calls the Rams LA; almost everything else calls them LAR. Renaming internally
+# would be the wrong fix: Elo state, the season carry, every historical row in
+# predictions.csv and the ODDS_TEAM lookup are all keyed on LA, and game_id embeds it
+# (2026_01_SF_LA) as the join key the Collective matches on. So the alias is a display
+# layer at the boundary, and the internals never see it.
+#
+# spec.json can extend it without a code change: {"display_teams": {"LA": "LAR"}}
+DISPLAY_TEAMS = {"LA": "LAR", **{k: str(v) for k, v in SPEC.get("display_teams", {}).items()}}
+
+
+def disp(t):
+    """Publication name for an internal team code."""
+    return DISPLAY_TEAMS.get(str(t), str(t))
+
 # --- market lines ---------------------------------------------------------------------
 # The Odds API v4. Key lives in the ODDS_API_KEY secret and is read from the environment;
 # it is never written to a log, a file or a board row.
@@ -709,8 +727,8 @@ def write_export(log, sched):
     gid = d.game_id.astype(str)
 
     o = pd.DataFrame(index=d.index)
-    o["season"] = num("season").astype("Int64")
-    o["week"] = num("week").astype("Int64")
+    o["season"] = num("season").round().astype("Int64")
+    o["week"] = num("week").round().astype("Int64")
     o["game_id"] = gid
     o["kickoff_local"] = gid.map(ko)
     o["away_team"], o["home_team"] = d.away, d.home
@@ -727,8 +745,12 @@ def write_export(log, sched):
 
     o["ref_home_line"] = num("mkt_line")
     o["ref_total"] = num("ref_total")
-    o["ref_home_ml"] = num("ref_home_ml").astype("Int64")
-    o["ref_away_ml"] = num("ref_away_ml").astype("Int64")
+    # round() before the cast. The consensus is a median across books, and an even book
+    # count returns a fraction like -152.5, which Int64 refuses as an unsafe float cast.
+    # An American price is an integer anyway, so rounding is the correct quantity as well
+    # as the working one.
+    o["ref_home_ml"] = num("ref_home_ml").round().astype("Int64")
+    o["ref_away_ml"] = num("ref_away_ml").round().astype("Int64")
     nb = num("mkt_books_total").fillna(0).astype(int)
     o["ref_source"] = [f"The Odds API consensus across {n} book(s) "
                        f"(reference, not a live bettable quote)" if n else ""
@@ -788,6 +810,10 @@ def write_export(log, sched):
     o["ml_result"] = np.where(~np.isfinite(mlm), "",
                               np.where(mlm > 0, "WIN", np.where(mlm < 0, "LOSS", "PUSH")))
 
+    # After qb_status, which looks up QB_NAMES on the internal code. game_id is left
+    # alone on purpose: it is the join key everything downstream matches on.
+    for c in ("away_team", "home_team", "spread_pick", "ml_pick"):
+        o[c] = o[c].map(disp)
     o = o[EXPORT_COLS].sort_values(["season", "week", "game_id"]).reset_index(drop=True)
     o.to_csv(os.path.join(LOGS, "edgedesk_export.csv"), index=False)
     filled = int(o.ref_home_line.notna().sum())
@@ -848,6 +874,11 @@ def write_picks(log):
         p[c] = pd.to_numeric(p[c], errors="coerce").round(2)
     for c in ("pick_line", "book_line", "model_spread"):
         p[c] = pd.to_numeric(p[c], errors="coerce")
+    # Last, so nothing above ever matched on a renamed code.
+    for c in ("away", "home", "pick_team"):
+        p[c] = p[c].map(disp)
+    p["pick"] = [f"{disp(t)} {BF.handicap(l)}" if pd.notna(l) else disp(t)
+                 for t, l in zip(p.pick_team, p.pick_line)]
     p = p[PICKS_COLS].sort_values(["date", "game_id"]).reset_index(drop=True)
     p.to_csv(os.path.join(LOGS, "picks.csv"), index=False)
     open(os.path.join(LOGS, "picks_README.md"), "w").write(DATA_DICT)
@@ -1113,8 +1144,6 @@ def run(today_str):
     # The clean, self-describing file is picks.csv, written next. Additive here, purged
     # there, so neither consumer constrains the other.
     log.to_csv(pred_path, index=False)
-    write_picks(log)
-    write_export(log, g)
     dec = log[log.result.notna() & (log.result != 0)]
     if len(dec) >= 30:
         y = (dec.result > 0).astype(int).values
@@ -1234,15 +1263,15 @@ def run(today_str):
                 skipped += 1
                 continue
             if r.pick_rule == "market":
-                ctx = (f"model {r.median_team} {BF.handicap(r.median_line)}, "
-                       f"market {r.home} {BF.handicap(r.mkt_line)} "
+                ctx = (f"model {disp(r.median_team)} {BF.handicap(r.median_line)}, "
+                       f"market {disp(r.home)} {BF.handicap(r.mkt_line)} "
                        f"({int(r.mkt_books)} of {int(r.mkt_books_total)} books)")
                 if r.mkt_agree < 0.5:
                     ctx += " \u00b7 weak consensus"
             else:
                 ctx = "no market line, model line shown"
-            bd.append((str(r.date)[:10], f"{r.away} @ {r.home}",
-                       f"{r.pick_team} {BF.handicap(r.pick_line)}",
+            bd.append((str(r.date)[:10], f"{disp(r.away)} @ {disp(r.home)}",
+                       f"{disp(r.pick_team)} {BF.handicap(r.pick_line)}",
                        r.game_id, float(r.pick_prob), incal, int(r.week), ctx,
                        "cover" if r.pick_claim == "covers" else "win"))
         if bd:
@@ -1324,6 +1353,18 @@ def run(today_str):
         print("no board to send")
     else:
         print("board unchanged since the last push, nothing sent")
+
+    # Ancillary files LAST, after the board has gone out, and each wrapped so it cannot
+    # take the run down with it. An Int64 cast in the export raised on a fractional
+    # moneyline median and killed the whole run before the Discord push, so a cosmetic bug
+    # in a published file cost a night's board. The board is the product; these are exports
+    # of it, and an export failing is worth a loud line in the log and nothing more.
+    for _name, _fn in (("picks.csv", lambda: write_picks(log)),
+                       ("edgedesk_export.csv", lambda: write_export(log, g))):
+        try:
+            _fn()
+        except Exception as _ex:
+            print(f"WARNING {_name} not written: {type(_ex).__name__}: {_ex}")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
