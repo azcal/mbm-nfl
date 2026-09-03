@@ -547,6 +547,59 @@ def resolve_picks(cover3_fn, ph, sp_line, gid, home, away, prev, mkt):
     return out
 
 
+# --- market-anchored alt-line grid (paper track) --------------------------------------
+ALT_OFFSETS = [round(x, 1) for x in np.arange(-14, 14.5, 0.5)]
+ALT_GRID = "logs/alt_grid.csv"
+
+
+def write_alt_grid(board, sp_Ph, sp_Pa, mkt):
+    """Market line for location, the model's margin shape for the tails.
+
+    For every game with a consensus market line, solve for the win probability that puts
+    the model's median exactly on that line, then price every alternate line from -14 to
+    +14 around it with the same cover3 machinery the board uses. home_line is the HOME
+    team's handicap at that alternate, so it joins directly to a book's alternate-spread
+    quote. Rebuilt every run; the alt ledger in mbm-data keeps the history.
+
+    Measured on the 2024-25 holdout (part 3 of the review): this construction tracks the
+    actual cover rate at each offset within a point or two, where a normal curve on the
+    closing line is off by two to four points in the tails. That gap is the edge this
+    grid is built to find, and it is untested against real alternate prices until the
+    ledger has a season.
+    """
+    rows = []
+    ts = pd.Timestamp.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    for i in range(len(board)):
+        m = mkt.get((str(board.away.iloc[i]), str(board.home.iloc[i])))
+        if m is None or m[0] is None or not np.isfinite(float(m[0])):
+            continue
+        mline = float(m[0]); k0 = -mline
+        Ph, Pa = sp_Ph[i:i+1], sp_Pa[i:i+1]
+        lo, hi = 0.02, 0.98
+        for _ in range(30):
+            mid = (lo + hi) / 2
+            h, pu, a = spread.cover3(np.array([mid]), Ph, Pa, np.array([k0]))
+            if h[0] + pu[0] / 2 > 0.5:
+                hi = mid
+            else:
+                lo = mid
+        pha = np.array([(lo + hi) / 2])
+        for j in ALT_OFFSETS:
+            k = k0 + j
+            h, pu, a = spread.cover3(pha, Ph, Pa, np.array([k]))
+            live = max(float(h[0]) + float(a[0]), 1e-9)
+            rows.append({"ts": ts, "game_id": board.game_id.iloc[i], "date": board.date.iloc[i],
+                         "week": board.week.iloc[i], "home": board.home.iloc[i], "away": board.away.iloc[i],
+                         "mkt_line": mline, "home_line": -k, "away_line": k,
+                         "p_home_cover": round(float(h[0]) / live, 4), "p_push": round(float(pu[0]), 4),
+                         "p_away_cover": round(float(a[0]) / live, 4), "anchor_p_home": round(float(pha[0]), 4)})
+    if rows:
+        pd.DataFrame(rows).to_csv(ALT_GRID, index=False)
+        print(f"alt grid: {len(rows)} lines across {len(rows)//len(ALT_OFFSETS)} games -> {ALT_GRID}")
+    else:
+        print("alt grid: no market lines this run")
+
+
 def mode_margin(ph, Ph, Pa):
     """Likeliest exact margin per game, signed from the home side, and its probability."""
     j = np.arange(1, spread.JMAX + 1)
@@ -1063,6 +1116,10 @@ def run(today_str):
         # it into the side decision inverts every held dog row. median_team is always the
         # favourite regardless of which rule published the row.
         _mkt = market_spreads()
+        try:
+            write_alt_grid(board, sp_Ph, sp_Pa, _mkt)
+        except Exception as _ex:
+            print("alt grid skipped:", type(_ex).__name__, _ex)
         _prev = {}
         if {"median_team", "pick_rule"} <= set(log.columns):
             for _r in log[log.median_team.notna()].itertuples():
