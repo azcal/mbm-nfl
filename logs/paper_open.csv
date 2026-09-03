@@ -1,0 +1,3 @@
+snap_date,date,week,season,game_id,away,home,pick_team,pick_side,pick_line,pick_prob,pick_claim,book_line,book_count,trigger,result,pnl,graded
+2026-09-03,2026-09-09,1,2026,2026_01_NE_SEA,NE,SEA,NE,away,3.5,0.5248,covers,,,0,,,
+2026-09-03,2026-09-10,1,2026,2026_01_SF_LA,SF,LA,LA,home,-4.0,0.5122,covers,,,0,,,
