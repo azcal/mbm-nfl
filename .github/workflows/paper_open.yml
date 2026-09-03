@@ -1,0 +1,35 @@
+name: mbm-nfl-paper-open
+# Tuesday, 40 minutes after the morning board, copies that run's Tuesday-line claims into
+# an append-only ledger. The 0.65 threshold is PROVISIONAL for NFL: the opener backtest
+# that validated NCAAF has no NFL equivalent yet (nflverse carries no openers). The archive
+# in mbm-data collects NFL Tuesday lines from September 2026; the threshold gets tested
+# against them after the season.
+on:
+  schedule:
+    - cron: "40 15 * 3-10 2"      # Tuesday 9:40am MDT
+    - cron: "40 16 * 1-2,11-12 2" # Tuesday 9:40am MST
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pandas numpy requests
+      - run: python paper_open.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          PAPER_WEEKDAY: "1"
+          PAPER_THRESHOLD: "0.65"
+          PAPER_LABEL: "NFL paper: Tuesday-line rule (provisional)"
+          PAPER_VALIDATED: "0"
+      - name: commit
+        run: |
+          git config user.name "mbm-nfl"
+          git config user.email "mbm-nfl@users.noreply.github.com"
+          git add logs/paper_open.csv
+          git commit -m "paper_open $(date -u +%F)" || echo "nothing new"
+          git pull --rebase && git push
