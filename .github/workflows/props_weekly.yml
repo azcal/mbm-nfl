@@ -1,0 +1,26 @@
+name: mbm-nfl-props-weekly
+# Sunday 15:00 UTC (9:00am MDT), before the prop-price snapshot in mbm-data at 16:20 UTC.
+on:
+  schedule:
+    - cron: "0 15 * * 0"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  props:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pandas numpy requests pyarrow
+      - run: python props_weekly.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: commit
+        run: |
+          git config user.name "mbm-nfl"
+          git config user.email "mbm-nfl@users.noreply.github.com"
+          git add logs/props_grid.csv
+          git commit -m "props grid $(date -u +%F)" || echo "nothing new"
+          git pull --rebase && git push
