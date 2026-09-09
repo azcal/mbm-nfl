@@ -24,6 +24,9 @@ PRIOR_CR = {"WR": 0.63, "TE": 0.70, "RB": 0.76, "FB": 0.72}
 PRIOR_YPC = {"WR": 12.8, "TE": 10.6, "RB": 7.8, "FB": 6.5}
 PRIOR_SHARE = {"WR": 0.02, "TE": 0.02, "RB": 0.02, "FB": 0.005}
 POOL = 0.96          # share of team targets that goes to tracked, active players
+DEPTH_PRIOR = {("WR", 1): 0.21, ("WR", 2): 0.15, ("WR", 3): 0.10, ("WR", 4): 0.04,
+               ("TE", 1): 0.13, ("TE", 2): 0.04, ("RB", 1): 0.09, ("RB", 2): 0.03, ("FB", 1): 0.02}
+GS_BETA = 0.0        # game-script hook; tested on 2024-25 with the sides model margins, no gain, left off
 YGRID = np.array([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 120], float)
 RGRID = np.arange(1, 11)
 RNG = np.random.default_rng(7)
@@ -103,10 +106,29 @@ def load_roster(season, live=True):
             return None
         ro = pd.read_parquet(p)
     ro = ro[ro.position.isin(POS) & (ro.status == "ACT")]
-    return ro[["season", "week", "team", "gsis_id", "position", "full_name"]]
+    ro = ro[["season", "week", "team", "gsis_id", "position", "full_name"]].copy()
+    # latest depth chart: pos_rank per player (1 = starter)
+    try:
+        if live:
+            r = requests.get(f"{NV}/depth_charts/depth_charts_{season}.parquet", timeout=120)
+            dc = pd.read_parquet(io.BytesIO(r.content)) if r.status_code == 200 and len(r.content) > 100 else None
+        else:
+            p = f"{DATA}/depth_charts_{season}.parquet"; dc = pd.read_parquet(p) if os.path.exists(p) else None
+        if dc is not None and len(dc):
+            dc["dt"] = pd.to_datetime(dc.dt); dc = dc[dc.dt == dc.dt.max()]
+            dc = dc[dc.pos_abb.isin(POS)][["gsis_id", "pos_rank"]].drop_duplicates("gsis_id")
+            dc["pos_rank"] = pd.to_numeric(dc.pos_rank, errors="coerce")
+            ro = ro.merge(dc, on="gsis_id", how="left")
+    except Exception:
+        pass
+    if "pos_rank" not in ro.columns:
+        ro["pos_rank"] = np.nan
+    return ro
 
 
-def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=False, upcoming=None, live=False, vol_mult=None, roster=None):
+def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=False, upcoming=None, live=False, vol_mult=None, roster=None, script=None, inj_status=None):
+    """script: {(season, week, team): expected margin for that team} from the sides model;
+    trailing teams throw more. inj_status: {(season, week, gsis_id): 'Questionable'|'Doubtful'|'Out'}."""
     """upcoming: DataFrame(season, week, team, opponent_team) for a slate that has not been
     played; predictions are made for it from states through the last completed week and no
     update runs on it. vol_mult: {"WR|lo": 1.12, ...} volume multipliers from the spec."""
@@ -136,8 +158,11 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
             ta = team_att[team].mean(33.0, 3.0)
             oa = opp_allowed[opp].mean(33.0, 3.0)
             att_mu = ta * (oa / 33.0) ** 0.5
+            if script is not None and (season, week, team) in script:
+                att_mu *= float(np.clip(1 - GS_BETA * script[(season, week, team)], 0.88, 1.12))
             # active roster: players with a share state on this team, seen in one of the team's
             # last 3 games, not Out/Doubtful this week
+            prior_of = {}
             if roster is not None and stop_at is not None and (int(season), int(week)) == stop_at:
                 # upcoming slate: the current roster decides who is on the team. Players with no
                 # history (rookies, first-timers) get the position prior; players who moved
@@ -148,11 +173,14 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 cands = []
                 for rr in ro.itertuples():
                     pid = rr.gsis_id
-                    if (season, week, pid) in out_set:
+                    if (season, week, pid) in out_set or (inj_status or {}).get((season, week, pid)) in ("Out", "Doubtful"):
                         continue
                     if pid not in share:
                         share[pid] = Dec(H); cr[pid] = Dec(30.0); ypc[pid] = Dec(30.0)
                     pos_of[pid] = rr.position; name_of[pid] = re.sub(r"[^a-z]", "", str(rr.full_name).lower()); last_team[pid] = team
+                    rk = rr.pos_rank if hasattr(rr, "pos_rank") and rr.pos_rank == rr.pos_rank else None
+                    if rk is not None:
+                        prior_of[pid] = DEPTH_PRIOR.get((rr.position, int(min(rk, 4 if rr.position == "WR" else 2))), PRIOR_SHARE[rr.position])
                     cands.append(pid)
             else:
                 cands = [pid for pid, tm in last_team.items()
@@ -161,7 +189,10 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                               or (week <= 2 and last_seen.get(pid, (0, 0))[0] == season - 1 and last_seen[pid][1] >= 15))]
             shares = {}
             for pid in cands:
-                s_ = share[pid].mean(PRIOR_SHARE[pos_of[pid]], 1.0)
+                if pid in prior_of:
+                    s_ = share[pid].mean(prior_of[pid], 3.0)     # depth chart carries weight until games on this team pile up
+                else:
+                    s_ = share[pid].mean(PRIOR_SHARE[pos_of[pid]], 1.0)
                 shares[pid] = s_
             tot = max(sum(shares.values()), 1e-6)
             for pid, s_ in shares.items():
@@ -177,6 +208,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 act = g[g.player_id == pid]
                 on_field = len(act) > 0 or (season, week, team, name_of.get(pid, "")) in played_names
                 rows.append(dict(season=season, week=week, team=team, opp=opp, pid=pid, pos=pos_of[pid], name=name_of.get(pid, ""),
+                                 inj=(inj_status or {}).get((season, week, pid), ""), depth_prior=prior_of.get(pid),
                                  proj_targets=round(pt, 2), share=round(sh, 3), cr=round(c, 3), ypc=round(y_, 2),
                                  med_yds=float(np.median(yds)), mean_yds=float(yds.mean()), med_rec=float(np.median(rc)),
                                  p_over=[float(np.mean(yds > x)) for x in YGRID],
