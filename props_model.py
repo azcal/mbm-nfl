@@ -43,6 +43,18 @@ class Dec:
 NV = "https://github.com/nflverse/nflverse-data/releases/download"
 
 
+def _get(url, tries=3):
+    """One download with retries; GitHub release downloads reset connections now and then."""
+    import requests, time
+    for i in range(tries):
+        try:
+            return requests.get(url, timeout=120)
+        except requests.exceptions.RequestException as ex:
+            print(f"  download failed ({type(ex).__name__}), retry {i + 1}/{tries}: {url.split('/')[-1]}")
+            time.sleep(5 * (i + 1))
+    return None
+
+
 def _read(kind, y, live):
     """kind in stats/injuries/snap_counts. Live mode downloads from nflverse; a missing or
     empty season (2026 before it has data) is skipped."""
@@ -51,8 +63,8 @@ def _read(kind, y, live):
            "injuries": f"{NV}/injuries/injuries_{y}.parquet",
            "snap_counts": f"{NV}/snap_counts/snap_counts_{y}.parquet"}[kind]
     if live:
-        r = requests.get(url, timeout=120)
-        if r.status_code != 200 or len(r.content) < 100:
+        r = _get(url)
+        if r is None or r.status_code != 200 or len(r.content) < 100:
             return None
         return pd.read_parquet(io.BytesIO(r.content))
     p = f"{DATA}/{'stats_player_week' if kind == 'stats' else kind}_{y}.parquet"
@@ -110,8 +122,8 @@ def load_roster(season, live=True):
     # latest depth chart: pos_rank per player (1 = starter)
     try:
         if live:
-            r = requests.get(f"{NV}/depth_charts/depth_charts_{season}.parquet", timeout=120)
-            dc = pd.read_parquet(io.BytesIO(r.content)) if r.status_code == 200 and len(r.content) > 100 else None
+            r = _get(f"{NV}/depth_charts/depth_charts_{season}.parquet")
+            dc = pd.read_parquet(io.BytesIO(r.content)) if r is not None and r.status_code == 200 and len(r.content) > 100 else None
         else:
             p = f"{DATA}/depth_charts_{season}.parquet"; dc = pd.read_parquet(p) if os.path.exists(p) else None
         if dc is not None and len(dc):
