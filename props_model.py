@@ -14,6 +14,7 @@ Outputs P(yards > X) on a grid, P(receptions >= k), median, mean.
 Walk-forward: states only ever see completed games; the injury report used for week w is the
 one filed for week w. Tune (kappa, alpha, H) on 2020-2022, score 2023-2025 once.
 """
+import re
 import numpy as np, pandas as pd, os, math, json, sys
 from collections import defaultdict
 
@@ -86,7 +87,26 @@ def simulate(att_mu, share, cr, ypc, kappa, alpha, n=1500):
     return tg, rc, y
 
 
-def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=False, upcoming=None, live=False, vol_mult=None):
+def load_roster(season, live=True):
+    """nflverse weekly roster for the season: who is on which team, with status. Used only
+    for an upcoming slate, so offseason moves, cuts and rookies are reflected."""
+    import io, requests
+    url = f"{NV}/weekly_rosters/roster_weekly_{season}.parquet"
+    if live:
+        r = requests.get(url, timeout=120)
+        if r.status_code != 200 or len(r.content) < 100:
+            return None
+        ro = pd.read_parquet(io.BytesIO(r.content))
+    else:
+        p = f"{DATA}/roster_weekly_{season}.parquet"
+        if not os.path.exists(p):
+            return None
+        ro = pd.read_parquet(p)
+    ro = ro[ro.position.isin(POS) & (ro.status == "ACT")]
+    return ro[["season", "week", "team", "gsis_id", "position", "full_name"]]
+
+
+def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=False, upcoming=None, live=False, vol_mult=None, roster=None):
     """upcoming: DataFrame(season, week, team, opponent_team) for a slate that has not been
     played; predictions are made for it from states through the last completed week and no
     update runs on it. vol_mult: {"WR|lo": 1.12, ...} volume multipliers from the spec."""
@@ -118,10 +138,27 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
             att_mu = ta * (oa / 33.0) ** 0.5
             # active roster: players with a share state on this team, seen in one of the team's
             # last 3 games, not Out/Doubtful this week
-            cands = [pid for pid, tm in last_team.items()
-                     if tm == team and (season, week, pid) not in out_set
-                     and (last_seen.get(pid, (0, 0)) >= (season, week - 2)
-                          or (week <= 2 and last_seen.get(pid, (0, 0))[0] == season - 1 and last_seen[pid][1] >= 15))]
+            if roster is not None and stop_at is not None and (int(season), int(week)) == stop_at:
+                # upcoming slate: the current roster decides who is on the team. Players with no
+                # history (rookies, first-timers) get the position prior; players who moved
+                # teams bring their share state, shrunk toward the prior.
+                wk_avail = roster[roster.week <= week]
+                ro = wk_avail[wk_avail.week == wk_avail.week.max()] if len(wk_avail) else roster[roster.week == roster.week.min()]
+                ro = ro[ro.team == team]
+                cands = []
+                for rr in ro.itertuples():
+                    pid = rr.gsis_id
+                    if (season, week, pid) in out_set:
+                        continue
+                    if pid not in share:
+                        share[pid] = Dec(H); cr[pid] = Dec(30.0); ypc[pid] = Dec(30.0)
+                    pos_of[pid] = rr.position; name_of[pid] = re.sub(r"[^a-z]", "", str(rr.full_name).lower()); last_team[pid] = team
+                    cands.append(pid)
+            else:
+                cands = [pid for pid, tm in last_team.items()
+                         if tm == team and (season, week, pid) not in out_set
+                         and (last_seen.get(pid, (0, 0)) >= (season, week - 2)
+                              or (week <= 2 and last_seen.get(pid, (0, 0))[0] == season - 1 and last_seen[pid][1] >= 15))]
             shares = {}
             for pid in cands:
                 s_ = share[pid].mean(PRIOR_SHARE[pos_of[pid]], 1.0)

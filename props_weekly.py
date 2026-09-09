@@ -28,7 +28,9 @@ up = pd.concat([pd.DataFrame(dict(season=season, week=week, team=slate.home_team
                 pd.DataFrame(dict(season=season, week=week, team=slate.away_team, opponent_team=slate.home_team))], ignore_index=True)
 print(f"{season} week {week}: {len(slate)} games, {len(up)} teams")
 M.RNG = np.random.default_rng(int(NOW.strftime("%Y%m%d")))
-df = M.run(range(2019, season + 1), kappa=spec["kappa"], alpha=spec["alpha"], H=spec["H"], upcoming=up, live=True, vol_mult=spec.get("volume_mult"))
+roster = M.load_roster(season, live=True)          # current team, status ACT: offseason moves, cuts and rookies
+print(f"roster: {'none, falling back to last-seen teams' if roster is None else str(len(roster)) + ' active receivers'}")
+df = M.run(range(2019, season + 1), kappa=spec["kappa"], alpha=spec["alpha"], H=spec["H"], upcoming=up, live=True, vol_mult=spec.get("volume_mult"), roster=roster)
 df = df[(df.season == season) & (df.week == week)].copy()
 out = df[["season", "week", "team", "opp", "pid", "name", "pos", "proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]].copy()
 for x, col in zip(M.YGRID, [f"p_over_{int(x)}" for x in M.YGRID]):
