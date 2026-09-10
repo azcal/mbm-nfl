@@ -26,6 +26,8 @@ PRIOR_SHARE = {"WR": 0.02, "TE": 0.02, "RB": 0.02, "FB": 0.005}
 POOL = 0.96          # share of team targets that goes to tracked, active players
 DEPTH_PRIOR = {("WR", 1): 0.21, ("WR", 2): 0.15, ("WR", 3): 0.10, ("WR", 4): 0.04,
                ("TE", 1): 0.13, ("TE", 2): 0.04, ("RB", 1): 0.09, ("RB", 2): 0.03, ("FB", 1): 0.02}
+SEASON_CARRY = 0.6   # share memory kept across the offseason
+DEPTH_EVIDENCE = 3.0 # below this many weighted games of history, the depth-chart prior applies; above it the player's own record does
 GS_BETA = 0.0        # game-script hook; tested on 2024-25 with the sides model margins, no gain, left off
 YGRID = np.array([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 120], float)
 RGRID = np.arange(1, 11)
@@ -43,18 +45,6 @@ class Dec:
 NV = "https://github.com/nflverse/nflverse-data/releases/download"
 
 
-def _get(url, tries=3):
-    """One download with retries; GitHub release downloads reset connections now and then."""
-    import requests, time
-    for i in range(tries):
-        try:
-            return requests.get(url, timeout=120)
-        except requests.exceptions.RequestException as ex:
-            print(f"  download failed ({type(ex).__name__}), retry {i + 1}/{tries}: {url.split('/')[-1]}")
-            time.sleep(5 * (i + 1))
-    return None
-
-
 def _read(kind, y, live):
     """kind in stats/injuries/snap_counts. Live mode downloads from nflverse; a missing or
     empty season (2026 before it has data) is skipped."""
@@ -63,8 +53,8 @@ def _read(kind, y, live):
            "injuries": f"{NV}/injuries/injuries_{y}.parquet",
            "snap_counts": f"{NV}/snap_counts/snap_counts_{y}.parquet"}[kind]
     if live:
-        r = _get(url)
-        if r is None or r.status_code != 200 or len(r.content) < 100:
+        r = requests.get(url, timeout=120)
+        if r.status_code != 200 or len(r.content) < 100:
             return None
         return pd.read_parquet(io.BytesIO(r.content))
     p = f"{DATA}/{'stats_player_week' if kind == 'stats' else kind}_{y}.parquet"
@@ -122,8 +112,8 @@ def load_roster(season, live=True):
     # latest depth chart: pos_rank per player (1 = starter)
     try:
         if live:
-            r = _get(f"{NV}/depth_charts/depth_charts_{season}.parquet")
-            dc = pd.read_parquet(io.BytesIO(r.content)) if r is not None and r.status_code == 200 and len(r.content) > 100 else None
+            r = requests.get(f"{NV}/depth_charts/depth_charts_{season}.parquet", timeout=120)
+            dc = pd.read_parquet(io.BytesIO(r.content)) if r.status_code == 200 and len(r.content) > 100 else None
         else:
             p = f"{DATA}/depth_charts_{season}.parquet"; dc = pd.read_parquet(p) if os.path.exists(p) else None
         if dc is not None and len(dc):
@@ -185,7 +175,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 cands = []
                 for rr in ro.itertuples():
                     pid = rr.gsis_id
-                    if (season, week, pid) in out_set or (inj_status or {}).get((season, week, pid)) in ("Out", "Doubtful"):
+                    if (season, week, pid) in out_set:
                         continue
                     if pid not in share:
                         share[pid] = Dec(H); cr[pid] = Dec(30.0); ypc[pid] = Dec(30.0)
@@ -201,8 +191,9 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                               or (week <= 2 and last_seen.get(pid, (0, 0))[0] == season - 1 and last_seen[pid][1] >= 15))]
             shares = {}
             for pid in cands:
-                if pid in prior_of:
-                    s_ = share[pid].mean(prior_of[pid], 3.0)     # depth chart carries weight until games on this team pile up
+                if pid in prior_of and share[pid].sw < DEPTH_EVIDENCE:
+                    s_ = share[pid].mean(prior_of[pid], 3.0)     # little history on this team: the depth chart carries the number
+
                 else:
                     s_ = share[pid].mean(PRIOR_SHARE[pos_of[pid]], 1.0)
                 shares[pid] = s_
@@ -248,7 +239,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 if r.receptions > 0:
                     ypc[pid].add(r.receiving_yards / r.receptions, w=r.receptions)
         if week == 1:      # new season: soften every player's share memory
-            for pid in share: share[pid].brk(0.6)
+            for pid in share: share[pid].brk(SEASON_CARRY)
     df = pd.DataFrame(rows)
     return df
 

@@ -28,6 +28,7 @@ up = pd.concat([pd.DataFrame(dict(season=season, week=week, team=slate.home_team
                 pd.DataFrame(dict(season=season, week=week, team=slate.away_team, opponent_team=slate.home_team))], ignore_index=True)
 print(f"{season} week {week}: {len(slate)} games, {len(up)} teams")
 M.RNG = np.random.default_rng(int(NOW.strftime("%Y%m%d")))
+M.SEASON_CARRY = spec.get("season_carry", M.SEASON_CARRY)
 roster = M.load_roster(season, live=True)          # current team, status ACT, depth-chart rank
 print(f"roster: {'none, falling back to last-seen teams' if roster is None else str(len(roster)) + ' active receivers'}")
 inj = M._read("injuries", season, True)

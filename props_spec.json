@@ -12,5 +12,6 @@
   "FB|lo": 1.0,
   "FB|hi": 1.0
  },
- "bucket_split": 7
+ "bucket_split": 7,
+ "season_carry": 0.8
 }
