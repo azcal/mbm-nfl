@@ -1,78 +1,162 @@
 """
 props_weekly.py: Sunday-morning receiving projections for this week's games (mbm-nfl).
 
-Pulls nflverse player weeks, injury reports and snap counts for 2019 to now, builds the
-model's states through the last completed week, and projects every receiver on the slate
-that kicks off in the next 7 days. Writes logs/props_grid.csv: one row per player with the
-median, the mean, P(receiving yards > X) for X on the model grid and P(receptions >= k).
-The props ledger in mbm-data joins this to the archived prop prices.
+Slate comes from the nflverse schedule and nothing else: one target week, every game in it
+whether scheduled, in progress or final, every team present. The odds feed never decides
+who plays whom. Injury status comes from ESPN (keyed by name AND team) with the nflverse
+report as backup; Out/Doubtful/IR/PUP/Suspended are removed from the active set and written
+with zeros and status_applied=True; Questionable stays projected and flagged.
 
-Spec (props_spec.json) was tuned on 2020-22 and scored once on 2023-25:
-receiving-yards over/under claims within 2.6 points of actual in every probability band,
-actual over the model median 0.514, receptions within 2.1 points in every band.
+Writes logs/props_grid.csv. Build-time assertions fail the run on a bad slate or an
+unapplied status. Set PROPS_WEEK=<n> to force a week (tests).
 """
 import datetime as dt, io, json, os, sys
 import numpy as np, pandas as pd, requests
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import props_model as M
 
-spec = json.load(open(os.path.join(HERE, "props_spec.json")))
-NOW = dt.datetime.now(dt.timezone.utc)
-g = pd.read_csv(io.StringIO(requests.get("https://github.com/nflverse/nfldata/raw/master/data/games.csv", timeout=120).text))
-g = g[g.game_type == "REG"].copy(); g["kick"] = pd.to_datetime(g.gameday + " " + g.gametime.fillna("13:00"), errors="coerce").dt.tz_localize("US/Eastern").dt.tz_convert("UTC")
-slate = g[(g.kick > NOW - dt.timedelta(hours=1)) & (g.kick <= NOW + dt.timedelta(days=7)) & g.result.isna()]
-if slate.empty:
-    print("no games in the next 7 days"); sys.exit(0)
-season, week = int(slate.season.iloc[0]), int(slate.week.iloc[0])
-up = pd.concat([pd.DataFrame(dict(season=season, week=week, team=slate.home_team, opponent_team=slate.away_team)),
-                pd.DataFrame(dict(season=season, week=week, team=slate.away_team, opponent_team=slate.home_team))], ignore_index=True)
-print(f"{season} week {week}: {len(slate)} games, {len(up)} teams")
-M.RNG = np.random.default_rng(int(NOW.strftime("%Y%m%d")))
-M.SEASON_CARRY = spec.get("season_carry", M.SEASON_CARRY)
-roster = M.load_roster(season, live=True)          # current team, status ACT, depth-chart rank
-print(f"roster: {'none, falling back to last-seen teams' if roster is None else str(len(roster)) + ' active receivers'}")
-inj = M._read("injuries", season, True)
-inj_status = {(int(r.season), int(r.week), r.gsis_id): r.report_status for r in inj.itertuples() if pd.notna(r.report_status)} if inj is not None else {}
-print(f"nflverse injury report: {sum(1 for k in inj_status if k[1] == week)} players listed for week {week}")
-# ESPN is a day or more ahead of nflverse mid-week; the feed refuses any custom User-Agent, so no headers
-espn_status = {}
-try:
-    ej = requests.get("https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries", timeout=60).json()
+SCHED_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
+ESPN_INJ = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries"
+TEAM_NORM = {"LAR": "LA", "STL": "LA", "JAC": "JAX", "WSH": "WAS", "OAK": "LV", "SD": "LAC", "ARZ": "ARI", "BLT": "BAL", "CLV": "CLE", "HST": "HOU"}
+norm_team = lambda t: TEAM_NORM.get(str(t).strip().upper(), str(t).strip().upper())
+norm_name = lambda s: M.re.sub(r"[^a-z]", "", str(s).lower())
+
+
+def schedule(season=None):
+    r = M._get(SCHED_URL)
+    if r is None or r.status_code != 200:
+        sys.exit("could not download the nflverse schedule")
+    g = pd.read_csv(io.StringIO(r.text))
+    g = g[g.game_type == "REG"].copy()
+    g["home_team"] = g.home_team.map(norm_team); g["away_team"] = g.away_team.map(norm_team)
+    g["kickoff_utc"] = pd.to_datetime(g.gameday + " " + g.gametime.fillna("13:00"), errors="coerce").dt.tz_localize("America/New_York").dt.tz_convert("UTC")
+    return g if season is None else g[g.season == season]
+
+
+def target_week(g, now):
+    """The week that is on: the earliest week with a game not yet final, unless every game of
+    the current week has kicked off more than 8 hours ago (then it is over and the next week
+    is the slate)."""
+    for wk in sorted(g.week.unique()):
+        w = g[g.week == wk]
+        if w.result.isna().any() or (w.kickoff_utc.max() + pd.Timedelta(hours=8)) > now:
+            return int(wk)
+    return int(g.week.max())
+
+
+def slate_for(g, week, now):
+    w = g[g.week == week].copy()
+    def status(r):
+        if pd.notna(r.result):
+            return "final"
+        return "in_progress" if r.kickoff_utc <= now else "scheduled"
+    w["game_status"] = w.apply(status, axis=1)
+    rows = []
+    for r in w.itertuples():
+        rows.append(dict(season=int(r.season), week=int(r.week), team=r.home_team, opponent_team=r.away_team, home_away="home", game_id=r.game_id, kickoff_utc=r.kickoff_utc.isoformat(), game_status=r.game_status))
+        rows.append(dict(season=int(r.season), week=int(r.week), team=r.away_team, opponent_team=r.home_team, home_away="away", game_id=r.game_id, kickoff_utc=r.kickoff_utc.isoformat(), game_status=r.game_status))
+    return pd.DataFrame(rows), w
+
+
+def assert_slate(up, w):
+    opp = dict(zip(up.team, up.opponent_team))
+    assert all(opp[opp[t]] == t for t in opp), "opp symmetry broken"
+    pairs = set(zip(w.home_team, w.away_team)) | set(zip(w.away_team, w.home_team))
+    assert all((t, o) in pairs for t, o in zip(up.team, up.opponent_team)), "a (team, opp) pair is not on the schedule"
+    assert up.team.nunique() == len(set(w.home_team) | set(w.away_team)), "team count differs from the schedule"
+
+
+def espn_injuries(max_age_days=6):
+    """{(normalized name, team code): status} from ESPN's injuries feed.
+
+    Root cause of the Week 1 false Outs: this feed is a news feed. Every item carries a
+    status ('Active', 'Out', 'Questionable', ...) and a date, and old items linger. The old
+    code keyed on name alone and ignored the date, so a stale 'Out' note tagged a healthy
+    starter. Now: team comes from the item's own athlete.team, items older than
+    max_age_days are ignored, and only injury statuses are kept.
+    """
+    out = {}
+    try:
+        ej = requests.get(ESPN_INJ, timeout=60).json()          # ESPN 403s any custom User-Agent; no headers
+    except Exception as ex:
+        print("ESPN injuries unavailable:", type(ex).__name__); return out, None
+    now = pd.Timestamp.now(tz="UTC")
+    keep = {"Out": "Out", "Doubtful": "Doubtful", "Questionable": "Questionable", "Injured Reserve": "IR",
+            "Suspension": "Suspended", "Physically Unable to Perform": "PUP"}
     for tm in ej.get("injuries", []):
         for it in tm.get("injuries", []):
+            st = keep.get(str(it.get("status", "")))
+            if not st:
+                continue
+            when = pd.to_datetime(it.get("date"), utc=True, errors="coerce")
+            if pd.isna(when) or (now - when).days > max_age_days:
+                continue
             ath = it.get("athlete") or {}
-            st = str(it.get("status", ""))
-            if st in ("Out", "Doubtful", "Questionable", "Injured Reserve"):
-                espn_status[M.re.sub(r"[^a-z]", "", str(ath.get("displayName", "")).lower())] = "Out" if st == "Injured Reserve" else st
-    print(f"ESPN injury list: {len(espn_status)} players")
-except Exception as ex:
-    print("ESPN injuries unavailable:", type(ex).__name__)
-if roster is not None and espn_status:
-    for rr in roster.itertuples():
-        nm = M.re.sub(r"[^a-z]", "", str(rr.full_name).lower())
-        if nm in espn_status and (season, week, rr.gsis_id) not in inj_status:
-            inj_status[(season, week, rr.gsis_id)] = espn_status[nm]
-    print(f"injury statuses after ESPN merge: {sum(1 for k in inj_status if k[1] == week)}")
-df = M.run(range(2019, season + 1), kappa=spec["kappa"], alpha=spec["alpha"], H=spec["H"], upcoming=up, live=True,
-           vol_mult=spec.get("volume_mult"), roster=roster, inj_status=inj_status, min_proj_targets=2.5)
-df = df[(df.season == season) & (df.week == week)].copy()
-out = df[["season", "week", "team", "opp", "pid", "name", "pos", "inj", "depth_prior", "proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]].copy()
-for x, col in zip(M.YGRID, [f"p_over_{int(x)}" for x in M.YGRID]):
-    out[col] = [round(p[i], 4) for p, i in zip(df.p_over, [list(M.YGRID).index(x)] * len(df))]
-for k in M.RGRID:
-    out[f"p_rec_{k}"] = [round(p[k - 1], 4) for p in df.p_rec]
-out["ts"] = NOW.strftime("%Y-%m-%dT%H:%M:%SZ")
-os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
-out.to_csv(os.path.join(HERE, "logs", "props_grid.csv"), index=False)
-print(f"props grid: {len(out)} players -> logs/props_grid.csv")
-top = out[out.inj.astype(str) == ""].sort_values("med_yds", ascending=False)   # Questionable/Doubtful/Out stay in the CSV, off the sheet
-lines = [f"{season} week {week}: {len(out)} receivers projected, {int((out.inj.astype(str) != '').sum())} on the injury report and left off. median yards | P(over 50 / 75 / 100) | median rec | P(rec >= 5 / 7)"]
-for r in top.head(40).itertuples():
-    lines.append(f"  {r.team:<3} {r.name:<22} {r.pos:<2} {r.med_yds:>6.1f} | {r.p_over_50:.2f} / {r.p_over_75:.2f} / {r.p_over_100:.2f} | {r.med_rec:>4.1f} | {r.p_rec_5:.2f} / {r.p_rec_7:.2f}")
-lines.append("full grid (every line 10 to 120, every reception count) in logs/props_grid.csv; fair decimal odds = 1 / probability")
-print("\n".join(lines))
-try:
-    import notify
-    notify.send(f"NFL receiving projections, week {week}", lines, "bottom-up, no market input; calibrated on 2023-25 within 3 points per band", getattr(notify, "GREY", None))
-except Exception as ex:
-    print("discord post skipped:", type(ex).__name__)
+            code = norm_team(((ath.get("team") or {}).get("abbreviation")) or "")
+            out[(norm_name(ath.get("displayName", "")), code)] = st
+    return out, now.isoformat(timespec="seconds")
+
+
+def main():
+    spec = json.load(open(os.path.join(HERE, "props_spec.json")))
+    now = pd.Timestamp.now(tz="UTC")
+    g = schedule()
+    season = int(g[g.kickoff_utc <= now + pd.Timedelta(days=7)].season.max()) if (g.kickoff_utc <= now + pd.Timedelta(days=7)).any() else int(g.season.max())
+    gs = g[g.season == season]
+    week = int(os.environ["PROPS_WEEK"]) if os.environ.get("PROPS_WEEK") else target_week(gs, now)
+    up, w = slate_for(gs, week, now)
+    assert_slate(up, w)
+    print(f"{season} week {week}: {len(w)} games, {up.team.nunique()} teams; status: {w.game_status.value_counts().to_dict()}")
+    first_kick = w.kickoff_utc.min()
+    if now > first_kick:
+        print(f"WARNING: build time {now.isoformat(timespec='minutes')} is after the earliest kickoff {first_kick.isoformat()}; move the cron earlier")
+    roster = M.load_roster(season, live=True)
+    print(f"roster: {'none' if roster is None else str(len(roster)) + ' active receivers'}")
+    inj = M._read("injuries", season, True)
+    inj_status = {(int(r.season), int(r.week), r.gsis_id): r.report_status for r in inj.itertuples() if pd.notna(r.report_status)} if inj is not None else {}
+    n_nv = sum(1 for k in inj_status if k[1] == week)
+    espn, espn_ts = espn_injuries()
+    n_espn = 0
+    if roster is not None and espn:
+        for rr in roster.itertuples():
+            st = espn.get((norm_name(rr.full_name), norm_team(rr.team)))
+            if st:
+                inj_status[(season, week, rr.gsis_id)] = st; n_espn += 1
+    print(f"injury statuses: nflverse {n_nv}, ESPN matched by name+team {n_espn} ({len(espn)} on ESPN's list)")
+    M.RNG = np.random.default_rng(int(now.strftime("%Y%m%d")))
+    M.SEASON_CARRY = spec.get("season_carry", M.SEASON_CARRY)
+    df = M.run(range(2019, season + 1), kappa=spec["kappa"], alpha=spec["alpha"], H=spec["H"], upcoming=up[["season", "week", "team", "opponent_team"]],
+               live=True, vol_mult=spec.get("volume_mult"), roster=roster, inj_status=inj_status, min_proj_targets=2.5)
+    df = df[(df.season == season) & (df.week == week)].copy()
+    meta = up.set_index("team")
+    for c in ("home_away", "game_id", "kickoff_utc", "game_status"):
+        df[c] = df.team.map(meta[c])
+    df["inj_source"] = np.where(df.inj.astype(str) != "", "espn+nflverse", ""); df["inj_ts"] = espn_ts or ""
+    bad = df[df.inj.astype(str).isin(M.REMOVE_STATUSES) & (df.proj_targets > 0) & (~df.status_applied.astype(bool))]
+    assert bad.empty, f"status not applied for {list(bad.name)}"
+    out = df[["season", "week", "team", "opp", "home_away", "game_id", "kickoff_utc", "game_status", "pid", "name", "pos", "inj", "inj_source", "inj_ts",
+              "status_applied", "depth_prior", "proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]].copy()
+    for i, x in enumerate(M.YGRID):
+        out[f"p_over_{int(x)}"] = [round(p[i], 4) for p in df.p_over]
+    for k in M.RGRID:
+        out[f"p_rec_{k}"] = [round(p[k - 1], 4) for p in df.p_rec]
+    out["ts"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
+    out.to_csv(os.path.join(HERE, "logs", "props_grid.csv"), index=False)
+    print(f"props grid: {len(out)} rows ({int(out.status_applied.astype(bool).sum())} removed by status) -> logs/props_grid.csv")
+    live = out[(out.inj.astype(str) == "") & (out.game_status != "final") & (out.proj_targets > 0)].sort_values("med_yds", ascending=False)
+    lines = [f"{season} week {week}: {len(out)} receivers, {int((out.inj.astype(str) != '').sum())} on an injury list (removed or flagged), "
+             f"{int((out.game_status == 'final').sum())} already final. median yards | P(over 50 / 75 / 100) | median rec | P(rec >= 5 / 7)"]
+    for r in live.head(40).itertuples():
+        lines.append(f"  {r.team:<3} {r.name:<22} {r.pos:<2} {r.med_yds:>6.1f} | {r.p_over_50:.2f} / {r.p_over_75:.2f} / {r.p_over_100:.2f} | {r.med_rec:>4.1f} | {r.p_rec_5:.2f} / {r.p_rec_7:.2f}")
+    lines.append("full grid in logs/props_grid.csv; fair decimal odds = 1 / probability")
+    print("\n".join(lines))
+    try:
+        import notify
+        notify.send(f"NFL receiving projections, week {week}", lines, "bottom-up, no market input; calibrated on 2023-25 within 3 points per band", getattr(notify, "GREY", None))
+    except Exception as ex:
+        print("discord post skipped:", type(ex).__name__)
+
+
+if __name__ == "__main__":
+    main()

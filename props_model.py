@@ -28,6 +28,8 @@ DEPTH_PRIOR = {("WR", 1): 0.21, ("WR", 2): 0.15, ("WR", 3): 0.10, ("WR", 4): 0.0
                ("TE", 1): 0.13, ("TE", 2): 0.04, ("RB", 1): 0.09, ("RB", 2): 0.03, ("FB", 1): 0.02}
 SEASON_CARRY = 0.6   # share memory kept across the offseason
 DEPTH_EVIDENCE = 3.0 # below this many weighted games of history, the depth-chart prior applies; above it the player's own record does
+REMOVE_STATUSES = ("Out", "Doubtful", "Injured Reserve", "IR", "PUP", "Suspended", "Suspension")
+RENORMALIZE_SHARES = True   # when a player is removed, the remaining players' shares are rescaled so team volume is conserved
 GS_BETA = 0.0        # game-script hook; tested on 2024-25 with the sides model margins, no gain, left off
 YGRID = np.array([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 120], float)
 RGRID = np.arange(1, 11)
@@ -45,6 +47,18 @@ class Dec:
 NV = "https://github.com/nflverse/nflverse-data/releases/download"
 
 
+def _get(url, tries=3):
+    """One download with retries; GitHub release downloads reset connections now and then."""
+    import requests, time
+    for i in range(tries):
+        try:
+            return requests.get(url, timeout=120)
+        except requests.exceptions.RequestException as ex:
+            print(f"  download failed ({type(ex).__name__}), retry {i + 1}/{tries}: {url.split('/')[-1]}")
+            time.sleep(5 * (i + 1))
+    return None
+
+
 def _read(kind, y, live):
     """kind in stats/injuries/snap_counts. Live mode downloads from nflverse; a missing or
     empty season (2026 before it has data) is skipped."""
@@ -53,8 +67,8 @@ def _read(kind, y, live):
            "injuries": f"{NV}/injuries/injuries_{y}.parquet",
            "snap_counts": f"{NV}/snap_counts/snap_counts_{y}.parquet"}[kind]
     if live:
-        r = requests.get(url, timeout=120)
-        if r.status_code != 200 or len(r.content) < 100:
+        r = _get(url)
+        if r is None or r.status_code != 200 or len(r.content) < 100:
             return None
         return pd.read_parquet(io.BytesIO(r.content))
     p = f"{DATA}/{'stats_player_week' if kind == 'stats' else kind}_{y}.parquet"
@@ -112,8 +126,8 @@ def load_roster(season, live=True):
     # latest depth chart: pos_rank per player (1 = starter)
     try:
         if live:
-            r = requests.get(f"{NV}/depth_charts/depth_charts_{season}.parquet", timeout=120)
-            dc = pd.read_parquet(io.BytesIO(r.content)) if r.status_code == 200 and len(r.content) > 100 else None
+            r = _get(f"{NV}/depth_charts/depth_charts_{season}.parquet")
+            dc = pd.read_parquet(io.BytesIO(r.content)) if r is not None and r.status_code == 200 and len(r.content) > 100 else None
         else:
             p = f"{DATA}/depth_charts_{season}.parquet"; dc = pd.read_parquet(p) if os.path.exists(p) else None
         if dc is not None and len(dc):
@@ -172,17 +186,20 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 wk_avail = roster[roster.week <= week]
                 ro = wk_avail[wk_avail.week == wk_avail.week.max()] if len(wk_avail) else roster[roster.week == roster.week.min()]
                 ro = ro[ro.team == team]
-                cands = []
+                cands = []; removed = []
                 for rr in ro.itertuples():
                     pid = rr.gsis_id
-                    if (season, week, pid) in out_set:
-                        continue
                     if pid not in share:
                         share[pid] = Dec(H); cr[pid] = Dec(30.0); ypc[pid] = Dec(30.0)
                     pos_of[pid] = rr.position; name_of[pid] = re.sub(r"[^a-z]", "", str(rr.full_name).lower()); last_team[pid] = team
                     rk = rr.pos_rank if hasattr(rr, "pos_rank") and rr.pos_rank == rr.pos_rank else None
                     if rk is not None:
                         prior_of[pid] = DEPTH_PRIOR.get((rr.position, int(min(rk, 4 if rr.position == "WR" else 2))), PRIOR_SHARE[rr.position])
+                    # STATUS STEP: Out/Doubtful/IR/PUP/Suspended are removed from the active set. Their
+                    # rows are still written with proj_targets = 0 and status_applied = True.
+                    st_ = (inj_status or {}).get((season, week, pid), "")
+                    if (season, week, pid) in out_set or st_ in REMOVE_STATUSES:
+                        removed.append(pid); continue
                     cands.append(pid)
             else:
                 cands = [pid for pid, tm in last_team.items()
@@ -197,7 +214,12 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 else:
                     s_ = share[pid].mean(PRIOR_SHARE[pos_of[pid]], 1.0)
                 shares[pid] = s_
-            tot = max(sum(shares.values()), 1e-6)
+            if roster is not None and not RENORMALIZE_SHARES and "removed" in dir():
+                # toggle off: removed players' shares stay in the denominator, so their targets vanish
+                # from the team rather than flowing to the remaining players
+                tot = max(sum(shares.values()) + sum(share[p].mean(PRIOR_SHARE[pos_of[p]], 1.0) for p in removed), 1e-6)
+            else:
+                tot = max(sum(shares.values()), 1e-6)
             for pid, s_ in shares.items():
                 sh = s_ / tot * POOL
                 if vol_mult:
@@ -211,7 +233,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 act = g[g.player_id == pid]
                 on_field = len(act) > 0 or (season, week, team, name_of.get(pid, "")) in played_names
                 rows.append(dict(season=season, week=week, team=team, opp=opp, pid=pid, pos=pos_of[pid], name=name_of.get(pid, ""),
-                                 inj=(inj_status or {}).get((season, week, pid), ""), depth_prior=prior_of.get(pid),
+                                 inj=(inj_status or {}).get((season, week, pid), ""), status_applied=False, depth_prior=prior_of.get(pid),
                                  proj_targets=round(pt, 2), share=round(sh, 3), cr=round(c, 3), ypc=round(y_, 2),
                                  med_yds=float(np.median(yds)), mean_yds=float(yds.mean()), med_rec=float(np.median(rc)),
                                  p_over=[float(np.mean(yds > x)) for x in YGRID],
@@ -221,6 +243,20 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                                  act_rec=int(act.receptions.iloc[0]) if len(act) else (0 if on_field else None),
                                  act_yds=float(act.receiving_yards.iloc[0]) if len(act) else (0.0 if on_field else None)))
         if stop_at is not None and (int(season), int(week)) == stop_at:
+            # rows for players removed by status, so the grid shows them with zeros
+            if roster is not None:
+                wk_avail = roster[roster.week <= week]
+                ro_all = wk_avail[wk_avail.week == wk_avail.week.max()] if len(wk_avail) else roster[roster.week == roster.week.min()]
+                for team, g in wk.groupby("team"):
+                    opp = g.opponent_team.iloc[0]
+                    for rr in ro_all[ro_all.team == team].itertuples():
+                        pid = rr.gsis_id; st_ = (inj_status or {}).get((season, week, pid), "")
+                        if (season, week, pid) in out_set or st_ in REMOVE_STATUSES:
+                            rows.append(dict(season=season, week=week, team=team, opp=opp, pid=pid, pos=rr.position,
+                                             name=re.sub(r"[^a-z]", "", str(rr.full_name).lower()), inj=st_ or "Out", status_applied=True,
+                                             depth_prior=None, proj_targets=0.0, share=0.0, cr=0.0, ypc=0.0, med_yds=0.0, mean_yds=0.0, med_rec=0.0,
+                                             played=False, act_tg=None, act_rec=None, act_yds=None,
+                                             p_over=[0.0] * len(YGRID), p_rec=[0.0] * len(RGRID)))
             break
         # ---------- updates after the week ----------
         for team, g in wk.groupby("team"):
