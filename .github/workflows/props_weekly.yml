@@ -1,8 +1,11 @@
 name: mbm-nfl-props-weekly
-# Sunday 15:00 UTC (9:00am MDT), before the prop-price snapshot in mbm-data at 16:20 UTC.
+# Sunday 14:30 UTC (8:30am MDT): projections, before any early-window kickoff (17:00 UTC) and
+# before the prop-price snapshot in mbm-data at 16:20 UTC. Tuesday 15:15 UTC: validation of
+# Sunday's injury tags against snap counts. A manual run does both.
 on:
   schedule:
-    - cron: "0 15 * * 0"
+    - cron: "30 14 * * 0"
+    - cron: "15 15 * * 2"
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,8 +16,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install pandas numpy requests pyarrow
-      - run: python props_weekly.py
+      - run: pip install pandas numpy requests pyarrow tzdata
+      - name: validate last grid (Tuesday)
+        if: github.event.schedule == '15 15 * * 2' || github.event_name == 'workflow_dispatch'
+        run: python props_validate.py || true
+      - name: slate regression test
+        run: python test_props_slate.py
+      - name: project this week (Sunday)
+        if: github.event.schedule != '15 15 * * 2'
+        run: python props_weekly.py
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       - name: commit
