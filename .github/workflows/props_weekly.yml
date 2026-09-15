@@ -22,6 +22,8 @@ jobs:
         run: python props_validate.py || true
       - name: slate regression test
         run: python test_props_slate.py
+      - name: name matching test
+        run: python tests/test_props_names.py
       - name: project this week (Sunday)
         if: github.event.schedule != '15 15 * * 2'
         run: python props_weekly.py
