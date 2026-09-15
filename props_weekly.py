@@ -137,8 +137,33 @@ def main():
     bad = df[df.inj.astype(str).isin(M.REMOVE_STATUSES) & (df.proj_targets > 0) & (~df.status_applied.astype(bool))]
     assert bad.empty, f"status not applied for {list(bad.name)}"
     df["play_prob"] = [0.0 if bool(a) else PLAY_PROB.get(str(i), 1.0) for a, i in zip(df.status_applied, df.inj)]
+    # MOVE LOG (Phase 2, item 11): where every share and target projection came from this week
+    logs0 = os.path.join(HERE, "logs"); os.makedirs(logs0, exist_ok=True)
+    prev0 = pd.read_csv(os.path.join(logs0, "props_grid.csv"), low_memory=False) if os.path.exists(os.path.join(logs0, "props_grid.csv")) else None
+    prev_med = dict(zip(prev0.pid, prev0.med_yds)) if prev0 is not None and "pid" in prev0.columns else {}
+    prev_team = dict(zip(prev0.pid, prev0.team)) if prev0 is not None and "pid" in prev0.columns else {}
+    mv = df[df.proj_targets > 0].copy()
+    mv["data_update_delta"] = mv.blend_share - mv.prior_share
+    mv["redistribution_delta"] = mv.final_share - mv.blend_share
+    for c in ("prior_share", "data_update_delta", "redistribution_delta", "final_share"):
+        mv[c.replace("share", "targets") if "share" in c else c + "_targets"] = (mv[c] * mv.att_mu).round(2)
+    mv["last_week_med_yds"] = mv.pid.map(prev_med); mv["this_week_med_yds"] = mv.med_yds.round(1)
+    def reason(r):
+        parts = [f"n_games_team={int(r.n_games_team)} w_data={r.w_data:.2f}", str(r.prior_src)]
+        if r.pid in prev_team and prev_team[r.pid] != r.team:
+            parts.append(f"team change {prev_team[r.pid]}->{r.team}")
+        if abs(r.redistribution_delta) > 0.01:
+            parts.append("active set changed (status/roster) -> redistribution")
+        if str(r.inj):
+            parts.append(f"inj={r.inj}")
+        return "; ".join(parts)
+    mv["move_reason"] = [reason(r) for r in mv.itertuples()]
+    mv[["season", "week", "team", "pid", "name", "pos", "prior_share", "data_update_delta", "redistribution_delta", "final_share",
+        "prior_targets", "data_update_delta_targets", "redistribution_delta_targets", "final_targets", "last_week_med_yds", "this_week_med_yds", "move_reason"]] \
+        .to_csv(os.path.join(logs0, "props_moves.csv"), index=False)
+    print(f"move log: {len(mv)} players -> logs/props_moves.csv")
     ident = ["season", "week", "team", "opp", "home_away", "game_id", "kickoff_utc", "game_status", "pid", "name", "pos",
-             "inj", "inj_source", "inj_ts", "status_applied", "play_prob", "depth_prior"]
+             "inj", "inj_source", "inj_ts", "status_applied", "play_prob", "depth_prior", "prior_share", "w_data", "n_games_team"]
     centre = ["proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]
     out = df[ident + centre].copy()
     for i, x in enumerate(M.YGRID):
@@ -175,6 +200,9 @@ def main():
         meta_extra.update(anchored=False, odds_ts="")
     order = ident + ["market_line", "market_p_over", "gap_vs_market", "p_over_at_line", "anchored", "anchor_clipped", "odds_ts"] + centre + \
             [f"p_over_{int(x)}" for x in M.YGRID] + [f"p_rec_{k}" for k in M.RGRID] + ["ts"]
+    for c in order:
+        if c not in raw.columns: raw[c] = np.nan
+        if c not in pub.columns: pub[c] = np.nan
     raw = raw[order]; pub = pub[order]
     raw.to_csv(os.path.join(logs, "props_grid_raw.csv"), index=False)
     pub.to_csv(os.path.join(logs, "props_grid.csv"), index=False)

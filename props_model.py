@@ -24,6 +24,8 @@ PRIOR_CR = {"WR": 0.63, "TE": 0.70, "RB": 0.76, "FB": 0.72}
 PRIOR_YPC = {"WR": 12.8, "TE": 10.6, "RB": 7.8, "FB": 6.5}
 PRIOR_SHARE = {"WR": 0.02, "TE": 0.02, "RB": 0.02, "FB": 0.005}
 POOL = 0.96          # share of team targets that goes to tracked, active players
+PRIOR_K = 6          # player prior: w = n_games_last_season / (n_games_last_season + PRIOR_K)
+K_UPDATE = 5         # in-season: w_data = n_games_this_team_this_season / (n_games + K_UPDATE)
 DEPTH_PRIOR = {("WR", 1): 0.21, ("WR", 2): 0.15, ("WR", 3): 0.10, ("WR", 4): 0.04,
                ("TE", 1): 0.13, ("TE", 2): 0.04, ("RB", 1): 0.09, ("RB", 2): 0.03, ("FB", 1): 0.02}
 SEASON_CARRY = 0.6   # share memory kept across the offseason
@@ -149,6 +151,14 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
     played; predictions are made for it from states through the last completed week and no
     update runs on it. vol_mult: {"WR|lo": 1.12, ...} volume multipliers from the spec."""
     st, out_set, played_names = load(seasons, live=live)
+    # PLAYER PRIOR (Phase 2, item 9): last season's target share per player, averaged over the
+    # games he played, and how many games that was. A player who changed teams keeps this.
+    tt = st.groupby(["season", "week", "team"]).targets.sum().rename("team_tg")
+    ps = st[st.targets.notna()].merge(tt, on=["season", "week", "team"], how="left")
+    ps = ps[ps.team_tg > 0]; ps["sh"] = ps.targets / ps.team_tg
+    last_share = ps.groupby(["season", "player_id"]).agg(sh=("sh", "mean"), n=("sh", "size"))
+    LAST = {(int(k[0]) + 1, k[1]): (float(v.sh), int(v.n)) for k, v in last_share.iterrows()}   # keyed to the NEXT season
+    games_on_team = {}     # (pid, team, season) -> games played there this season, for K_UPDATE
     if upcoming is not None and len(upcoming):
         dummy = upcoming.copy(); dummy["season_type"] = "REG"; dummy["player_id"] = None; dummy["player_display_name"] = ""
         dummy["position"] = "WR"; dummy["targets"] = 0; dummy["receptions"] = 0; dummy["receiving_yards"] = 0.0
@@ -178,7 +188,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 att_mu *= float(np.clip(1 - GS_BETA * script[(season, week, team)], 0.88, 1.12))
             # active roster: players with a share state on this team, seen in one of the team's
             # last 3 games, not Out/Doubtful this week
-            prior_of = {}
+            prior_of = {}; prior_src = {}
             if roster is not None and stop_at is not None and (int(season), int(week)) == stop_at:
                 # upcoming slate: the current roster decides who is on the team. Players with no
                 # history (rookies, first-timers) get the position prior; players who moved
@@ -193,8 +203,11 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                         share[pid] = Dec(H); cr[pid] = Dec(30.0); ypc[pid] = Dec(30.0)
                     pos_of[pid] = rr.position; name_of[pid] = re.sub(r"[^a-z]", "", str(rr.full_name).lower()); last_team[pid] = team
                     rk = rr.pos_rank if hasattr(rr, "pos_rank") and rr.pos_rank == rr.pos_rank else None
-                    if rk is not None:
-                        prior_of[pid] = DEPTH_PRIOR.get((rr.position, int(min(rk, 4 if rr.position == "WR" else 2))), PRIOR_SHARE[rr.position])
+                    slot = DEPTH_PRIOR.get((rr.position, int(min(rk, 4 if rr.position == "WR" else 2))), PRIOR_SHARE[rr.position]) if rk is not None else PRIOR_SHARE[rr.position]
+                    ls = LAST.get((int(season), pid))
+                    w_prior = (ls[1] / (ls[1] + PRIOR_K)) if ls else 0.0
+                    prior_of[pid] = w_prior * (ls[0] if ls else 0.0) + (1 - w_prior) * slot
+                    prior_src[pid] = f"w_last={w_prior:.2f} last={ls[0]:.3f} ({ls[1]} gp)" if ls else "slot only (no last season)"
                     # STATUS STEP: Out/Doubtful/IR/PUP/Suspended are removed from the active set. Their
                     # rows are still written with proj_targets = 0 and status_applied = True.
                     st_ = (inj_status or {}).get((season, week, pid), "")
@@ -206,18 +219,22 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                          if tm == team and (season, week, pid) not in out_set
                          and (last_seen.get(pid, (0, 0)) >= (season, week - 2)
                               or (week <= 2 and last_seen.get(pid, (0, 0))[0] == season - 1 and last_seen[pid][1] >= 15))]
-            shares = {}
+                for pid in cands:
+                    ls = LAST.get((int(season), pid)); w_prior = (ls[1] / (ls[1] + PRIOR_K)) if ls else 0.0
+                    prior_of[pid] = w_prior * (ls[0] if ls else 0.0) + (1 - w_prior) * PRIOR_SHARE[pos_of[pid]]
+            shares = {}; blend_of = {}
             for pid in cands:
-                if pid in prior_of and share[pid].sw < DEPTH_EVIDENCE:
-                    s_ = share[pid].mean(prior_of[pid], 3.0)     # little history on this team: the depth chart carries the number
-
-                else:
-                    s_ = share[pid].mean(PRIOR_SHARE[pos_of[pid]], 1.0)
-                shares[pid] = s_
+                # UPDATE RULE (Phase 2, item 10): one shrinkage rule for everyone.
+                n_g = games_on_team.get((pid, team, int(season)), 0)
+                w_data = n_g / (n_g + K_UPDATE)
+                obs = (share[pid].sx / share[pid].sw) if share[pid].sw > 0 else prior_of.get(pid, PRIOR_SHARE[pos_of[pid]])
+                pr = prior_of.get(pid, PRIOR_SHARE[pos_of[pid]])
+                s_ = w_data * obs + (1 - w_data) * pr
+                shares[pid] = s_; blend_of[pid] = (pr, obs, w_data, s_)
             if roster is not None and not RENORMALIZE_SHARES and "removed" in dir():
                 # toggle off: removed players' shares stay in the denominator, so their targets vanish
                 # from the team rather than flowing to the remaining players
-                tot = max(sum(shares.values()) + sum(share[p].mean(PRIOR_SHARE[pos_of[p]], 1.0) for p in removed), 1e-6)
+                tot = max(sum(shares.values()) + sum(prior_of.get(p, PRIOR_SHARE[pos_of[p]]) for p in removed), 1e-6)
             else:
                 tot = max(sum(shares.values()), 1e-6)
             for pid, s_ in shares.items():
@@ -234,6 +251,9 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 on_field = len(act) > 0 or (season, week, team, name_of.get(pid, "")) in played_names
                 rows.append(dict(season=season, week=week, team=team, opp=opp, pid=pid, pos=pos_of[pid], name=name_of.get(pid, ""),
                                  inj=(inj_status or {}).get((season, week, pid), ""), status_applied=False, depth_prior=prior_of.get(pid),
+                                 prior_share=round(blend_of[pid][0], 4), obs_share=round(blend_of[pid][1], 4), w_data=round(blend_of[pid][2], 3),
+                                 blend_share=round(blend_of[pid][3], 4), final_share=round(sh, 4), n_games_team=games_on_team.get((pid, team, int(season)), 0),
+                                 prior_src=prior_src.get(pid, ""), att_mu=round(att_mu, 2),
                                  proj_targets=round(pt, 2), share=round(sh, 3), cr=round(c, 3), ypc=round(y_, 2),
                                  med_yds=float(np.median(yds)), mean_yds=float(yds.mean()), med_rec=float(np.median(rc)),
                                  p_over=[float(np.mean(yds > x)) for x in YGRID],
@@ -269,6 +289,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                     if pid in share and last_team.get(pid) != team and last_team.get(pid) is not None:
                         pass
                 pos_of[pid] = r.position; last_team[pid] = team; last_seen[pid] = (season, week); name_of[pid] = r.nm
+                games_on_team[(pid, team, int(season))] = games_on_team.get((pid, team, int(season)), 0) + 1
                 share[pid].add(r.targets / tt if tt > 0 else 0.0)
                 if r.targets > 0:
                     cr[pid].add(r.receptions / r.targets, w=r.targets)
