@@ -1,0 +1,305 @@
+snap_ts,event_id,commence,home,away,book,book_update,market,outcome,player,point,price_dec,price_am
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Amon-Ra St. Brown,79.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Amon-Ra St. Brown,79.5,1.9,-111
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,DJ Moore,57.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,DJ Moore,57.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Jameson Williams,56.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Jameson Williams,56.5,1.91,-110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Dalton Kincaid,50.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Dalton Kincaid,50.5,1.91,-110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Sam LaPorta,45.5,1.92,-109
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Sam LaPorta,45.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Khalil Shakir,43.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Khalil Shakir,43.5,1.9,-111
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Jahmyr Gibbs,30.5,1.92,-109
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Jahmyr Gibbs,30.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Isaac TeSlaa,15.5,1.86,-116
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Isaac TeSlaa,15.5,1.93,-108
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Joshua Palmer,14.5,1.9,-111
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Joshua Palmer,14.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Dawson Knox,13.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Dawson Knox,13.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Over,Keon Coleman,11.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_reception_yds,Under,Keon Coleman,11.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Amon-Ra St. Brown,7.5,1.98,-102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Amon-Ra St. Brown,7.5,1.8,-125
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Sam LaPorta,4.5,2.01,+101
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Sam LaPorta,4.5,1.78,-128
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,DJ Moore,4.5,2.12,+112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,DJ Moore,4.5,1.7,-143
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Jahmyr Gibbs,4.5,2.14,+114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Jahmyr Gibbs,4.5,1.69,-145
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Khalil Shakir,4.5,2.23,+123
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Khalil Shakir,4.5,1.64,-156
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Jameson Williams,3.5,1.63,-159
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Jameson Williams,3.5,2.24,+124
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Dalton Kincaid,3.5,1.65,-154
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Dalton Kincaid,3.5,2.21,+121
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Isaac TeSlaa,1.5,2.08,+108
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Isaac TeSlaa,1.5,1.73,-137
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Dawson Knox,1.5,2.23,+123
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Dawson Knox,1.5,1.63,-159
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Joshua Palmer,1.5,2.52,+152
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Joshua Palmer,1.5,1.51,-196
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Over,Keon Coleman,1.5,2.59,+159
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,draftkings,,player_receptions,Under,Keon Coleman,1.5,1.49,-204
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Jameson Williams,59.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Jameson Williams,59.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Khalil Shakir,44.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Khalil Shakir,44.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,DJ Moore,55.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,DJ Moore,55.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Keon Coleman,11.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Keon Coleman,11.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Amon-Ra St. Brown,79.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Amon-Ra St. Brown,79.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Jahmyr Gibbs,29.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Jahmyr Gibbs,29.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Joshua Palmer,13.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Joshua Palmer,13.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Isaac TeSlaa,15.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Isaac TeSlaa,15.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Sam LaPorta,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Sam LaPorta,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Dalton Kincaid,51.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Dalton Kincaid,51.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Over,Dawson Knox,12.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_reception_yds,Under,Dawson Knox,12.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Dawson Knox,1.5,2.24,+124
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Dawson Knox,1.5,1.6,-167
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,DJ Moore,4.5,2.02,+102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,DJ Moore,4.5,1.74,-135
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Joshua Palmer,1.5,2.48,+148
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Joshua Palmer,1.5,1.5,-200
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Khalil Shakir,4.5,2.02,+102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Khalil Shakir,4.5,1.74,-135
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Amon-Ra St. Brown,7.5,1.94,-106
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Amon-Ra St. Brown,7.5,1.8,-125
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Keon Coleman,1.5,2.72,+172
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Keon Coleman,1.5,1.43,-233
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Jahmyr Gibbs,4.5,2.1,+110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Jahmyr Gibbs,4.5,1.68,-147
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Sam LaPorta,4.5,2.02,+102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Sam LaPorta,4.5,1.74,-135
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Jameson Williams,3.5,1.52,-192
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Jameson Williams,3.5,2.42,+142
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Isaac TeSlaa,1.5,2.18,+118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Isaac TeSlaa,1.5,1.63,-159
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Over,Dalton Kincaid,3.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,fanduel,,player_receptions,Under,Dalton Kincaid,3.5,2.22,+122
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Dalton Kincaid,50.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Dalton Kincaid,50.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Jahmyr Gibbs,29.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Jahmyr Gibbs,29.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Amon-Ra St. Brown,79.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Amon-Ra St. Brown,79.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,DJ Moore,59.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,DJ Moore,59.5,1.93,-108
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Dawson Knox,12.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Dawson Knox,12.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Joshua Palmer,13.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Joshua Palmer,13.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Sam LaPorta,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Sam LaPorta,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,James Cook,14.5,1.81,-123
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,James Cook,14.5,1.95,-105
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Isaac TeSlaa,16.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Isaac TeSlaa,16.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Jameson Williams,56.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Jameson Williams,56.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Keon Coleman,11.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Keon Coleman,11.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Over,Khalil Shakir,43.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_reception_yds,Under,Khalil Shakir,43.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Sam LaPorta,4.5,1.99,-101
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Sam LaPorta,4.5,1.78,-128
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Dalton Kincaid,3.5,1.64,-156
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Dalton Kincaid,3.5,2.2,+120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Amon-Ra St. Brown,7.5,1.98,-102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Amon-Ra St. Brown,7.5,1.79,-127
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Jameson Williams,3.5,1.6,-167
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Jameson Williams,3.5,2.28,+128
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Jahmyr Gibbs,4.5,2.15,+115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Jahmyr Gibbs,4.5,1.67,-149
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,DJ Moore,4.5,2.0,+100
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,DJ Moore,4.5,1.77,-130
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Khalil Shakir,4.5,2.13,+113
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Khalil Shakir,4.5,1.68,-147
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Dawson Knox,1.5,2.24,+124
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Dawson Knox,1.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Joshua Palmer,1.5,2.49,+149
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Joshua Palmer,1.5,1.51,-196
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Keon Coleman,1.5,2.55,+155
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Keon Coleman,1.5,1.49,-204
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,Isaac TeSlaa,1.5,2.15,+115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,Isaac TeSlaa,1.5,1.67,-149
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Over,James Cook,2.5,2.24,+124
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betonlineag,,player_receptions,Under,James Cook,2.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,Amon-Ra St. Brown,79.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,Amon-Ra St. Brown,79.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,DJ Moore,57.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,DJ Moore,57.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,Dalton Kincaid,50.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,Dalton Kincaid,50.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,Jahmyr Gibbs,30.5,1.91,-110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,Jahmyr Gibbs,30.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,Jameson Williams,56.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,Jameson Williams,56.5,1.91,-110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,Khalil Shakir,43.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,Khalil Shakir,43.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Over,Sam LaPorta,45.5,1.91,-110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_reception_yds,Under,Sam LaPorta,45.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Amon-Ra St. Brown,7.5,1.95,-105
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Amon-Ra St. Brown,7.5,1.8,-125
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,DJ Moore,4.5,2.1,+110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,DJ Moore,4.5,1.69,-145
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Dalton Kincaid,3.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Dalton Kincaid,3.5,2.2,+120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Dawson Knox,1.5,2.2,+120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Dawson Knox,1.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Isaac TeSlaa,1.5,2.1,+110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Isaac TeSlaa,1.5,1.69,-145
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Jahmyr Gibbs,4.5,2.15,+115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Jahmyr Gibbs,4.5,1.67,-149
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Jameson Williams,3.5,1.61,-164
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Joshua Palmer,1.5,2.5,+150
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Joshua Palmer,1.5,1.5,-200
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Keon Coleman,1.5,2.55,+155
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Keon Coleman,1.5,1.48,-208
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Khalil Shakir,4.5,2.2,+120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Khalil Shakir,4.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Over,Sam LaPorta,4.5,2.0,+100
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,bovada,,player_receptions,Under,Sam LaPorta,4.5,1.77,-130
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Amon-Ra St. Brown,79.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Amon-Ra St. Brown,79.5,1.85,-118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,DJ Moore,60.5,1.85,-118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,DJ Moore,60.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Jameson Williams,56.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Jameson Williams,56.5,1.85,-118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Sam LaPorta,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Sam LaPorta,46.5,1.85,-118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Jahmyr Gibbs,29.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Jahmyr Gibbs,29.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Khalil Shakir,45.5,1.85,-118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Khalil Shakir,45.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Joshua Palmer,13.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Joshua Palmer,13.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Keon Coleman,10.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Keon Coleman,10.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Isaac TeSlaa,14.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Isaac TeSlaa,14.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Dawson Knox,13.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Dawson Knox,13.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Over,Dalton Kincaid,52.5,1.85,-118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_reception_yds,Under,Dalton Kincaid,52.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Amon-Ra St. Brown,7.5,1.92,-109
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,DJ Moore,4.5,1.87,-115
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Khalil Shakir,4.5,2.08,+108
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Dalton Kincaid,3.5,1.61,-164
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Sam LaPorta,4.5,2.0,+100
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Jahmyr Gibbs,4.5,2.1,+110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Joshua Palmer,1.5,2.35,+135
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Dawson Knox,1.5,2.25,+125
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Isaac TeSlaa,1.5,2.18,+118
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Jameson Williams,3.5,1.64,-156
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,betrivers,,player_receptions,Over,Keon Coleman,1.5,2.5,+150
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Amon-Ra St. Brown,79.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Amon-Ra St. Brown,79.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Dalton Kincaid,49.5,1.91,-110
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Dalton Kincaid,49.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,DJ Moore,60.5,1.95,-105
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,DJ Moore,60.5,1.83,-120
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Jahmyr Gibbs,29.5,1.9,-111
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Jahmyr Gibbs,29.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Jameson Williams,59.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Jameson Williams,59.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Khalil Shakir,44.5,1.9,-111
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Khalil Shakir,44.5,1.88,-114
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Sam LaPorta,46.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Sam LaPorta,46.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Dawson Knox,12.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Dawson Knox,12.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Isaac TeSlaa,15.5,1.81,-123
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Isaac TeSlaa,15.5,1.98,-102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Joshua Palmer,13.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Joshua Palmer,13.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Over,Keon Coleman,11.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_reception_yds,Under,Keon Coleman,11.5,1.89,-112
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Amon-Ra St. Brown,7.5,1.98,-102
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Amon-Ra St. Brown,7.5,1.81,-123
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Dalton Kincaid,3.5,1.65,-154
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Dalton Kincaid,3.5,2.23,+123
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,DJ Moore,4.5,1.95,-105
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,DJ Moore,4.5,1.84,-119
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Jahmyr Gibbs,4.5,2.27,+127
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Jahmyr Gibbs,4.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Jameson Williams,3.5,1.57,-175
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Jameson Williams,3.5,2.39,+139
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Khalil Shakir,4.5,2.06,+106
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Khalil Shakir,4.5,1.75,-133
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Sam LaPorta,4.5,2.01,+101
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Sam LaPorta,4.5,1.79,-127
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Dawson Knox,1.5,2.27,+127
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Dawson Knox,1.5,1.62,-161
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Isaac TeSlaa,1.5,2.21,+121
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Isaac TeSlaa,1.5,1.65,-154
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Joshua Palmer,1.5,2.51,+151
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Joshua Palmer,1.5,1.52,-192
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Over,Keon Coleman,1.5,2.75,+175
+2026-09-15T19:24:57+00:00,56e8897681915f7ec92baeee952bb1ae,2026-09-18T00:15:00Z,Buffalo Bills,Detroit Lions,pinnacle,,player_receptions,Under,Keon Coleman,1.5,1.44,-227
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Travis Kelce,42.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Travis Kelce,42.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Keenan Allen,30.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Keenan Allen,30.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Tyquan Thornton,13.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Tyquan Thornton,13.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Josh Downs,36.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Josh Downs,36.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Rashee Rice,54.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Rashee Rice,54.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Tyler Warren,42.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Tyler Warren,42.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Alec Pierce,43.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Alec Pierce,43.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Jonathan Taylor,16.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Jonathan Taylor,16.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Kenneth Walker III,18.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Kenneth Walker III,18.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Over,Xavier Worthy,37.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_reception_yds,Under,Xavier Worthy,37.5,1.88,-114
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Rashee Rice,5.5,2.2,+120
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Rashee Rice,5.5,1.62,-161
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Xavier Worthy,3.5,2.06,+106
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Xavier Worthy,3.5,1.71,-141
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Jonathan Taylor,2.5,1.83,-120
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Jonathan Taylor,2.5,1.91,-110
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Alec Pierce,2.5,1.58,-172
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Alec Pierce,2.5,2.28,+128
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Tyler Warren,4.5,1.77,-130
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Tyler Warren,4.5,1.98,-102
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Travis Kelce,3.5,1.65,-154
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Travis Kelce,3.5,2.16,+116
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Josh Downs,3.5,1.82,-122
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Josh Downs,3.5,1.94,-106
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Kenneth Walker III,2.5,1.62,-161
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Kenneth Walker III,2.5,2.2,+120
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Keenan Allen,3.5,1.77,-130
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Keenan Allen,3.5,1.98,-102
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Over,Tyquan Thornton,1.5,2.78,+178
+2026-09-15T19:24:57+00:00,50bc247030707d823b9c3581d7eb5760,2026-09-21T00:20:00Z,Kansas City Chiefs,Indianapolis Colts,fanduel,,player_receptions,Under,Tyquan Thornton,1.5,1.41,-244
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Over,Isaiah Likely,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Under,Isaiah Likely,46.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Over,Puka Nacua,85.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Under,Puka Nacua,85.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Over,Davante Adams,44.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Under,Davante Adams,44.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Over,Malik Nabers,65.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_reception_yds,Under,Malik Nabers,65.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Over,Isaiah Likely,4.5,1.72,-139
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Under,Isaiah Likely,4.5,2.04,+104
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Over,Puka Nacua,6.5,1.77,-130
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Under,Puka Nacua,6.5,1.98,-102
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Over,Davante Adams,3.5,1.74,-135
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Under,Davante Adams,3.5,2.02,+102
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Over,Malik Nabers,5.5,1.88,-114
+2026-09-15T19:24:57+00:00,32367f882fac1a0c20a6335619922025,2026-09-22T00:15:00Z,Los Angeles Rams,New York Giants,fanduel,,player_receptions,Under,Malik Nabers,5.5,1.88,-114
