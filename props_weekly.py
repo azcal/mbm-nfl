@@ -227,9 +227,22 @@ def main():
         lines.append(f"  {r.team:<3} {r.name:<22} {r.pos:<2} {r.med_yds:>6.1f} | {r.p_over_50:.2f} / {r.p_over_75:.2f} / {r.p_over_100:.2f} | {r.med_rec:>4.1f} | {r.p_rec_5:.2f} / {r.p_rec_7:.2f}")
     lines.append("full grid in logs/props_grid.csv; fair decimal odds = 1 / probability")
     print("\n".join(lines))
+    board_path = os.path.join(HERE, "logs", "props_board.csv")
+    blines = []
+    if os.path.exists(board_path):
+        bd = pd.read_csv(board_path)
+        if len(bd):
+            bd = bd[(bd.devig_method != "none") & (bd.play_prob >= 1.0) & (bd.edge_pp >= 3.0) & (bd.ev_per_dollar >= 0.05)]
+        blines = [f"bet board: {len(bd)} rows clear 3pp edge and 5% EV at build time. Re-check the price; fair odds is the WORST price worth taking."]
+        for r in bd.head(15).itertuples():
+            blines.append(f"  {str(r.player):<20} {r.team:<3} {r.market:<10} {r.side} {r.line:<6g} {r.book:<12} book {r.book_odds:>5}  fair {r.fair_odds:>5}  edge {r.edge_pp:+.1f}pp  EV {r.ev_per_dollar:+.3f}")
+        blines.append("anchored rows carry a market centre; unlined players are raw model and read low on stars")
+        print("\n".join(blines))
     try:
         import notify
-        notify.send(f"NFL receiving projections, week {week}", lines, "bottom-up, no market input; calibrated on 2023-25 within 3 points per band", getattr(notify, "GREY", None))
+        notify.send(f"NFL receiving projections, week {week}", lines, "anchored to consensus lines where a line exists; model shape; calibrated on 2023-25 within 3 points per band", getattr(notify, "GREY", None))
+        if blines:
+            notify.send(f"NFL receiving props board, week {week}", blines, "paper rule: 5% EV at the best book, graded Tuesday", getattr(notify, "GREY", None))
     except Exception as ex:
         print("discord post skipped:", type(ex).__name__)
 
