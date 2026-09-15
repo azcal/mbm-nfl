@@ -1,0 +1,42 @@
+name: mbm-nfl-props-weekly
+# Sunday 14:30 UTC (8:30am MDT): projections, before any early-window kickoff (17:00 UTC) and
+# before the prop-price snapshot in mbm-data at 16:20 UTC. Tuesday 15:15 UTC: validation of
+# Sunday's injury tags against snap counts. A manual run does both.
+on:
+  schedule:
+    - cron: "30 14 * * 0"     # Sunday 8:30am MDT: full week, fresh prices for every game not yet final
+    - cron: "0 15 * * 4"      # Thursday 9:00am MDT: same projections, prices for the Thursday game only
+    - cron: "15 15 * * 2"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  props:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pandas numpy requests pyarrow tzdata
+      - name: validate last grid (Tuesday)
+        if: github.event.schedule == '15 15 * * 2' || github.event_name == 'workflow_dispatch'
+        run: python props_validate.py || true
+      - name: slate regression test
+        run: python test_props_slate.py
+      - name: name matching test
+        run: python tests/test_props_names.py
+      - name: project this week (Sunday)
+        if: github.event.schedule != '15 15 * * 2'
+        run: python props_weekly.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          PROPS_ALTS: "0"        # "1" adds the alternate markets: doubles the credits per game
+          PROPS_WINDOW_H: ${{ github.event.schedule == '0 15 * * 4' && '36' || '' }}   # Thursday: games in the next 36h only
+      - name: commit
+        run: |
+          git config user.name "mbm-nfl"
+          git config user.email "mbm-nfl@users.noreply.github.com"
+          git add logs data/odds
+          git commit -m "props grid $(date -u +%F)" || echo "nothing new"
+          git pull --rebase && git push
