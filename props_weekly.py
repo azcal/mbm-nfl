@@ -16,6 +16,38 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import props_model as M
 import props_market as PM
 PLAY_PROB = {"": 1.0, "Questionable": 0.8}     # configurable; zeroed rows get 0.0; never scales the ladders
+BOOK_ABBR = {"draftkings": "DK", "fanduel": "FD", "betmgm": "MGM", "betrivers": "BR", "pinnacle": "PIN", "betonlineag": "BOL",
+             "bovada": "BOV", "mybookieag": "MB", "betus": "BU", "lowvig": "LV", "caesars": "CZR", "fanatics": "FAN"}
+MIN_EDGE_PP, MIN_EV = 3.0, 0.05
+
+
+def format_board(bd, week):
+    """Player header, then one line per prop: side, line, market, the fair price, and the books
+    currently at or better than fair. Filter: edge >= 3pp and EV >= 5% at build time, a real
+    devig, no Questionables. Players ordered by their best EV."""
+    if not len(bd):
+        return ["no priced rows this week"]
+    ok = bd[(bd.devig_method != "none") & (bd.play_prob >= 1.0) & (bd.edge_pp >= MIN_EDGE_PP) & (bd.ev_per_dollar >= MIN_EV)].copy()
+    if not len(ok):
+        return ["no prop clears 3pp edge and 5% EV at build time"]
+    def dec_str(am):
+        am = int(str(am).replace("+", "")); d = 1 + am / 100 if am > 0 else 1 + 100 / (-am); return f"{d:.2f}"
+    ok["kick_day"] = pd.to_datetime(ok.kickoff_utc, utc=True).dt.tz_convert("America/Denver").dt.strftime("%a")
+    ok["best_ev"] = ok.groupby("pid").ev_per_dollar.transform("max")
+    lines = [f"week {week} props board. Fair = the model's price; take the prop anywhere the book is at fair or better. Books listed are at or better right now, best first.", ""]
+    for pid, g in sorted(ok.groupby("pid"), key=lambda kv: -kv[1].best_ev.iloc[0]):
+        r0 = g.iloc[0]
+        lines.append(f"{r0.player} ({r0.team} vs {r0.opp}, {r0.kick_day})")
+        for (mk, line, side), q in g.groupby(["market", "line", "side"]):
+            q = q.sort_values("book_dec" if "book_dec" in q.columns else "ev_per_dollar", ascending=False)
+            fair_am = str(q.fair_odds.iloc[0]); fair_dec = dec_str(fair_am)
+            books = ", ".join(f"{BOOK_ABBR.get(b, b)} {('+' if str(o).lstrip('-').isdigit() and int(o) > 0 else '')}{o}" for b, o in zip(q.book, q.book_odds))
+            mkt = "rec yds" if mk == "rec_yds" else "receptions"
+            lines.append(f"  {side} {line:g} {mkt:<10} fair {fair_am if fair_am.startswith('-') else '+' + fair_am} ({fair_dec})   find {fair_dec} or better   now: {books}")
+        lines.append("")
+    lines.append("edge = model minus the book's fair (devigged) probability; every row above clears 3pp and 5% EV. Prices move; re-check before betting.")
+    return lines
+
 
 SCHED_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 ESPN_INJ = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries"
@@ -176,10 +208,33 @@ def main():
     # ---- market layer: snapshot once per week, then anchor and board from the snapshot
     odds_path = PM.latest_snapshot(season, week)
     key = os.environ.get("ODDS_API_KEY", "").strip()
-    if odds_path is None and key and os.environ.get("PROPS_NO_ODDS") != "1":
+    # Pull fresh prices when there is no snapshot for the week or the latest is older than
+    # PROPS_SNAPSHOT_MAX_AGE_H (default 12h). PROPS_WINDOW_H limits the pull to games kicking off
+    # within that many hours (Thursday run: the Thursday game only, 2 credits). Games already
+    # final are never pulled. Every pull is a new timestamped file; nothing is overwritten.
+    max_age = float(os.environ.get("PROPS_SNAPSHOT_MAX_AGE_H", "12"))
+    stale = True
+    if odds_path is not None:
+        try:
+            ts_s = os.path.basename(odds_path).split("_")[-1].replace(".csv", "")
+            stale = (now - dt.datetime.strptime(ts_s, "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc)).total_seconds() > max_age * 3600
+        except Exception:
+            stale = True
+    if stale and key and os.environ.get("PROPS_NO_ODDS") != "1":
         books = os.environ.get("PROPS_BOOKS", "pinnacle,betonlineag,lowvig,bovada,mybookieag,betus,draftkings,fanduel,betmgm,betrivers")
         markets = PM.MARKETS_DEFAULT if os.environ.get("PROPS_ALTS", "0") == "1" else PM.MARKETS_DEFAULT[:2]
-        odds_path = PM.snapshot(season, week, w, key, books, markets=markets)
+        pull = w[w.game_status != "final"]
+        if os.environ.get("PROPS_WINDOW_H"):
+            pull = pull[pull.kickoff_utc <= now + dt.timedelta(hours=float(os.environ["PROPS_WINDOW_H"]))]
+        print(f"odds: pulling {len(pull)} game(s) ({'window ' + os.environ['PROPS_WINDOW_H'] + 'h' if os.environ.get('PROPS_WINDOW_H') else 'all not yet final'})")
+        newp = PM.snapshot(season, week, pull, key, books, markets=markets) if len(pull) else None
+        # a partial pull (Thursday) is merged with the week's earlier snapshot so the board still
+        # covers every lined game; the newest price per (book, player, market, line) wins
+        if newp and odds_path:
+            old_s = pd.read_csv(odds_path, low_memory=False); new_s = pd.read_csv(newp, low_memory=False)
+            keep = old_s[~old_s.event_id.isin(set(new_s.event_id))]
+            merged = pd.concat([keep, new_s], ignore_index=True); merged.to_csv(newp, index=False)
+        odds_path = newp or odds_path
     raw = out.copy()
     market_cols = ["market_line", "market_p_over", "gap_vs_market", "p_over_at_line", "anchored", "anchor_clipped", "odds_ts"]
     for c in market_cols:
@@ -231,12 +286,8 @@ def main():
     blines = []
     if os.path.exists(board_path):
         bd = pd.read_csv(board_path)
-        if len(bd):
-            bd = bd[(bd.devig_method != "none") & (bd.play_prob >= 1.0) & (bd.edge_pp >= 3.0) & (bd.ev_per_dollar >= 0.05)]
-        blines = [f"bet board: {len(bd)} rows clear 3pp edge and 5% EV at build time. Re-check the price; fair odds is the WORST price worth taking."]
-        for r in bd.head(15).itertuples():
-            blines.append(f"  {str(r.player):<20} {r.team:<3} {r.market:<10} {r.side} {r.line:<6g} {r.book:<12} book {r.book_odds:>5}  fair {r.fair_odds:>5}  edge {r.edge_pp:+.1f}pp  EV {r.ev_per_dollar:+.3f}")
-        blines.append("anchored rows carry a market centre; unlined players are raw model and read low on stars")
+        blines = format_board(bd, week)
+        open(os.path.join(HERE, "logs", "props_board.md"), "w").write("\n".join([f"# NFL receiving props board, {season} week {week}", ""] + blines) + "\n")
         print("\n".join(blines))
     try:
         import notify
