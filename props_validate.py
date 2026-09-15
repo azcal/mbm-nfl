@@ -7,6 +7,7 @@ props workflow so the injury sources' accuracy is tracked all season.
     python props_validate.py [path/to/props_grid.csv]     default: logs/props_grid.csv
 """
 import io, os, re, sys
+import numpy as np
 import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import props_model as M
@@ -47,3 +48,24 @@ for r_ in unflagged_dnp.itertuples():
 print(f"\nno flag and no snap-count row at all (inactive or name mismatch) ({len(no_snap_row)}):")
 for r_ in no_snap_row.itertuples():
     print(f"  {r_.team} {r_.name:<22} proj_targets {r_.proj_targets:.2f}")
+
+# ---- raw vs anchored medians, weekly series (Phase 1, item 8) ------------------------------
+raw_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs", "props_grid_raw.csv")
+if len(st) and os.path.exists(raw_path):
+    raw = pd.read_csv(raw_path, low_memory=False)
+    yds = {r_.player_id: float(r_.receiving_yards) for r_ in st.itertuples()}
+    pub = g[g.pid.isin(yds) & (g.proj_targets > 0)].copy(); pub["act"] = pub.pid.map(yds)
+    rw = raw.set_index("pid").reindex(pub.pid)
+    lined = pub[pub.get("anchored", pd.Series(False, index=pub.index)).astype(bool)] if "anchored" in pub.columns else pub.iloc[0:0]
+    if len(lined):
+        a = lined.act.values
+        mae_anc = float(np.mean(np.abs(lined.med_yds.values - a)))
+        mae_raw = float(np.mean(np.abs(rw.loc[lined.pid, "med_yds"].values - a)))
+        mae_line = float(np.mean(np.abs(lined.market_line.values - a)))
+        print(f"\nlined players {len(lined)}: MAE raw median {mae_raw:.1f} | anchored median {mae_anc:.1f} | market line {mae_line:.1f}")
+        rp = os.path.join(os.path.dirname(raw_path), "props_anchor_results.csv")
+        pd.DataFrame([dict(season=season, week=week, n=len(lined), mae_raw=round(mae_raw, 2), mae_anchored=round(mae_anc, 2), mae_line=round(mae_line, 2))]) \
+            .to_csv(rp, mode="a", index=False, header=not os.path.exists(rp))
+        print(f"appended -> logs/props_anchor_results.csv")
+    else:
+        print("\nno anchored players in this grid (no odds snapshot that week); raw-vs-anchored series not updated")

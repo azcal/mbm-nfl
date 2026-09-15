@@ -14,6 +14,8 @@ import datetime as dt, io, json, os, sys
 import numpy as np, pandas as pd, requests
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import props_model as M
+import props_market as PM
+PLAY_PROB = {"": 1.0, "Questionable": 0.8}     # configurable; zeroed rows get 0.0; never scales the ladders
 
 SCHED_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 ESPN_INJ = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries"
@@ -134,16 +136,62 @@ def main():
     df["inj_source"] = np.where(df.inj.astype(str) != "", "espn+nflverse", ""); df["inj_ts"] = espn_ts or ""
     bad = df[df.inj.astype(str).isin(M.REMOVE_STATUSES) & (df.proj_targets > 0) & (~df.status_applied.astype(bool))]
     assert bad.empty, f"status not applied for {list(bad.name)}"
-    out = df[["season", "week", "team", "opp", "home_away", "game_id", "kickoff_utc", "game_status", "pid", "name", "pos", "inj", "inj_source", "inj_ts",
-              "status_applied", "depth_prior", "proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]].copy()
+    df["play_prob"] = [0.0 if bool(a) else PLAY_PROB.get(str(i), 1.0) for a, i in zip(df.status_applied, df.inj)]
+    ident = ["season", "week", "team", "opp", "home_away", "game_id", "kickoff_utc", "game_status", "pid", "name", "pos",
+             "inj", "inj_source", "inj_ts", "status_applied", "play_prob", "depth_prior"]
+    centre = ["proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]
+    out = df[ident + centre].copy()
     for i, x in enumerate(M.YGRID):
         out[f"p_over_{int(x)}"] = [round(p[i], 4) for p in df.p_over]
     for k in M.RGRID:
         out[f"p_rec_{k}"] = [round(p[k - 1], 4) for p in df.p_rec]
     out["ts"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
-    out.to_csv(os.path.join(HERE, "logs", "props_grid.csv"), index=False)
-    print(f"props grid: {len(out)} rows ({int(out.status_applied.astype(bool).sum())} removed by status) -> logs/props_grid.csv")
+    logs = os.path.join(HERE, "logs"); os.makedirs(logs, exist_ok=True)
+    prev = pd.read_csv(os.path.join(logs, "props_grid.csv"), low_memory=False) if os.path.exists(os.path.join(logs, "props_grid.csv")) else None
+    # ---- market layer: snapshot once per week, then anchor and board from the snapshot
+    odds_path = PM.latest_snapshot(season, week)
+    key = os.environ.get("ODDS_API_KEY", "").strip()
+    if odds_path is None and key and os.environ.get("PROPS_NO_ODDS") != "1":
+        books = os.environ.get("PROPS_BOOKS", "pinnacle,betonlineag,lowvig,bovada,mybookieag,betus,draftkings,fanduel,betmgm,betrivers")
+        markets = PM.MARKETS_DEFAULT if os.environ.get("PROPS_ALTS", "0") == "1" else PM.MARKETS_DEFAULT[:2]
+        odds_path = PM.snapshot(season, week, w, key, books, markets=markets)
+    raw = out.copy()
+    market_cols = ["market_line", "market_p_over", "gap_vs_market", "p_over_at_line", "anchored", "anchor_clipped", "odds_ts"]
+    for c in market_cols:
+        raw[c] = np.nan if c not in ("anchored", "anchor_clipped") else False
+    raw["odds_ts"] = ""
+    meta_extra = dict(season=season, week=week, first_kickoff_utc=first_kick.isoformat(), n_players_lined=0, n_unmatched=0, n_clipped=0)
+    if odds_path and roster is not None:
+        snap, un = PM.load_snapshot(odds_path, roster, season, week)
+        cons = PM.consensus(snap)
+        odds_ts = str(pd.read_csv(odds_path, nrows=1).snap_ts.iloc[0]) if os.path.getsize(odds_path) > 50 else ""
+        pub = PM.anchor_grid(raw, cons, spec); pub["odds_ts"] = odds_ts
+        vol = PM.team_volume_report(raw, pub)
+        print("team target volume, raw vs anchored (flag = outside 22..40):"); print(vol[vol.flag != ""].to_string() if (vol.flag != "").any() else "  all teams inside 22..40")
+        meta_extra.update(odds_ts=odds_ts, anchored=True, n_players_lined=int(pub.anchored.sum()), n_unmatched=int(len(un)), n_clipped=int(pub.anchor_clipped.sum()))
+        print(f"anchored {meta_extra['n_players_lined']} lined players ({meta_extra['n_clipped']} clipped to the 0.5x..2.0x bound); {int((~pub.anchored).sum())} unlined keep raw")
+    else:
+        pub = raw.copy(); snap = None; cons = {}
+        meta_extra.update(anchored=False, odds_ts="")
+    order = ident + ["market_line", "market_p_over", "gap_vs_market", "p_over_at_line", "anchored", "anchor_clipped", "odds_ts"] + centre + \
+            [f"p_over_{int(x)}" for x in M.YGRID] + [f"p_rec_{k}" for k in M.RGRID] + ["ts"]
+    raw = raw[order]; pub = pub[order]
+    raw.to_csv(os.path.join(logs, "props_grid_raw.csv"), index=False)
+    pub.to_csv(os.path.join(logs, "props_grid.csv"), index=False)
+    # ---- loose ends: every player from last week is here or in dropped_*.csv with a reason
+    dropped = PM.dropped_report(prev, pub, roster, os.path.join(logs, f"dropped_{season}_w{week}.csv"))
+    if prev is not None and len(prev):
+        assert set(prev.pid) <= (set(pub.pid) | set(dropped.pid)), "a player from last week is neither in the grid nor in dropped_*.csv"
+        print(f"dropped since last week: {len(dropped)} -> logs/dropped_{season}_w{week}.csv ({dropped.reason.value_counts().to_dict() if len(dropped) else ''})")
+    # ---- board
+    if snap is not None and meta_extra["anchored"]:
+        b = PM.build_board(snap, pub, cons, logs, season, week, meta_extra)
+        print(f"board: {len(b)} priced rows -> logs/props_board.csv, props_board.md")
+    else:
+        PM.empty_board(logs, season, week, "no odds snapshot for this week (ODDS_API_KEY missing, PROPS_NO_ODDS=1, or the pull failed)", meta_extra)
+        print("board: empty (no odds snapshot)")
+    out = pub
+    print(f"props grid: {len(out)} rows ({int(out.status_applied.astype(bool).sum())} removed by status) -> logs/props_grid.csv (+ props_grid_raw.csv)")
     live = out[(out.inj.astype(str) == "") & (out.game_status != "final") & (out.proj_targets > 0)].sort_values("med_yds", ascending=False)
     lines = [f"{season} week {week}: {len(out)} receivers, {int((out.inj.astype(str) != '').sum())} on an injury list (removed or flagged), "
              f"{int((out.game_status == 'final').sum())} already final. median yards | P(over 50 / 75 / 100) | median rec | P(rec >= 5 / 7)"]
