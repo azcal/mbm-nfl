@@ -1,234 +1,234 @@
 player,pid,team,opp,kickoff_utc,inj,status_applied,play_prob,anchored,anchor_clipped,market,line,side,book,book_odds,book_implied_pct,book_fair_pct,devig_method,model_pct,fair_odds,edge_pp,ev_per_dollar,rungs_same_player
-Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,-102,50.5,47.2,two_way,57.1,-133,9.9,0.1306,2
-Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,receptions,2.5,Under,fanduel,+128,43.9,40.9,two_way,48.1,+108,7.1,0.096,2
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,pinnacle,+175,36.4,34.4,two_way,39.7,+152,5.4,0.0926,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,draftkings,-154,60.6,57.3,two_way,66.2,-196,8.9,0.0918,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,pinnacle,-154,60.6,57.5,two_way,66.2,-196,8.7,0.0918,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betonlineag,-156,61.0,57.3,two_way,66.2,-196,8.9,0.0852,11
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+142,41.3,38.6,two_way,44.8,+123,6.3,0.0849,10
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,fanduel,+172,36.8,34.5,two_way,39.7,+152,5.3,0.0807,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,bovada,-161,61.7,57.6,two_way,66.2,-196,8.6,0.072,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-161,61.7,57.8,two_way,66.2,-196,8.4,0.072,11
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,pinnacle,+139,41.8,39.6,two_way,44.8,+123,5.2,0.0714,10
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betrivers,-164,62.1,62.1,none,66.2,-196,4.1,0.0653,11
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,draftkings,+159,38.6,36.5,two_way,39.7,+152,3.2,0.029,11
-Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,5.5,Over,fanduel,-114,53.2,50.0,two_way,54.5,-120,4.5,0.0246,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,betonlineag,+128,43.9,41.2,two_way,44.8,+123,3.6,0.0221,10
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,bovada,+155,39.2,36.7,two_way,39.7,+152,3.0,0.0131,11
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,betonlineag,+155,39.2,36.9,two_way,39.7,+152,2.8,0.0131,11
-Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-102,50.5,47.2,two_way,51.1,-104,3.9,0.0118,2
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,55.5,Over,fanduel,-114,53.2,50.0,two_way,53.8,-116,3.8,0.0114,12
-Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,+106,48.5,45.4,two_way,49.0,+104,3.6,0.0094,2
-Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-154,60.6,56.7,two_way,60.9,-156,4.2,0.0049,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,draftkings,+124,44.6,42.1,two_way,44.8,+123,2.7,0.0042,10
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-145,59.2,55.9,two_way,59.3,-146,3.5,0.0027,11
-Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Under,fanduel,-110,52.4,48.9,two_way,52.2,-109,3.3,-0.003,2
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-147,59.5,55.6,two_way,59.3,-146,3.8,-0.0033,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+112,47.2,44.5,two_way,46.9,+113,2.4,-0.0064,11
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,betrivers,+150,40.0,40.0,none,39.7,+152,-0.3,-0.0068,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-149,59.9,56.3,two_way,59.3,-146,3.0,-0.0092,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-149,59.9,56.3,two_way,59.3,-146,3.0,-0.0092,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,49.5,Over,pinnacle,-110,52.4,49.6,two_way,51.7,-107,2.1,-0.0123,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Over,draftkings,-112,52.9,50.0,two_way,52.1,-109,2.1,-0.0157,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+110,47.6,44.6,two_way,46.9,+113,2.3,-0.0157,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Under,draftkings,-115,53.5,50.7,two_way,52.5,-111,1.9,-0.0178,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Under,pinnacle,-112,52.9,50.0,two_way,51.9,-108,1.9,-0.0187,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-133,57.1,54.1,two_way,56.1,-128,2.0,-0.0188,11
-Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,-106,51.5,48.4,two_way,50.5,-102,2.1,-0.0197,2
-Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Under,fanduel,+120,45.5,42.4,two_way,44.5,+125,2.1,-0.0203,2
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+123,44.8,42.4,two_way,43.9,+128,1.6,-0.0204,11
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Under,betrivers,-114,53.2,49.6,two_way,52.1,-109,2.5,-0.0205,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Over,draftkings,-109,52.1,49.3,two_way,50.9,-104,1.6,-0.0219,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+102,49.5,46.3,two_way,48.4,+107,2.1,-0.0223,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-119,54.3,51.5,two_way,53.1,-113,1.7,-0.0224,11
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Under,fanduel,-114,53.2,50.0,two_way,51.9,-108,1.9,-0.0238,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-135,57.5,53.7,two_way,56.1,-128,2.3,-0.0244,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Over,bovada,-115,53.5,50.0,two_way,52.1,-109,2.1,-0.0261,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Over,bovada,-110,52.4,48.9,two_way,50.9,-104,2.0,-0.027,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+101,49.8,47.0,two_way,48.4,+107,1.4,-0.0272,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,+101,49.8,47.1,two_way,48.4,+107,1.3,-0.0272,11
-Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,6.5,Under,fanduel,-102,50.5,47.2,two_way,49.0,+104,1.8,-0.0304,2
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,+100,50.0,50.0,none,48.4,+107,-1.6,-0.032,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+100,50.0,46.9,two_way,48.4,+107,1.5,-0.032,11
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+120,45.5,42.4,two_way,43.9,+128,1.5,-0.0335,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Over,pinnacle,-105,51.3,48.4,two_way,49.5,+102,1.1,-0.0345,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,-101,50.3,47.2,two_way,48.4,+107,1.2,-0.0368,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,52.5,Under,betrivers,-114,53.2,49.6,two_way,51.2,-105,1.6,-0.0372,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,pinnacle,-123,55.2,52.2,two_way,53.2,-114,0.9,-0.0376,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Under,bovada,-120,54.6,51.1,two_way,52.5,-111,1.5,-0.0388,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-161,61.7,58.4,two_way,59.3,-146,1.0,-0.0389,11
-Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-135,57.5,53.7,two_way,55.2,-123,1.5,-0.0395,2
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Under,fanduel,-114,53.2,50.0,two_way,51.0,-104,1.0,-0.0407,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Under,pinnacle,-114,53.2,50.3,two_way,51.0,-104,0.8,-0.0407,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,fanduel,-114,53.2,50.0,two_way,51.0,-104,1.0,-0.0418,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,pinnacle,-114,53.2,50.3,two_way,51.0,-104,0.7,-0.0418,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,betonlineag,-114,53.2,50.0,two_way,51.0,-104,1.0,-0.0418,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Under,betonlineag,-108,51.8,48.7,two_way,49.6,+101,1.0,-0.0419,12
-Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,-139,58.1,54.3,two_way,55.7,-126,1.4,-0.0425,2
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,bovada,-125,55.6,52.0,two_way,53.2,-114,1.2,-0.0429,11
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,fanduel,-125,55.6,51.9,two_way,53.2,-114,1.3,-0.0429,11
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,draftkings,-125,55.6,52.4,two_way,53.2,-114,0.8,-0.0429,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Over,draftkings,-114,53.2,50.4,two_way,50.7,-103,0.3,-0.0465,12
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,10.5,Over,betrivers,-120,54.6,50.8,two_way,52.1,-109,1.3,-0.0468,10
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,draftkings,-111,52.6,49.7,two_way,50.2,-101,0.4,-0.0468,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,betonlineag,-127,55.9,52.5,two_way,53.2,-114,0.7,-0.0483,11
-Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Over,fanduel,-114,53.2,50.0,two_way,50.6,-102,0.6,-0.0484,2
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,pinnacle,-112,52.9,50.0,two_way,50.3,-101,0.3,-0.0488,10
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,draftkings,-112,52.9,50.0,two_way,50.3,-101,0.3,-0.0488,10
-Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,18.5,Over,fanduel,-114,53.2,50.0,two_way,50.5,-102,0.5,-0.0506,2
-Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,30.5,Under,fanduel,-114,53.2,50.0,two_way,50.5,-102,0.5,-0.0506,2
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Under,betrivers,-114,53.2,49.6,two_way,50.5,-102,0.9,-0.0509,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Under,draftkings,-111,52.6,49.7,two_way,49.9,+100,0.2,-0.0512,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,bovada,-110,52.4,48.9,two_way,49.7,+101,0.7,-0.0515,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,draftkings,-110,52.4,49.6,two_way,49.7,+101,0.1,-0.0515,12
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Over,bovada,-115,53.5,50.0,two_way,50.7,-103,0.7,-0.0516,12
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Over,betonlineag,-115,53.5,50.3,two_way,50.7,-103,0.5,-0.0516,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,betonlineag,-112,52.9,49.7,two_way,50.2,-101,0.4,-0.0519,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,pinnacle,-112,52.9,50.0,two_way,50.2,-101,0.2,-0.0519,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,pinnacle,-112,52.9,50.0,two_way,50.1,-100,0.1,-0.0529,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+102,49.5,46.3,two_way,46.9,+113,0.6,-0.0532,11
-Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,fanduel,-114,53.2,50.0,two_way,50.4,-101,0.4,-0.0532,2
-Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,85.5,Over,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0536,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,draftkings,-114,53.2,50.4,two_way,50.3,-101,-0.1,-0.0536,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,betrivers,-114,53.2,49.6,two_way,50.3,-101,0.7,-0.0536,12
-Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,65.5,Under,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0537,2
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,betonlineag,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0538,10
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0538,10
-Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,37.5,Over,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.055,2
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,51.5,Under,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0553,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Under,betonlineag,-112,52.9,49.7,two_way,49.9,+100,0.2,-0.0562,12
-Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,54.5,Under,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0567,2
-Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,16.5,Over,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0568,2
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0569,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,pinnacle,-112,52.9,50.0,two_way,49.9,+100,-0.1,-0.0571,12
-Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,rec_yds,43.5,Under,fanduel,-114,53.2,50.0,two_way,50.1,-101,0.1,-0.0572,2
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,betonlineag,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0579,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,fanduel,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0579,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-147,59.5,55.9,two_way,56.1,-128,0.2,-0.058,11
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,pinnacle,-112,52.9,50.0,two_way,49.8,+101,-0.2,-0.0581,12
-Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Under,fanduel,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0581,2
-Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,36.5,Over,fanduel,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0583,2
-Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,5.5,Under,fanduel,-161,61.7,57.6,two_way,58.1,-139,0.5,-0.0583,2
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Under,draftkings,-110,52.4,49.6,two_way,49.3,+103,-0.3,-0.0587,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,betonlineag,-115,53.5,50.3,two_way,50.3,-101,0.1,-0.0587,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Over,draftkings,-114,53.2,50.3,two_way,50.1,-100,-0.2,-0.0588,12
-Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Under,fanduel,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.059,2
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-130,56.5,53.1,two_way,53.1,-113,0.1,-0.0596,11
-Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Over,fanduel,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.061,2
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,draftkings,-112,52.9,50.0,two_way,49.7,+101,-0.3,-0.0612,10
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,pinnacle,-112,52.9,50.0,two_way,49.7,+101,-0.3,-0.0612,10
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,betonlineag,-112,52.9,49.7,two_way,49.7,+101,-0.1,-0.0614,12
-Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,36.5,Under,fanduel,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0617,2
-Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Over,fanduel,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0619,2
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,bovada,-115,53.5,50.0,two_way,50.2,-101,0.2,-0.0619,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,betonlineag,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0621,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,betrivers,-114,53.2,49.6,two_way,49.9,+100,0.3,-0.0621,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,fanduel,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0621,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,+100,50.0,46.9,two_way,46.9,+113,-0.1,-0.0626,11
-Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,rec_yds,43.5,Over,fanduel,-114,53.2,50.0,two_way,49.9,+101,-0.1,-0.0628,2
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0631,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,draftkings,-114,53.2,50.3,two_way,49.8,+101,-0.4,-0.0631,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,betrivers,-114,53.2,49.6,two_way,49.8,+101,0.2,-0.0631,12
-Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,16.5,Under,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0632,2
-Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,54.5,Over,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0633,2
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Over,bovada,-115,53.5,50.0,two_way,50.1,-100,0.1,-0.0638,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Over,betonlineag,-115,53.5,50.3,two_way,50.1,-100,-0.2,-0.0638,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,+113,46.9,44.1,two_way,43.9,+128,-0.2,-0.0643,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,51.5,Over,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0647,12
-Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,37.5,Under,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.065,2
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Under,bovada,-115,53.5,50.0,two_way,49.9,+100,-0.1,-0.0662,12
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0662,10
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,betonlineag,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0662,10
-Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,65.5,Over,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0663,2
-Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,85.5,Under,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0664,2
-Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,fanduel,-114,53.2,50.0,two_way,49.6,+101,-0.4,-0.0668,2
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,betrivers,-120,54.6,50.8,two_way,51.0,-104,0.2,-0.0673,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,bovada,-115,53.5,50.0,two_way,49.8,+101,-0.2,-0.0681,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,betonlineag,-115,53.5,50.3,two_way,49.8,+101,-0.4,-0.0681,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,pinnacle,-111,52.6,49.7,two_way,49.0,+104,-0.7,-0.0684,12
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Under,betonlineag,-112,52.9,49.7,two_way,49.3,+103,-0.5,-0.0686,12
-Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,30.5,Over,fanduel,-114,53.2,50.0,two_way,49.5,+102,-0.5,-0.0694,2
-Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,18.5,Under,fanduel,-114,53.2,50.0,two_way,49.5,+102,-0.5,-0.0694,2
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Over,pinnacle,-111,52.6,49.7,two_way,49.0,+104,-0.8,-0.0695,12
-Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Under,fanduel,-114,53.2,50.0,two_way,49.4,+102,-0.6,-0.0716,2
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,betrivers,-118,54.1,50.4,two_way,50.2,-101,-0.2,-0.0719,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,draftkings,-102,50.5,47.6,two_way,46.8,+114,-0.8,-0.0728,11
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,betonlineag,-102,50.5,47.5,two_way,46.8,+114,-0.7,-0.0728,11
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,pinnacle,-102,50.5,47.8,two_way,46.8,+114,-0.9,-0.0728,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,betrivers,-118,54.1,50.4,two_way,50.1,-100,-0.3,-0.0729,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,betrivers,-112,52.9,49.2,two_way,49.0,+104,-0.2,-0.0733,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-135,57.5,53.7,two_way,53.1,-113,-0.6,-0.0755,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Under,pinnacle,-120,54.6,51.6,two_way,50.5,-102,-1.1,-0.0761,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-127,55.9,52.9,two_way,51.6,-107,-1.3,-0.0764,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,+127,44.1,41.6,two_way,40.7,+146,-1.0,-0.0768,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,fanduel,-114,53.2,50.0,two_way,49.0,+104,-1.0,-0.0782,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,betonlineag,-114,53.2,50.0,two_way,49.0,+104,-1.0,-0.0782,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Over,betonlineag,-120,54.6,51.3,two_way,50.4,-101,-1.0,-0.0784,12
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Under,bovada,-115,53.5,50.0,two_way,49.3,+103,-0.7,-0.0784,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,bovada,-120,54.6,51.1,two_way,50.3,-101,-0.7,-0.0788,12
-Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,5.5,Over,fanduel,+120,45.5,42.4,two_way,41.9,+139,-0.5,-0.0789,2
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Over,fanduel,-114,53.2,50.0,two_way,49.0,+104,-1.0,-0.0793,12
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-156,61.0,57.6,two_way,56.1,-128,-1.6,-0.0805,11
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,betrivers,-118,54.1,50.4,two_way,49.7,+101,-0.7,-0.0813,12
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-128,56.2,52.8,two_way,51.6,-107,-1.2,-0.0815,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-128,56.2,53.0,two_way,51.6,-107,-1.4,-0.0815,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Under,draftkings,-115,53.5,50.7,two_way,49.1,+104,-1.6,-0.0826,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Over,betrivers,-118,54.1,50.4,two_way,49.5,+102,-0.9,-0.084,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,-105,51.3,48.5,two_way,46.9,+113,-1.7,-0.086,11
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,+108,48.1,48.1,none,43.9,+128,-4.1,-0.0863,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-130,56.5,53.1,two_way,51.6,-107,-1.5,-0.0867,11
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,bovada,-105,51.3,48.0,two_way,46.8,+114,-1.2,-0.0868,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Over,draftkings,-109,52.1,49.3,two_way,47.5,+111,-1.9,-0.0884,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Over,pinnacle,-112,52.9,50.0,two_way,48.1,+108,-1.9,-0.0913,12
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,fanduel,-106,51.5,48.1,two_way,46.8,+114,-1.3,-0.0915,11
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-161,61.7,57.6,two_way,56.1,-128,-1.5,-0.0917,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,49.5,Under,pinnacle,-114,53.2,50.4,two_way,48.3,+107,-2.1,-0.0921,12
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Over,bovada,-110,52.4,48.9,two_way,47.5,+111,-1.5,-0.0932,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Under,draftkings,-112,52.9,50.0,two_way,47.9,+109,-2.1,-0.0943,12
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,10.5,Under,betrivers,-112,52.9,49.2,two_way,47.9,+109,-1.3,-0.0945,10
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,+106,48.5,45.9,two_way,43.9,+128,-2.0,-0.095,11
-Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+102,49.5,46.3,two_way,44.8,+123,-1.5,-0.095,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betrivers,-156,61.0,61.0,none,55.2,-123,-5.8,-0.0952,10
-Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,+104,49.0,45.7,two_way,44.3,+126,-1.4,-0.0957,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Over,fanduel,-114,53.2,50.0,two_way,48.1,+108,-1.9,-0.0962,12
-Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,6.5,Over,fanduel,-130,56.5,52.8,two_way,51.0,-104,-1.8,-0.0968,2
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-143,58.8,55.5,two_way,53.1,-113,-2.4,-0.0968,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,52.5,Over,betrivers,-118,54.1,50.4,two_way,48.8,+105,-1.6,-0.0975,12
-Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-122,54.9,51.6,two_way,49.5,+102,-2.1,-0.0996,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,draftkings,-159,61.3,57.9,two_way,55.2,-123,-2.7,-0.1007,10
-Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,betrivers,-109,52.1,52.1,none,46.8,+114,-5.3,-0.1009,11
-Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Over,fanduel,-161,61.7,57.6,two_way,55.5,-125,-2.1,-0.1014,2
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,draftkings,-204,67.1,63.5,two_way,60.3,-152,-3.2,-0.102,11
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,betonlineag,-204,67.1,63.1,two_way,60.3,-152,-2.8,-0.102,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-145,59.2,55.4,two_way,53.1,-113,-2.3,-0.1021,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-135,57.5,53.7,two_way,51.6,-107,-2.1,-0.1022,11
-Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Under,bovada,-120,54.6,51.1,two_way,49.1,+104,-2.0,-0.1023,12
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Under,bovada,-115,53.5,50.0,two_way,47.9,+109,-2.1,-0.1039,12
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,bovada,-208,67.6,63.3,two_way,60.3,-152,-3.0,-0.108,11
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,bovada,-164,62.1,62.1,none,55.2,-123,-6.9,-0.1118,10
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+102,49.5,46.3,two_way,43.9,+128,-2.3,-0.1126,11
-Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Over,betrivers,-118,54.1,50.4,two_way,47.9,+109,-2.5,-0.1139,12
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betonlineag,-167,62.5,58.8,two_way,55.2,-123,-3.6,-0.1173,10
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,-115,53.5,53.5,none,46.9,+113,-6.6,-0.1235,11
-Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Over,fanduel,-120,54.6,51.1,two_way,47.8,+109,-3.3,-0.1253,2
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,+115,46.5,43.7,two_way,40.7,+146,-3.0,-0.1256,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+115,46.5,43.7,two_way,40.7,+146,-3.0,-0.1256,11
-Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,-141,58.5,54.6,two_way,51.0,-104,-3.6,-0.1279,2
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+114,46.7,44.1,two_way,40.7,+146,-3.5,-0.1297,11
-DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,55.5,Under,fanduel,-114,53.2,50.0,two_way,46.2,+116,-3.8,-0.1314,12
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,pinnacle,-227,69.4,65.6,two_way,60.3,-152,-5.4,-0.1321,11
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,pinnacle,-175,63.7,60.4,two_way,55.2,-123,-5.2,-0.1338,10
-Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,-130,56.5,52.8,two_way,48.9,+104,-3.9,-0.1345,2
-Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,fanduel,-233,69.9,65.5,two_way,60.3,-152,-5.3,-0.1381,11
-Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,5.5,Under,fanduel,-114,53.2,50.0,two_way,45.5,+120,-4.5,-0.1446,2
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+110,47.6,44.4,two_way,40.7,+146,-3.8,-0.1459,11
-Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,+110,47.6,47.6,none,40.7,+146,-6.9,-0.1459,11
-Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+116,46.3,43.3,two_way,39.1,+156,-4.2,-0.1554,2
-Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-192,65.8,61.4,two_way,55.2,-123,-6.3,-0.1614,10
-Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,receptions,2.5,Over,fanduel,-172,63.3,59.1,two_way,51.9,-108,-7.1,-0.1795,2
-Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-130,56.5,52.8,two_way,42.9,+133,-9.9,-0.2407,2
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,pinnacle,+123,44.8,42.5,two_way,33.8,+196,-8.7,-0.2456,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+122,45.0,42.2,two_way,33.8,+196,-8.4,-0.249,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,draftkings,+121,45.2,42.7,two_way,33.8,+196,-8.9,-0.2524,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,bovada,+120,45.5,42.4,two_way,33.8,+196,-8.6,-0.2557,11
-Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,betonlineag,+120,45.5,42.7,two_way,33.8,+196,-8.9,-0.2557,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,pinnacle,+175,36.4,34.4,two_way,41.2,+143,6.9,0.1338,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,fanduel,+172,36.8,34.5,two_way,41.2,+143,6.8,0.1215,11
+Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,-102,50.5,47.2,two_way,56.5,-130,9.3,0.1193,2
+Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,receptions,2.5,Under,fanduel,+128,43.9,40.9,two_way,48.2,+107,7.3,0.099,2
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,draftkings,-154,60.6,57.3,two_way,65.9,-193,8.6,0.0869,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,pinnacle,-154,60.6,57.5,two_way,65.9,-193,8.4,0.0869,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betonlineag,-156,61.0,57.3,two_way,65.9,-193,8.6,0.0803,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+142,41.3,38.6,two_way,44.3,+126,5.7,0.0713,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,draftkings,+159,38.6,36.5,two_way,41.2,+143,4.7,0.0679,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,bovada,-161,61.7,57.6,two_way,65.9,-193,8.3,0.0671,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-161,61.7,57.8,two_way,65.9,-193,8.1,0.0671,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betrivers,-164,62.1,62.1,none,65.9,-193,3.8,0.0605,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,pinnacle,+139,41.8,39.6,two_way,44.3,+126,4.6,0.0581,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,bovada,+155,39.2,36.7,two_way,41.2,+143,4.5,0.0514,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,betonlineag,+155,39.2,36.9,two_way,41.2,+143,4.3,0.0514,11
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+123,44.8,42.4,two_way,46.2,+116,3.9,0.0309,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Over,betrivers,+150,40.0,40.0,none,41.2,+143,1.2,0.0308,11
+Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,+106,48.5,45.4,two_way,49.8,+101,4.4,0.0253,2
+Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-102,50.5,47.2,two_way,51.7,-107,4.5,0.0237,2
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+120,45.5,42.4,two_way,46.2,+116,3.8,0.0171,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+112,47.2,44.5,two_way,47.9,+109,3.4,0.0155,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,55.5,Over,fanduel,-114,53.2,50.0,two_way,53.9,-117,3.9,0.0139,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,betonlineag,+128,43.9,41.2,two_way,44.3,+126,3.0,0.0094,10
+Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,5.5,Over,fanduel,-114,53.2,50.0,two_way,53.6,-116,3.6,0.0077,2
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+110,47.6,44.6,two_way,47.9,+109,3.3,0.0059,11
+Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Under,fanduel,+120,45.5,42.4,two_way,45.3,+121,2.9,-0.0041,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,draftkings,+124,44.6,42.1,two_way,44.3,+126,2.2,-0.0084,10
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-145,59.2,55.9,two_way,58.5,-141,2.6,-0.0114,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Under,pinnacle,-112,52.9,50.0,two_way,52.2,-109,2.2,-0.0137,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Over,draftkings,-112,52.9,50.0,two_way,52.2,-109,2.2,-0.0137,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,+113,46.9,44.1,two_way,46.2,+116,2.1,-0.0153,11
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-147,59.5,55.6,two_way,58.5,-141,2.9,-0.0172,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,52.5,Under,betrivers,-114,53.2,49.6,two_way,52.2,-109,2.6,-0.0184,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Under,fanduel,-114,53.2,50.0,two_way,52.2,-109,2.2,-0.0189,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-149,59.9,56.3,two_way,58.5,-141,2.2,-0.0231,11
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-149,59.9,56.3,two_way,58.5,-141,2.2,-0.0231,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Over,bovada,-115,53.5,50.0,two_way,52.2,-109,2.2,-0.0241,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Over,draftkings,-109,52.1,49.3,two_way,50.7,-103,1.4,-0.0257,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Under,betrivers,-114,53.2,49.6,two_way,51.7,-107,2.2,-0.0271,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Under,draftkings,-115,53.5,50.7,two_way,51.9,-108,1.3,-0.0286,12
+Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Under,fanduel,-110,52.4,48.9,two_way,50.8,-103,1.8,-0.0303,2
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,49.5,Over,pinnacle,-110,52.4,49.6,two_way,50.8,-103,1.2,-0.0306,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Over,bovada,-110,52.4,48.9,two_way,50.7,-103,1.8,-0.0308,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+102,49.5,46.3,two_way,47.9,+109,1.6,-0.0324,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,pinnacle,-123,55.2,52.2,two_way,53.4,-115,1.2,-0.0335,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Over,pinnacle,-105,51.3,48.4,two_way,49.5,+102,1.1,-0.0338,12
+Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-154,60.6,56.7,two_way,58.4,-141,1.7,-0.0359,2
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,51.5,Under,fanduel,-114,53.2,50.0,two_way,51.3,-105,1.3,-0.0363,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+102,49.5,46.3,two_way,47.7,+110,1.4,-0.0371,11
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,+108,48.1,48.1,none,46.2,+116,-1.8,-0.0384,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,bovada,-125,55.6,52.0,two_way,53.4,-115,1.4,-0.0388,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,fanduel,-125,55.6,51.9,two_way,53.4,-115,1.5,-0.0388,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,draftkings,-125,55.6,52.4,two_way,53.4,-115,1.0,-0.0388,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Under,draftkings,-110,52.4,49.6,two_way,50.3,-101,0.7,-0.0391,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-119,54.3,51.5,two_way,52.1,-109,0.6,-0.0414,11
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+101,49.8,47.0,two_way,47.7,+110,0.7,-0.0418,11
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,+101,49.8,47.1,two_way,47.7,+110,0.6,-0.0418,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,+100,50.0,46.9,two_way,47.9,+109,1.0,-0.042,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Under,betonlineag,-108,51.8,48.7,two_way,49.6,+102,0.9,-0.0434,12
+Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Under,fanduel,-114,53.2,50.0,two_way,50.9,-104,0.9,-0.0436,2
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Under,betonlineag,-127,55.9,52.5,two_way,53.4,-115,0.9,-0.0441,11
+Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,+104,49.0,45.7,two_way,46.8,+114,1.1,-0.0447,2
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,+100,50.0,50.0,none,47.7,+110,-2.3,-0.0466,11
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+100,50.0,46.9,two_way,47.7,+110,0.7,-0.0466,11
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Under,pinnacle,-114,53.2,50.3,two_way,50.7,-103,0.4,-0.0468,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Under,fanduel,-114,53.2,50.0,two_way,50.7,-103,0.7,-0.0468,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,pinnacle,-112,52.9,50.0,two_way,50.4,-102,0.4,-0.047,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,bovada,-110,52.4,48.9,two_way,49.9,+100,1.0,-0.0473,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,draftkings,-110,52.4,49.6,two_way,49.9,+100,0.3,-0.0473,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,+106,48.5,45.9,two_way,46.2,+116,0.3,-0.0477,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Under,betonlineag,-112,52.9,49.7,two_way,50.3,-101,0.6,-0.0492,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,pinnacle,-112,52.9,50.0,two_way,50.3,-101,0.3,-0.0493,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Under,bovada,-120,54.6,51.1,two_way,51.9,-108,0.9,-0.0494,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,-101,50.3,47.2,two_way,47.7,+110,0.5,-0.0514,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Under,betrivers,-114,53.2,49.6,two_way,50.5,-102,0.9,-0.0515,12
+Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-122,54.9,51.6,two_way,52.1,-109,0.5,-0.0518,2
+Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,37.5,Under,fanduel,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.0518,2
+Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,30.5,Over,fanduel,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.0519,2
+Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Over,fanduel,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.0519,2
+Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,85.5,Over,fanduel,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.0519,2
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,fanduel,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.052,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,draftkings,-114,53.2,50.3,two_way,50.4,-102,0.2,-0.052,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,betrivers,-114,53.2,49.6,two_way,50.4,-102,0.8,-0.052,12
+Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,6.5,Under,fanduel,-102,50.5,47.2,two_way,47.9,+109,0.7,-0.0522,2
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-161,61.7,58.4,two_way,58.5,-141,0.1,-0.0523,11
+Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+102,49.5,46.3,two_way,46.9,+113,0.6,-0.0526,2
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,betonlineag,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.0529,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,pinnacle,-114,53.2,50.3,two_way,50.4,-102,0.1,-0.0529,12
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,pinnacle,-112,52.9,50.0,two_way,50.1,-100,0.1,-0.0529,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,draftkings,-112,52.9,50.0,two_way,50.1,-100,0.1,-0.0529,10
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,fanduel,-114,53.2,50.0,two_way,50.4,-102,0.4,-0.0529,12
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,10.5,Over,betrivers,-120,54.6,50.8,two_way,51.7,-107,0.9,-0.053,10
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Over,draftkings,-114,53.2,50.3,two_way,50.3,-101,0.1,-0.0535,12
+Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,36.5,Over,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0536,2
+Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,65.5,Over,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0537,2
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,fanduel,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0543,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,betonlineag,-114,53.2,50.0,two_way,50.3,-101,0.3,-0.0543,12
+Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0553,2
+Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,18.5,Over,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0562,2
+Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,16.5,Over,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0563,2
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Under,draftkings,-111,52.6,49.7,two_way,49.7,+101,-0.1,-0.0566,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,bovada,-115,53.5,50.0,two_way,50.4,-102,0.4,-0.0571,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Over,betonlineag,-115,53.5,50.3,two_way,50.4,-102,0.2,-0.0571,12
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,pinnacle,-112,52.9,50.0,two_way,49.9,+100,-0.1,-0.0571,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,draftkings,-112,52.9,50.0,two_way,49.9,+100,-0.1,-0.0571,10
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,pinnacle,-111,52.6,49.7,two_way,49.6,+102,-0.1,-0.0571,12
+Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Over,fanduel,-114,53.2,50.0,two_way,50.2,-101,0.2,-0.0572,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,betonlineag,-112,52.9,49.7,two_way,49.9,+100,0.1,-0.0572,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,betrivers,-114,53.2,49.6,two_way,50.1,-100,0.5,-0.0578,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,draftkings,-114,53.2,50.4,two_way,50.1,-100,-0.3,-0.0578,12
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,fanduel,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0579,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Over,betonlineag,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0579,10
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,draftkings,-111,52.6,49.7,two_way,49.6,+102,-0.2,-0.058,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,+127,44.1,41.6,two_way,41.5,+141,-0.1,-0.058,11
+Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,54.5,Over,fanduel,-114,53.2,50.0,two_way,50.1,-100,0.1,-0.0581,2
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Over,bovada,-115,53.5,50.0,two_way,50.3,-101,0.3,-0.0585,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Over,betonlineag,-115,53.5,50.3,two_way,50.3,-101,0.1,-0.0585,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-133,57.1,54.1,two_way,53.8,-116,-0.3,-0.059,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Under,bovada,-115,53.5,50.0,two_way,50.3,-101,0.3,-0.0593,12
+Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,rec_yds,43.5,Over,fanduel,-114,53.2,50.0,two_way,50.0,-100,0.0,-0.0596,2
+Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,rec_yds,43.5,Under,fanduel,-114,53.2,50.0,two_way,50.0,+100,-0.0,-0.0604,2
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,pinnacle,-112,52.9,50.0,two_way,49.7,+101,-0.3,-0.0607,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Under,betonlineag,-112,52.9,49.7,two_way,49.7,+101,-0.1,-0.0616,12
+Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,54.5,Under,fanduel,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0619,2
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,fanduel,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0621,10
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,betrivers,-112,52.9,49.2,two_way,49.6,+102,0.4,-0.0621,12
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,11.5,Under,betonlineag,-114,53.2,50.0,two_way,49.9,+100,-0.1,-0.0621,10
+Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Under,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0628,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,betonlineag,-115,53.5,50.3,two_way,50.1,-100,-0.1,-0.0628,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,betonlineag,-112,52.9,49.7,two_way,49.6,+102,-0.2,-0.063,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,pinnacle,-112,52.9,50.0,two_way,49.6,+102,-0.4,-0.063,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,pinnacle,-127,55.9,52.9,two_way,52.3,-110,-0.6,-0.0633,11
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Over,pinnacle,-111,52.6,49.7,two_way,49.3,+103,-0.4,-0.0634,12
+Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,16.5,Under,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0637,2
+Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,18.5,Under,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0638,2
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-135,57.5,53.7,two_way,53.8,-116,0.0,-0.0644,11
+Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,fanduel,-114,53.2,50.0,two_way,49.8,+101,-0.2,-0.0647,2
+Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,5.5,Over,fanduel,+120,45.5,42.4,two_way,42.5,+135,0.1,-0.065,2
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,betrivers,-114,53.2,49.6,two_way,49.7,+101,0.1,-0.0657,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,betonlineag,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0657,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Over,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0657,12
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Over,draftkings,-114,53.2,50.4,two_way,49.7,+101,-0.7,-0.0658,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,pinnacle,-105,51.3,48.5,two_way,47.9,+109,-0.6,-0.066,11
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+102,49.5,46.3,two_way,46.2,+116,-0.0,-0.0662,11
+Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,65.5,Under,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0663,2
+Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,36.5,Under,fanduel,-114,53.2,50.0,two_way,49.7,+101,-0.3,-0.0664,2
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,fanduel,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.0671,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Over,betonlineag,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.0671,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,fanduel,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.068,12
+Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,30.5,Under,fanduel,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.0681,2
+Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,rec_yds,85.5,Under,fanduel,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.0681,2
+Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Under,fanduel,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.0681,2
+Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,37.5,Over,fanduel,-114,53.2,50.0,two_way,49.6,+102,-0.4,-0.0682,2
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-128,56.2,52.8,two_way,52.3,-110,-0.5,-0.0685,11
+Rashee Rice,00-0039067,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,5.5,Under,fanduel,-161,61.7,57.6,two_way,57.5,-135,-0.1,-0.0685,2
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-128,56.2,53.0,two_way,52.3,-110,-0.7,-0.0685,11
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,46.5,Under,betrivers,-118,54.1,50.4,two_way,50.3,-101,-0.1,-0.0694,12
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Over,bovada,-115,53.5,50.0,two_way,49.7,+101,-0.3,-0.0707,12
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,50.5,Over,betonlineag,-115,53.5,50.3,two_way,49.7,+101,-0.6,-0.0707,12
+Josh Downs,00-0038997,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,-106,51.5,48.4,two_way,47.9,+109,-0.5,-0.0707,2
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,43.5,Under,bovada,-115,53.5,50.0,two_way,49.7,+101,-0.3,-0.0715,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,bovada,-115,53.5,50.0,two_way,49.6,+102,-0.4,-0.0729,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,44.5,Over,fanduel,-114,53.2,50.0,two_way,49.3,+103,-0.7,-0.0732,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-130,56.5,53.1,two_way,52.3,-110,-0.7,-0.0738,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,49.5,Under,pinnacle,-114,53.2,50.4,two_way,49.2,+103,-1.2,-0.0742,12
+Davante Adams,00-0031381,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-135,57.5,53.7,two_way,53.1,-113,-0.6,-0.0761,2
+Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,rec_yds,42.5,Over,fanduel,-114,53.2,50.0,two_way,49.1,+104,-0.9,-0.0764,2
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Under,pinnacle,-120,54.6,51.6,two_way,50.5,-102,-1.1,-0.0767,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Over,betonlineag,-120,54.6,51.3,two_way,50.4,-102,-0.9,-0.077,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Under,betrivers,-118,54.1,50.4,two_way,49.9,+100,-0.5,-0.0772,12
+Puka Nacua,00-0039075,LA,NYG,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,6.5,Over,fanduel,-130,56.5,52.8,two_way,52.1,-109,-0.7,-0.0773,2
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,pinnacle,-102,50.5,47.8,two_way,46.6,+115,-1.2,-0.0773,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,betonlineag,-102,50.5,47.5,two_way,46.6,+115,-0.9,-0.0773,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,draftkings,-102,50.5,47.6,two_way,46.6,+115,-1.0,-0.0773,11
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Over,draftkings,-109,52.1,49.3,two_way,48.1,+108,-1.3,-0.0774,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-130,56.5,53.1,two_way,52.1,-109,-1.0,-0.0778,11
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,29.5,Under,betrivers,-120,54.6,50.8,two_way,50.4,-102,-0.4,-0.0781,12
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Under,draftkings,-115,53.5,50.7,two_way,49.3,+103,-1.4,-0.079,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,30.5,Over,bovada,-110,52.4,48.9,two_way,48.1,+108,-0.9,-0.0822,12
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,56.5,Over,bovada,-120,54.6,51.1,two_way,50.1,-100,-1.0,-0.0828,12
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,79.5,Under,betrivers,-118,54.1,50.4,two_way,49.6,+102,-0.8,-0.0828,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,60.5,Over,betrivers,-118,54.1,50.4,two_way,49.5,+102,-0.9,-0.0834,12
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,51.5,Over,fanduel,-114,53.2,50.0,two_way,48.7,+105,-1.3,-0.0837,12
+Isaiah Likely,00-0037838,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,-139,58.1,54.3,two_way,53.2,-114,-1.1,-0.0855,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betrivers,-156,61.0,61.0,none,55.7,-126,-5.2,-0.086,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,10.5,Under,betrivers,-112,52.9,49.2,two_way,48.3,+107,-0.9,-0.0881,10
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-135,57.5,53.7,two_way,52.3,-110,-1.4,-0.0895,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,bovada,-105,51.3,48.0,two_way,46.6,+115,-1.4,-0.0913,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,draftkings,-159,61.3,57.9,two_way,55.7,-126,-2.2,-0.0916,10
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,fanduel,-135,57.5,53.7,two_way,52.1,-109,-1.6,-0.0935,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,fanduel,-106,51.5,48.1,two_way,46.6,+115,-1.5,-0.096,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Over,pinnacle,-112,52.9,50.0,two_way,47.8,+109,-2.2,-0.0963,12
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Under,draftkings,-112,52.9,50.0,two_way,47.8,+109,-2.2,-0.0963,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,betonlineag,-147,59.5,55.9,two_way,53.8,-116,-2.1,-0.0967,11
+Sam LaPorta,00-0039065,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Under,bovada,-120,54.6,51.1,two_way,49.3,+103,-1.8,-0.0987,12
+Jonathan Taylor,00-0036223,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Over,fanduel,-120,54.6,51.1,two_way,49.2,+103,-1.8,-0.0991,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,59.5,Over,fanduel,-114,53.2,50.0,two_way,47.8,+109,-2.2,-0.1011,12
+Travis Kelce,00-0030506,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+116,46.3,43.3,two_way,41.6,+141,-1.7,-0.1021,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,bovada,-164,62.1,62.1,none,55.7,-126,-6.4,-0.1027,10
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,-115,53.5,53.5,none,47.9,+109,-5.6,-0.1043,11
+Amon-Ra St. Brown,00-0036963,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,7.5,Over,betrivers,-109,52.1,52.1,none,46.6,+115,-5.5,-0.1053,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,57.5,Under,bovada,-115,53.5,50.0,two_way,47.8,+109,-2.2,-0.1059,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,45.5,Over,betrivers,-118,54.1,50.4,two_way,48.3,+107,-2.2,-0.1074,12
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,bovada,+115,46.5,43.7,two_way,41.5,+141,-2.2,-0.1078,11
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betonlineag,+115,46.5,43.7,two_way,41.5,+141,-2.2,-0.1078,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,betonlineag,-167,62.5,58.8,two_way,55.7,-126,-3.0,-0.1083,10
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,draftkings,+114,46.7,44.1,two_way,41.5,+141,-2.6,-0.1119,11
+Kenneth Walker III,00-0038134,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,2.5,Over,fanduel,-161,61.7,57.6,two_way,54.7,-121,-2.9,-0.1134,2
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-143,58.8,55.5,two_way,52.1,-109,-3.4,-0.1143,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,52.5,Over,betrivers,-118,54.1,50.4,two_way,47.8,+109,-2.6,-0.116,12
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,draftkings,-156,61.0,57.6,two_way,53.8,-116,-3.9,-0.1182,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-145,59.2,55.4,two_way,52.1,-109,-3.3,-0.1195,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,betonlineag,-204,67.1,63.1,two_way,58.8,-143,-4.3,-0.1243,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,draftkings,-204,67.1,63.5,two_way,58.8,-143,-4.7,-0.1243,11
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,pinnacle,-175,63.7,60.4,two_way,55.7,-126,-4.6,-0.125,10
+Malik Nabers,00-0039337,NYG,LA,2026-09-22T00:15:00+00:00,,False,1.0,True,False,receptions,5.5,Under,fanduel,-114,53.2,50.0,two_way,46.4,+116,-3.6,-0.1277,2
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,betrivers,+110,47.6,47.6,none,41.5,+141,-6.1,-0.1285,11
+Jahmyr Gibbs,00-0039139,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,+110,47.6,44.4,two_way,41.5,+141,-2.9,-0.1285,11
+Khalil Shakir,00-0037261,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,4.5,Under,bovada,-161,61.7,57.6,two_way,53.8,-116,-3.8,-0.1289,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,bovada,-208,67.6,63.3,two_way,58.8,-143,-4.5,-0.1302,11
+DJ Moore,00-0034827,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,rec_yds,55.5,Under,fanduel,-114,53.2,50.0,two_way,46.1,+117,-3.9,-0.1339,12
+Xavier Worthy,00-0039894,KC,IND,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,-141,58.5,54.6,two_way,50.2,-101,-4.4,-0.1411,2
+Tyler Warren,00-0040128,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,4.5,Over,fanduel,-130,56.5,52.8,two_way,48.3,+107,-4.5,-0.1451,2
+Jameson Williams,00-0037240,DET,BUF,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-192,65.8,61.4,two_way,55.7,-126,-5.7,-0.1529,10
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,pinnacle,-227,69.4,65.6,two_way,58.8,-143,-6.9,-0.1537,11
+Keon Coleman,00-0039901,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,1.5,Under,fanduel,-233,69.9,65.5,two_way,58.8,-143,-6.8,-0.1596,11
+Alec Pierce,00-0037664,IND,KC,2026-09-21T00:20:00+00:00,Questionable,False,0.8,True,False,receptions,2.5,Over,fanduel,-172,63.3,59.1,two_way,51.8,-107,-7.3,-0.1816,2
+Keenan Allen,00-0030279,IND,KC,2026-09-21T00:20:00+00:00,,False,1.0,True,False,receptions,3.5,Over,fanduel,-130,56.5,52.8,two_way,43.5,+130,-9.3,-0.2306,2
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,pinnacle,+123,44.8,42.5,two_way,34.1,+193,-8.4,-0.2389,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,fanduel,+122,45.0,42.2,two_way,34.1,+193,-8.1,-0.2423,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,draftkings,+121,45.2,42.7,two_way,34.1,+193,-8.6,-0.2457,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,bovada,+120,45.5,42.4,two_way,34.1,+193,-8.3,-0.2491,11
+Dalton Kincaid,00-0038933,BUF,DET,2026-09-18T00:15:00+00:00,,False,1.0,True,False,receptions,3.5,Under,betonlineag,+120,45.5,42.7,two_way,34.1,+193,-8.6,-0.2491,11
