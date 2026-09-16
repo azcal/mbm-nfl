@@ -1,1 +1,13 @@
-{"unabated_yds_shape": {"WR": 0.75, "TE": 0.75, "RB": 0.75}, "team_map": {"LA": "LAR"}, "alias": {}}
+{
+ "unabated_yds_shape": {
+  "WR": 1.65,
+  "TE": 1.65,
+  "RB": 1.65
+ },
+ "_shape_note": "fit 2026-09-16 from 20 Unabated edge reads across 12 players (c 1.4 to 6.7): rms 1.0 pt, worst 2.6 pts at 1.39 catches. RB unread, uses the pooled value. Confirm with the section 7 simulator reads.",
+ "team_map": {
+  "LA": "LAR"
+ },
+ "alias": {},
+ "min_catches_for_yards": 1.5
+}

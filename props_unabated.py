@@ -27,7 +27,12 @@ LOGS = os.path.join(HERE, "logs"); OUT = os.path.join(LOGS, "unabated")
 TEMPLATE = os.path.join(HERE, "templates", "projections-nfl.csv")
 CONFIG = os.path.join(HERE, "unabated_config.json")
 DEFAULT_CFG = {"unabated_yds_shape": {"WR": 0.75, "TE": 0.75, "RB": 0.75}, "team_map": {"LA": "LAR"}, "alias": {},
-               "positions": ["WR", "TE", "RB"], "roundtrip_tol_pts": 0.5, "board_tol_pts": 0.15, "stale_template_pct": 5.0}
+               "positions": ["WR", "TE", "RB"], "roundtrip_tol_pts": 0.5, "board_tol_pts": 0.15, "stale_template_pct": 5.0,
+               # below this many uploaded catches the per-catch compound puts a quarter or more of its
+               # mass at zero yards and the solved yards mean overshoots Unabated's shape badly
+               # (Thornton 30.0 on a 13.5 line read +18% on their screen). Catches still upload;
+               # yards stay blank so Unabated falls back to its own number. Raise once section 7 is fit.
+               "min_catches_for_yards": 2.5}
 SUFFIX = re.compile(r"\b(jr|sr|ii|iii|iv|v)\b")
 
 
@@ -181,11 +186,14 @@ def main():
         except Exception as ex:
             rec["status"] = "solver_fail"; rec["err_rec"] = type(ex).__name__; rows.append(rec); continue
         shape = float(shapes.get(str(r.pos), 0.75))
-        yards = yds_upload_mean(float(r.yds_line), p_yds, catches, shape)
+        low_volume = catches < float(cfg.get("min_catches_for_yards", 0))
+        yards = None if low_volume else yds_upload_mean(float(r.yds_line), p_yds, catches, shape)
         rec["upload_rec"] = catches
         rec["rebuilt_rec_p_over"] = round(float(stats.poisson.sf(math.floor(float(r.rec_line)), catches)), 4)
         rec["err_rec"] = round(abs(rec["rebuilt_rec_p_over"] - p_rec) * 100, 3)
-        if yards is None:
+        if low_volume:
+            rec["status"] = "low_volume_yds_blank"; rec["err_yds"] = "catches below min_catches_for_yards"
+        elif yards is None:
             rec["status"] = "solver_fail"; rec["err_yds"] = "unsolvable at this shape"
         else:
             yards = round(yards, 1); rec["upload_yds"] = yards
@@ -201,7 +209,7 @@ def main():
             other = tnames.get((match_key(nm), r.pos))
             rec["status"] = "team_mismatch" if other is not None else "unmatched"
             rows.append(rec); continue
-        if rec["status"] != "solver_fail":
+        if rec["status"] not in ("solver_fail", "low_volume_yds_blank"):
             rec["status"] = "filled" if len(idx) == 1 else "duplicate_filled"
         rec["template_id"] = ";".join(str(t.id.iloc[i]) for i in idx)
         for i in idx:
@@ -222,7 +230,7 @@ def main():
     diff_cols = [c for c in chk.columns if not (chk[c] == t[c]).all()]
     if set(diff_cols) - {"receptions", "receiving_yards"}:
         fail(f"structure check: cells changed outside receptions/receiving_yards: {diff_cols}")
-    exported = log[log.status.isin(["filled", "duplicate_filled"])]
+    exported = log[log.status.isin(["filled", "duplicate_filled", "low_volume_yds_blank"])]
     max_err_rec = float(pd.to_numeric(exported.err_rec, errors="coerce").max()) if len(exported) else 0.0
     max_err_yds = float(pd.to_numeric(exported.err_yds, errors="coerce").max()) if len(exported) else 0.0
     if max(max_err_rec, max_err_yds) > cfg["roundtrip_tol_pts"]:
@@ -255,7 +263,7 @@ def main():
                 board_check=board_ok, board_max_diff_pts=round(board_max, 3), shapes=shapes, n_exported=int(len(exported)),
                 template_stale_warning=bool(n_elig and unmatched / n_elig > cfg["stale_template_pct"] / 100))
     json.dump(meta, open(os.path.join(OUT, "export_meta.json"), "w"), indent=1)
-    for st in ("unmatched", "team_mismatch", "duplicate_filled", "solver_fail"):
+    for st in ("unmatched", "team_mismatch", "duplicate_filled", "solver_fail", "low_volume_yds_blank"):
         rows_ = log[log.status == st]
         if len(rows_):
             print(f"WARNING {st}: " + ", ".join(f"{r.name} ({r.team} {r.pos})" for r in rows_.itertuples()))
