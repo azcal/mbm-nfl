@@ -1,21 +1,22 @@
 {
- "grid_build_ts": "2026-09-16T19:55:34Z",
- "export_ts": "2026-09-16T19:57:00Z",
+ "grid_build_ts": "2026-09-16T20:09:33Z",
+ "export_ts": "2026-09-16T20:11:02Z",
  "counts": {
   "skipped_unanchored": 77,
-  "filled": 74,
-  "skipped_out": 4
+  "filled": 73,
+  "skipped_out": 4,
+  "low_volume_yds_blank": 1
  },
  "max_roundtrip_err_pts": {
-  "receptions": 0.12,
-  "receiving_yards": 0.06
+  "receptions": 0.16,
+  "receiving_yards": 0.11
  },
  "board_check": "0 rows compared",
  "board_max_diff_pts": 0.0,
  "shapes": {
-  "WR": 0.75,
-  "TE": 0.75,
-  "RB": 0.75
+  "WR": 1.65,
+  "TE": 1.65,
+  "RB": 1.65
  },
  "n_exported": 74,
  "template_stale_warning": false
