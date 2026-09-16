@@ -189,6 +189,8 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
             # active roster: players with a share state on this team, seen in one of the team's
             # last 3 games, not Out/Doubtful this week
             prior_of = {}; prior_src = {}
+            if "disp_of" not in dir():
+                disp_of = {}
             if roster is not None and stop_at is not None and (int(season), int(week)) == stop_at:
                 # upcoming slate: the current roster decides who is on the team. Players with no
                 # history (rookies, first-timers) get the position prior; players who moved
@@ -202,6 +204,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                     if pid not in share:
                         share[pid] = Dec(H); cr[pid] = Dec(30.0); ypc[pid] = Dec(30.0)
                     pos_of[pid] = rr.position; name_of[pid] = re.sub(r"[^a-z]", "", str(rr.full_name).lower()); last_team[pid] = team
+                    disp_of[pid] = str(rr.full_name)
                     rk = rr.pos_rank if hasattr(rr, "pos_rank") and rr.pos_rank == rr.pos_rank else None
                     slot = DEPTH_PRIOR.get((rr.position, int(min(rk, 4 if rr.position == "WR" else 2))), PRIOR_SHARE[rr.position]) if rk is not None else PRIOR_SHARE[rr.position]
                     ls = LAST.get((int(season), pid))
@@ -249,7 +252,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 tg, rc, yds = simulate(att_mu, sh, c, y_, kappa, alpha)
                 act = g[g.player_id == pid]
                 on_field = len(act) > 0 or (season, week, team, name_of.get(pid, "")) in played_names
-                rows.append(dict(season=season, week=week, team=team, opp=opp, pid=pid, pos=pos_of[pid], name=name_of.get(pid, ""),
+                rows.append(dict(season=season, week=week, team=team, opp=opp, pid=pid, pos=pos_of[pid], name=name_of.get(pid, ""), display_name=disp_of.get(pid, ""),
                                  inj=(inj_status or {}).get((season, week, pid), ""), status_applied=False, depth_prior=prior_of.get(pid),
                                  prior_share=round(blend_of[pid][0], 4), obs_share=round(blend_of[pid][1], 4), w_data=round(blend_of[pid][2], 3),
                                  blend_share=round(blend_of[pid][3], 4), final_share=round(sh, 4), n_games_team=games_on_team.get((pid, team, int(season)), 0),

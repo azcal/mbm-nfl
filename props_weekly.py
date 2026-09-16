@@ -194,7 +194,7 @@ def main():
         "prior_targets", "data_update_delta_targets", "redistribution_delta_targets", "final_targets", "last_week_med_yds", "this_week_med_yds", "move_reason"]] \
         .to_csv(os.path.join(logs0, "props_moves.csv"), index=False)
     print(f"move log: {len(mv)} players -> logs/props_moves.csv")
-    ident = ["season", "week", "team", "opp", "home_away", "game_id", "kickoff_utc", "game_status", "pid", "name", "pos",
+    ident = ["season", "week", "team", "opp", "home_away", "game_id", "kickoff_utc", "game_status", "pid", "name", "display_name", "pos",
              "inj", "inj_source", "inj_ts", "status_applied", "play_prob", "depth_prior", "prior_share", "w_data", "n_games_team"]
     centre = ["proj_targets", "share", "cr", "ypc", "med_yds", "mean_yds", "med_rec"]
     out = df[ident + centre].copy()
@@ -253,7 +253,8 @@ def main():
     else:
         pub = raw.copy(); snap = None; cons = {}
         meta_extra.update(anchored=False, odds_ts="")
-    order = ident + ["market_line", "market_p_over", "gap_vs_market", "p_over_at_line", "anchored", "anchor_clipped", "odds_ts"] + centre + \
+    order = ident + ["market_line", "market_p_over", "gap_vs_market", "p_over_at_line", "anchored", "anchor_clipped", "odds_ts",
+                     "yds_line", "yds_p_over", "rec_line", "rec_p_over", "rec_anchored", "mean_rec"] + centre + \
             [f"p_over_{int(x)}" for x in M.YGRID] + [f"p_rec_{k}" for k in M.RGRID] + ["ts"]
     for c in order:
         if c not in raw.columns: raw[c] = np.nan

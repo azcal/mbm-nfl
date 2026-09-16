@@ -17,6 +17,7 @@ The raw grid is kept beside it so the model's own centre stays auditable and Pha
 import csv, datetime as dt, glob, io, json, math, os, re, sys, unicodedata
 from collections import Counter, defaultdict
 
+import math
 import numpy as np, pandas as pd, requests
 
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
@@ -213,9 +214,10 @@ def anchor_grid(raw, cons, spec):
     """Anchored copy of the raw grid. Players without a receiving-yards main line keep their
     raw projection. Ladders, medians and means are regenerated from the anchored simulation."""
     g = raw.copy()
-    for c in ("market_line", "market_p_over", "gap_vs_market", "p_over_at_line"):
+    for c in ("market_line", "market_p_over", "gap_vs_market", "p_over_at_line",
+              "yds_line", "yds_p_over", "rec_line", "rec_p_over", "mean_rec"):
         g[c] = np.nan
-    g["anchored"] = False; g["anchor_clipped"] = False
+    g["anchored"] = False; g["anchor_clipped"] = False; g["rec_anchored"] = False
     ycols = [f"p_over_{int(x)}" for x in M.YGRID]; rcols = [f"p_rec_{k}" for k in M.RGRID]
     for i, row in g.iterrows():
         c = cons.get((row["pid"], "rec_yds"))
@@ -231,6 +233,15 @@ def anchor_grid(raw, cons, spec):
         g.loc[i, ycols] = [round(float(np.mean(y > x)), 4) for x in M.YGRID]
         g.loc[i, rcols] = [round(float(np.mean(rc >= k)), 4) for k in M.RGRID]
         g.loc[i, "anchored"] = True; g.loc[i, "anchor_clipped"] = bool(clipped)
+        # per-market anchor columns for the Unabated export: the exact P(over) at each posted
+        # line from the anchored simulation itself, no ladder interpolation
+        g.loc[i, "yds_line"] = line; g.loc[i, "yds_p_over"] = round(float(np.mean(y > line)), 4)
+        g.loc[i, "mean_rec"] = round(float(rc.mean()), 3)
+        cr_ = cons.get((row["pid"], "receptions"))
+        if cr_ is not None:
+            rl = float(cr_["line"]); need = int(math.floor(rl)) + 1
+            g.loc[i, "rec_line"] = rl; g.loc[i, "rec_p_over"] = round(float(np.mean(rc >= need)), 4)
+            g.loc[i, "rec_anchored"] = True
     return g
 
 
