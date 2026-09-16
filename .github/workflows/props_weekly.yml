@@ -4,7 +4,8 @@ name: mbm-nfl-props-weekly
 # Sunday's injury tags against snap counts. A manual run does both.
 on:
   schedule:
-    - cron: "30 14 * * 0"
+    - cron: "30 14 * * 0"     # Sunday 8:30am MDT: full week, fresh prices for every game not yet final
+    - cron: "0 15 * * 4"      # Thursday 9:00am MDT: same projections, prices for the Thursday game only
     - cron: "15 15 * * 2"
   workflow_dispatch:
 permissions:
@@ -16,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install pandas numpy requests pyarrow tzdata
+      - run: pip install pandas numpy requests pyarrow scipy tzdata
       - name: validate last grid (Tuesday)
         if: github.event.schedule == '15 15 * * 2' || github.event_name == 'workflow_dispatch'
         run: python props_validate.py || true
@@ -31,10 +32,24 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           PROPS_ALTS: "0"        # "1" adds the alternate markets: doubles the credits per game
-      - name: commit
+          PROPS_WINDOW_H: ${{ github.event.schedule == '0 15 * * 4' && '36' || '' }}   # Thursday: games in the next 36h only
+      - name: commit grid and board
         run: |
           git config user.name "mbm-nfl"
           git config user.email "mbm-nfl@users.noreply.github.com"
           git add logs data/odds
           git commit -m "props grid $(date -u +%F)" || echo "nothing new"
+          git pull --rebase && git push
+      # The export runs after the grid and board are committed, so a failed export leaves them in
+      # place and still shows as a red X here. Not on the Tuesday validation run.
+      - name: Unabated export
+        if: github.event.schedule != '15 15 * * 2'
+        run: python props_unabated.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: commit export
+        if: github.event.schedule != '15 15 * * 2'
+        run: |
+          git add logs/unabated
+          git commit -m "unabated export $(date -u +%F)" || echo "nothing new"
           git pull --rebase && git push
