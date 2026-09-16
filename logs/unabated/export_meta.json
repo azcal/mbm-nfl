@@ -1,0 +1,22 @@
+{
+ "grid_build_ts": "2026-09-16T19:55:34Z",
+ "export_ts": "2026-09-16T19:57:00Z",
+ "counts": {
+  "skipped_unanchored": 77,
+  "filled": 74,
+  "skipped_out": 4
+ },
+ "max_roundtrip_err_pts": {
+  "receptions": 0.12,
+  "receiving_yards": 0.06
+ },
+ "board_check": "0 rows compared",
+ "board_max_diff_pts": 0.0,
+ "shapes": {
+  "WR": 0.75,
+  "TE": 0.75,
+  "RB": 0.75
+ },
+ "n_exported": 74,
+ "template_stale_warning": false
+}
