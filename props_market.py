@@ -104,7 +104,15 @@ def snapshot(season, week, games, key, bookmakers, markets=MARKETS_DEFAULT, out_
         for e in evs:
             rr = _get(f"{API}/sports/{SPORT}/events/{e['id']}/odds", dict(apiKey=key, bookmakers=bookmakers, markets=",".join(markets), oddsFormat="decimal"))
             if rr is None or rr.status_code != 200:
-                print(f"  {e['away_team']} @ {e['home_team']}: HTTP {None if rr is None else rr.status_code}"); continue
+                code = None if rr is None else rr.status_code
+                print(f"  {e['away_team']} @ {e['home_team']}: HTTP {code} {(rr.text[:120] if rr is not None else '')}")
+                if code in (401, 403, 429):
+                    # 401 with a valid key means the month's credits are gone (quota resets on the
+                    # 1st); 429 is rate limiting. The rest of the slate would fail the same way,
+                    # so stop rather than spend 16 requests on error pages. The grid publishes raw.
+                    print("  odds pull aborted: key rejected or monthly quota exhausted")
+                    break
+                continue
             rem = rr.headers.get("x-requests-remaining", rem)
             d = rr.json()
             for bk in d.get("bookmakers", []):
