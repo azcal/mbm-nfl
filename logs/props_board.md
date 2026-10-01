@@ -1,90 +1,105 @@
-# NFL receiving props board, 2026 week 3
+# NFL receiving props board, 2026 week 4
 
-week 3 props board. Fair = the model's price; take the prop anywhere the book is at fair or better. Books listed are at or better right now, best first.
+week 4 props board. Fair = the model's price; take the prop anywhere the book is at fair or better. Books listed are at or better right now, best first.
 
-Stefon Diggs (WAS vs SEA, Sun)
-  Under 3.5 receptions fair -111 (1.90)   find 1.90 or better   now: PIN +130, FD +130, DK +129, BOV +125, BOL +124
+Tucker Kraft (GB vs TB, Sun)
+  Under 3.5 receptions fair -116 (1.86)   find 1.86 or better   now: BOV +130, DK +129, MGM +120, BOL +120, FD +118, PIN +110
 
-Dalton Kincaid (BUF vs LAC, Sun)
-  Over 4.5 receptions fair -119 (1.84)   find 1.84 or better   now: BOL +117, FD +114, DK +112, BOV +110
+Josh Downs (IND vs WAS, Sun)
+  Over 5.5 receptions fair -121 (1.83)   find 1.83 or better   now: PIN +122, FD +114, BOL +113, DK +111, MGM +110, BOV +110
 
-Kayshon Boutte (HOU vs IND, Sun)
-  Over 2.5 receptions fair -160 (1.62)   find 1.62 or better   now: DK -114, BOV -115, BOL -119, FD -128, PIN -128
+Christian Watson (GB vs TB, Sun)
+  Under 4.5 receptions fair -120 (1.83)   find 1.83 or better   now: MGM +120, BOL +118, PIN +116, FD +116, DK +115, BOV +115
 
-Tommy Tremble (CAR vs CLE, Sun)
-  Under 1.5 receptions fair +113 (2.13)   find 2.13 or better   now: FD +146
+Parker Washington (JAX vs CIN, Sun)
+  Over 5.5 receptions fair -121 (1.83)   find 1.83 or better   now: BOL +115, BOV +110, PIN +110, DK +109, FD +106, MGM +105
 
-Isaiah Likely (NYG vs TEN, Sun)
-  Over 3.5 receptions fair -184 (1.54)   find 1.54 or better   now: DK -132, BOV -135, BOL -145, FD -154, PIN -154
+Travis Kelce (KC vs LV, Sun)
+  Over 4.5 receptions fair -109 (1.92)   find 1.92 or better   now: BOV +120, DK +119, BOL +112, FD +106
 
-Darnell Mooney (NYG vs TEN, Sun)
-  Over 1.5 receptions fair -107 (1.93)   find 1.93 or better   now: DK +121, BOV +120, BOL +117
+Gunnar Helm (TEN vs BAL, Sun)
+  Under 2.5 receptions fair -111 (1.90)   find 1.90 or better   now: FD +118, BOL +110, DK +105, BOV +105, MGM +100
 
-Xavier Hutchinson (HOU vs IND, Sun)
-  Over 3.5 receptions fair -106 (1.94)   find 1.94 or better   now: BOV +120, DK +119, BOL +115
+Kalif Raymond (CHI vs NYJ, Sun)
+  Under 3.5 receptions fair -167 (1.60)   find 1.60 or better   now: MGM -120, DK -127, BOL -141
 
-Jameson Williams (DET vs NYJ, Sun)
-  Under 3.5 receptions fair +100 (2.00)   find 2.00 or better   now: DK +126, BOV +125, BOL +115, FD +112
+Isaiah Likely (NYG vs ARI, Sun)
+  Over 3.5 receptions fair -194 (1.52)   find 1.52 or better   now: BOL -161, PIN -167, FD -167
+  Over 4.5 receptions fair -101 (1.99)   find 1.99 or better   now: DK +126, BOV +125
 
-Justin Jefferson (MIN vs TB, Sun)
-  Under 5.5 receptions fair -125 (1.80)   find 1.80 or better   now: PIN +100, FD +100, BOV +100, BOL +100, DK -101
+Alvin Kamara (NO vs ATL, Mon)
+  Under 3.5 receptions fair -192 (1.52)   find 1.52 or better   now: DK -145, BOV -149, BOL -156, FD -167, PIN -167
 
-Javonte Williams (DAL vs BAL, Sun)
-  Over 2.5 receptions fair -183 (1.55)   find 1.55 or better   now: PIN -141, DK -147, BOV -149, FD -154, BOL -156
+Michael Pittman Jr. (PIT vs CLE, Thu)
+  Under 3.5 receptions fair -156 (1.64)   find 1.64 or better   now: DK -123, BOV -125, BOL -128, PIN -133, MGM -135
 
-Chase Brown (CIN vs PIT, Sun)
-  Over 3.5 receptions fair -108 (1.93)   find 1.93 or better   now: DK +112, BOV +110, PIN +106, FD +106, BOL +106, MGM +105
+Kenny Gainwell (TB vs GB, Sun)
+  Under 2.5 receptions fair -237 (1.42)   find 1.42 or better   now: FD -179
 
-Carnell Tate (TEN vs NYG, Sun)
-  Over 3.5 receptions fair +110 (2.10)   find 2.10 or better   now: BOV +130, DK +129
+Greg Dulcich (MIA vs MIN, Sun)
+  Under 2.5 receptions fair +105 (2.05)   find 2.05 or better   now: DK +124, BOV +120
 
-Christian Watson (GB vs ATL, Thu)
-  Under 4.5 receptions fair +102 (2.02)   find 2.02 or better   now: PIN +121, BOL +115
-  Under 5.5 receptions fair -185 (1.54)   find 1.54 or better   now: DK -156, BOV -161
+Juwan Johnson (NO vs ATL, Mon)
+  Over 3.5 receptions fair -114 (1.88)   find 1.88 or better   now: PIN +104
 
-Travis Kelce (KC vs MIA, Sun)
-  Over 4.5 receptions fair -133 (1.75)   find 1.75 or better   now: BOL -109, PIN -112, FD -114, DK -114, BOV -115
+Jaylen Waddle (DEN vs SF, Sun)
+  Over 4.5 receptions fair -110 (1.91)   find 1.91 or better   now: BOL +107, FD +104, PIN +104
 
-Gunnar Helm (TEN vs NYG, Sun)
-  Over 2.5 receptions fair -161 (1.62)   find 1.62 or better   now: BOV -130, FD -130, PIN -130, DK -132, BOL -132
+AJ Barner (SEA vs LAC, Sun)
+  Over 3.5 receptions fair +103 (2.03)   find 2.03 or better   now: FD +120, BOL +120, PIN +120
 
-Rashee Rice (KC vs MIA, Sun)
-  Over 4.5 receptions fair +105 (2.05)   find 2.05 or better   now: DK +124, BOL +120, BOV +120, FD +118, PIN +118
+Mack Hollins (NE vs BUF, Sun)
+  Over 3.5 receptions fair -122 (1.82)   find 1.82 or better   now: DK -103, BOV -105
 
-George Pickens (DAL vs BAL, Sun)
-  Under 5.5 receptions fair -184 (1.54)   find 1.54 or better   now: FD -147, PIN -147, BOL -152, DK -156
+Garrett Wilson (NYJ vs CHI, Sun)
+  Over 6.5 receptions fair -120 (1.83)   find 1.83 or better   now: FD -102, PIN -108
 
-Garrett Wilson (NYJ vs DET, Sun)
-  Over 5.5 receptions fair -106 (1.94)   find 1.94 or better   now: BOV +110, BOL +109, DK +108
+Luther Burden III (CHI vs NYJ, Sun)
+  Under 4.5 receptions fair -144 (1.69)   find 1.69 or better   now: PIN -120, BOL -123
 
-De'Von Achane (MIA vs KC, Sun)
-  Over 3.5 receptions fair -125 (1.80)   find 1.80 or better   now: BOV -105, DK -105
+Hunter Henry (NE vs BUF, Sun)
+  Under 3.5 receptions fair -146 (1.68)   find 1.68 or better   now: PIN -122, FD -122, DK -122, BOV -125, BOL -127
 
-Tetairoa McMillan (CAR vs CLE, Sun)
-  Under 4.5 receptions fair -120 (1.83)   find 1.83 or better   now: FD -102
+Dalton Kincaid (BUF vs NE, Sun)
+  Over 4.5 receptions fair -111 (1.90)   find 1.90 or better   now: MGM +105, PIN +101
 
-Marvin Harrison Jr. (ARI vs SF, Sun)
-  Over 2.5 receptions fair +106 (2.06)   find 2.06 or better   now: BOL +122, DK +121, BOV +120
+Malik Washington (MIA vs MIN, Sun)
+  Over 3.5 receptions fair -155 (1.65)   find 1.65 or better   now: PIN -130, FD -130, BOL -132
 
-Jerry Jeudy (CLE vs CAR, Sun)
-  Over 1.5 receptions fair -143 (1.70)   find 1.70 or better   now: FD -122
+Denzel Boston (CLE vs PIT, Thu)
+  Under 2.5 receptions fair +110 (2.10)   find 2.10 or better   now: MGM +125, BOV +120
 
-Denzel Boston (CLE vs CAR, Sun)
-  Under 3.5 receptions fair -121 (1.83)   find 1.83 or better   now: FD -106
+Brian Thomas Jr (JAX vs CIN, Sun)
+  Over 2.5 receptions fair +105 (2.05)   find 2.05 or better   now: FD +120
 
-Pat Freiermuth (PIT vs CIN, Sun)
-  Under 3.5 receptions fair +102 (2.02)   find 2.02 or better   now: BOL +114
+Kayshon Boutte (HOU vs DAL, Sun)
+  Over 2.5 receptions fair +138 (2.38)   find 2.38 or better   now: FD +154
 
-Matthew Golden (GB vs ATL, Thu)
-  Over 4.5 receptions fair +102 (2.02)   find 2.02 or better   now: PIN +114
+Isaiah Williams (NYJ vs CHI, Sun)
+  Over 2.5 receptions fair -129 (1.78)   find 1.78 or better   now: DK -112
 
-Adonai Mitchell (NYJ vs DET, Sun)
-  Over 3.5 receptions fair -128 (1.78)   find 1.78 or better   now: BOL -114
+Noah Fant (NO vs ATL, Mon)
+  Over 2.5 receptions fair +134 (2.34)   find 2.34 or better   now: BOL +149
 
-Brenton Strange (JAX vs NE, Sun)
-  Under 2.5 receptions fair +125 (2.25)   find 2.25 or better   now: DK +136
+Calvin Ridley (TEN vs BAL, Sun)
+  Under 6.5 rec yds    fair -121 (1.83)   find 1.83 or better   now: DK -108
 
-Khalil Shakir (BUF vs LAC, Sun)
-  Under 4.5 receptions fair -170 (1.59)   find 1.59 or better   now: BOV -149, DK -149
+Khalil Shakir (BUF vs NE, Sun)
+  Under 3.5 receptions fair +104 (2.04)   find 2.04 or better   now: FD +116
+
+George Pickens (DAL vs HOU, Sun)
+  Over 5.5 receptions fair +132 (2.32)   find 2.32 or better   now: MGM +145
+
+Drake London (ATL vs NO, Mon)
+  Over 4.5 receptions fair -249 (1.40)   find 1.40 or better   now: PIN -208
+
+Kendrick Bourne (ARI vs NYG, Sun)
+  Over 2.5 receptions fair +127 (2.27)   find 2.27 or better   now: DK +139
+
+Antonio Williams (WAS vs IND, Sun)
+  Under 1.5 receptions fair +116 (2.16)   find 2.16 or better   now: FD +128
+
+Jerry Jeudy (CLE vs PIT, Thu)
+  Over 1.5 receptions fair +114 (2.14)   find 2.14 or better   now: BOV +125, DK +125
 
 edge = model minus the book's fair (devigged) probability; every row above clears 3pp and 5% EV. Prices move; re-check before betting.
