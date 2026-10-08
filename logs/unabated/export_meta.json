@@ -1,14 +1,14 @@
 {
- "grid_build_ts": "2026-10-07T17:03:43Z",
- "export_ts": "2026-10-07T17:05:03Z",
+ "grid_build_ts": "2026-10-08T20:28:43Z",
+ "export_ts": "2026-10-08T20:29:47Z",
  "counts": {
   "filled": 85,
   "skipped_unanchored": 54,
-  "skipped_out": 7
+  "skipped_out": 4
  },
  "max_roundtrip_err_pts": {
-  "receptions": 0.13,
-  "receiving_yards": 0.15
+  "receptions": 0.12,
+  "receiving_yards": 0.11
  },
  "board_check": "0 rows compared",
  "board_max_diff_pts": 0.0,
