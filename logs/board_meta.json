@@ -1,12 +1,12 @@
 {
- "build_ts": "2026-10-22T19:03:38+00:00",
- "n_rows": 930,
+ "build_ts": "2026-11-01T19:07:35+00:00",
+ "n_rows": 2387,
  "season": 2026,
- "week": 7,
- "first_kickoff_utc": "2026-10-23T00:15:00+00:00",
- "n_players_lined": 34,
- "n_unmatched": 0,
- "n_clipped": 0,
- "odds_ts": "2026-10-22T14:12:59+00:00",
+ "week": 8,
+ "first_kickoff_utc": "2026-10-30T00:15:00+00:00",
+ "n_players_lined": 119,
+ "n_unmatched": 2,
+ "n_clipped": 8,
+ "odds_ts": "2026-11-01T19:07:21+00:00",
  "anchored": true
 }
