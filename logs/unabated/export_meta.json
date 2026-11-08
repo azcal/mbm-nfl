@@ -1,14 +1,17 @@
 {
- "grid_build_ts": "2026-11-05T21:19:20Z",
- "export_ts": "2026-11-05T21:20:25Z",
+ "grid_build_ts": "2026-11-08T18:59:37Z",
+ "export_ts": "2026-11-08T19:00:50Z",
  "counts": {
-  "skipped_unanchored": 133,
-  "filled": 9,
-  "skipped_out": 4
+  "skipped_started": 73,
+  "filled": 51,
+  "skipped_out": 37,
+  "skipped_unanchored": 12,
+  "team_mismatch": 2,
+  "low_volume_yds_blank": 1
  },
  "max_roundtrip_err_pts": {
-  "receptions": 0.14,
-  "receiving_yards": 0.07
+  "receptions": 0.13,
+  "receiving_yards": 0.09
  },
  "board_check": "0 rows compared",
  "board_max_diff_pts": 0.0,
@@ -17,6 +20,6 @@
   "TE": 1.65,
   "RB": 1.65
  },
- "n_exported": 9,
+ "n_exported": 52,
  "template_stale_warning": false
 }
