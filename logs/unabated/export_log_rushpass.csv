@@ -1,0 +1,91 @@
+name,team,pos,starter,kickoff_utc,template_id,status,rushing_yards,passing_yards,rushing_and_receiving_yards,passing_and_rushing_yards
+David Montgomery,HOU,RB,False,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+Emari Demercado,HOU,RB,False,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+C.J. Stroud,HOU,QB,True,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+Daniel Jones,IND,QB,True,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+Jonathan Taylor,IND,RB,False,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+DJ Giddens,IND,RB,False,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+Seth McGowan,IND,RB,False,2026-11-20T01:15:00+00:00,,skipped_started,,,,
+Josh Allen,BUF,QB,True,2026-11-22T18:00:00+00:00,34275,filled,30.3,216.6,,246.9
+Ty Johnson,BUF,RB,False,2026-11-22T18:00:00+00:00,6773,filled,9.8,,31.5,
+James Cook,BUF,RB,False,2026-11-22T18:00:00+00:00,34320,filled,107.1,,117.7,
+Ray Davis,BUF,RB,False,2026-11-22T18:00:00+00:00,438966,filled,11.9,,16.2,
+Jaylen Wright,MIA,RB,False,2026-11-22T18:00:00+00:00,438960,filled,15.0,,19.0,
+Kyle McCord,MIA,QB,True,2026-11-22T18:00:00+00:00,456141,filled,10.4,195.5,,205.9
+Ollie Gordon II,MIA,RB,False,2026-11-22T18:00:00+00:00,455663,filled,56.5,,64.7,
+AJ Dillon,CAR,RB,False,2026-11-22T18:00:00+00:00,39136,filled,9.0,,9.6,
+Chuba Hubbard,CAR,RB,False,2026-11-22T18:00:00+00:00,35012,filled,68.5,,91.2,
+Bryce Young,CAR,QB,True,2026-11-22T18:00:00+00:00,418739,filled,7.8,238.7,,246.5
+Trevor Etienne,CAR,RB,False,2026-11-22T18:00:00+00:00,455977,filled,10.5,,14.1,
+Derrick Henry,BAL,RB,False,2026-11-22T18:00:00+00:00,36443,filled,65.3,,71.3,
+Jacoby Brissett,BAL,QB,True,2026-11-22T18:00:00+00:00,34104,filled,13.9,181.9,,195.8
+Justice Hill,BAL,RB,False,2026-11-22T18:00:00+00:00,38810,filled,20.1,,39.4,
+D'Andre Swift,CHI,RB,False,2026-11-22T18:00:00+00:00,38710,filled,56.4,,75.7,
+Roschon Johnson,CHI,RB,False,2026-11-22T18:00:00+00:00,406913,filled,12.1,,21.2,
+Caleb Williams,CHI,QB,True,2026-11-22T18:00:00+00:00,441446,filled,20.4,242.3,,262.8
+Kyle Monangai,CHI,RB,False,2026-11-22T18:00:00+00:00,456181,filled,41.9,,48.2,
+Alvin Kamara,NO,RB,False,2026-11-22T18:00:00+00:00,38137,filled,16.1,,35.4,
+Travis Etienne,NO,RB,False,2026-11-22T18:00:00+00:00,38823,filled,32.6,,50.2,
+Audric Estime,NO,RB,False,2026-11-22T18:00:00+00:00,438044,filled,21.1,,27.1,
+Tyler Shough,NO,QB,True,2026-11-22T18:00:00+00:00,456010,filled,19.6,245.0,,264.6
+CJ Donaldson,NO,RB,False,2026-11-22T18:00:00+00:00,475905,filled,7.3,,8.8,
+Dak Prescott,DAL,QB,True,2026-11-22T18:00:00+00:00,35704,filled,13.1,267.4,,280.5
+Javonte Williams,DAL,RB,False,2026-11-22T18:00:00+00:00,36203,filled,95.1,,109.2,
+Tony Pollard,TEN,RB,False,2026-11-22T18:00:00+00:00,35610,filled,63.4,,80.9,
+Tyjae Spears,TEN,RB,False,2026-11-22T18:00:00+00:00,410108,filled,15.7,,24.1,
+Cam Ward,TEN,QB,True,2026-11-22T18:00:00+00:00,455816,filled,15.3,215.9,,231.2
+Nicholas Singleton,TEN,RB,False,2026-11-22T18:00:00+00:00,475742,filled,6.8,,6.8,
+Jared Goff,DET,QB,True,2026-11-22T18:00:00+00:00,38695,filled,8.1,242.9,,251.0
+Jahmyr Gibbs,DET,RB,False,2026-11-22T18:00:00+00:00,418576,filled,98.8,,137.7,
+Sione Vaki,DET,RB,False,2026-11-22T18:00:00+00:00,437981,filled,19.4,,26.3,
+Baker Mayfield,TB,QB,True,2026-11-22T18:00:00+00:00,37483,filled,11.4,186.9,,198.3
+Kenny Gainwell,TB,RB,False,2026-11-22T18:00:00+00:00,34595,filled,33.0,,49.6,
+Sean Tucker,TB,RB,False,2026-11-22T18:00:00+00:00,409232,filled,9.2,,9.5,
+Bucky Irving,TB,RB,False,2026-11-22T18:00:00+00:00,437863,filled,76.6,,86.2,
+Patrick Mahomes,KC,QB,True,2026-11-22T18:00:00+00:00,37657,filled,13.7,238.2,,251.9
+Jaydn Ott,KC,RB,False,2026-11-22T18:00:00+00:00,475863,filled,18.2,,18.2,
+Emmett Johnson,KC,RB,False,2026-11-22T18:00:00+00:00,475730,filled,83.2,,116.8,
+Bam Knight,ARI,RB,False,2026-11-22T18:00:00+00:00,242816,filled,24.8,,31.0,
+Tyler Allgeier,ARI,RB,False,2026-11-22T18:00:00+00:00,36925,filled,42.6,,54.3,
+Carson Beck,ARI,QB,True,2026-11-22T18:00:00+00:00,475674,filled,10.0,247.0,,257.0
+Devin Singletary,NYG,RB,False,2026-11-22T18:00:00+00:00,34310,filled,24.9,,32.5,
+J.J. McCarthy,NYG,QB,True,2026-11-22T18:00:00+00:00,441611,filled,15.1,239.5,,254.6
+Cam Skattebo,NYG,RB,False,2026-11-22T18:00:00+00:00,456175,filled,63.5,,82.4,
+Ameer Abdullah,JAX,RB,False,2026-11-22T18:00:00+00:00,36259,filled,12.4,,12.5,
+Trevor Lawrence,JAX,QB,True,2026-11-22T18:00:00+00:00,8637,filled,14.2,228.2,,242.4
+Chris Rodriguez Jr.,JAX,RB,False,2026-11-22T18:00:00+00:00,409093,filled,26.8,,31.2,
+Bhayshul Tuten,JAX,RB,False,2026-11-22T18:00:00+00:00,455766,filled,64.9,,84.0,
+Justin Herbert,LAC,QB,True,2026-11-22T21:05:00+00:00,38387,filled,23.1,206.3,,229.4
+Keaton Mitchell,LAC,RB,False,2026-11-22T21:05:00+00:00,409273,filled,20.9,,31.4,
+Kimani Vidal,LAC,RB,False,2026-11-22T21:05:00+00:00,438010,filled,19.8,,27.8,
+Omarion Hampton,LAC,RB,False,2026-11-22T21:05:00+00:00,455554,filled,55.3,,61.1,
+Geno Smith,NYJ,QB,True,2026-11-22T21:05:00+00:00,39062,filled,7.3,230.8,,238.1
+Breece Hall,NYJ,RB,False,2026-11-22T21:05:00+00:00,38803,filled,42.2,,72.4,
+Braelon Allen,NYJ,RB,False,2026-11-22T21:05:00+00:00,437373,filled,42.3,,52.7,
+J.K. Dobbins,DEN,RB,False,2026-11-22T21:25:00+00:00,8735,filled,37.7,,40.5,
+Bo Nix,DEN,QB,True,2026-11-22T21:25:00+00:00,438056,filled,19.8,207.1,,226.9
+Jonah Coleman,DEN,RB,False,2026-11-22T21:25:00+00:00,475687,filled,53.5,,77.9,
+Ashton Jeanty,LV,RB,False,2026-11-22T21:25:00+00:00,455609,filled,32.9,,65.7,
+Mike Washington Jr.,LV,RB,False,2026-11-22T21:25:00+00:00,475694,filled,26.3,,27.8,
+Fernando Mendoza,LV,QB,True,2026-11-22T21:25:00+00:00,475589,filled,15.2,219.6,,234.8
+Saquon Barkley,PHI,RB,False,2026-11-22T21:25:00+00:00,33980,filled,59.4,,66.0,
+Joe Milton III,PHI,QB,True,2026-11-22T21:25:00+00:00,437409,filled,27.1,220.1,,247.2
+Jaydon Blue,PHI,RB,False,2026-11-22T21:25:00+00:00,456133,filled,10.1,,12.7,
+Aaron Rodgers,PIT,QB,True,2026-11-22T21:25:00+00:00,34131,filled,6.8,217.6,,224.5
+Rico Dowdle,PIT,RB,False,2026-11-22T21:25:00+00:00,35774,filled,29.3,,42.9,
+Jaylen Warren,PIT,RB,False,2026-11-22T21:25:00+00:00,34884,filled,64.5,,91.8,
+Lew Nichols III,PIT,RB,False,2026-11-22T21:25:00+00:00,409144,filled,7.6,,8.0,
+Christian McCaffrey,SF,RB,False,2026-11-23T01:20:00+00:00,35191,filled,57.4,,96.6,
+Deebo Samuel Sr.,SF,WR,False,2026-11-23T01:20:00+00:00,35076,filled,11.5,,38.9,
+Brock Purdy,SF,QB,True,2026-11-23T01:20:00+00:00,35201,filled,19.8,232.3,,252.1
+Kaelon Black,SF,RB,False,2026-11-23T01:20:00+00:00,475672,filled,36.4,,38.6,
+Kirk Cousins,MIN,QB,True,2026-11-23T01:20:00+00:00,35272,filled,9.0,204.4,,213.4
+Aaron Jones,MIN,RB,False,2026-11-23T01:20:00+00:00,34136,filled,38.6,,52.7,
+Jordan Mason,MIN,RB,False,2026-11-23T01:20:00+00:00,37693,filled,45.3,,46.8,
+Austin Ekeler,WAS,RB,False,2026-11-24T01:15:00+00:00,35465,filled,29.3,,40.3,
+Rachaad White,WAS,RB,False,2026-11-24T01:15:00+00:00,37510,filled,49.8,,63.7,
+Jayden Daniels,WAS,QB,True,2026-11-24T01:15:00+00:00,439299,filled,29.4,219.6,,249.0
+Robert Henry Jr.,WAS,RB,False,2026-11-24T01:15:00+00:00,475966,filled,7.4,,7.4,
+Samaje Perine,CIN,RB,False,2026-11-24T01:15:00+00:00,34641,filled,25.7,,34.1,
+Joe Burrow,CIN,QB,True,2026-11-24T01:15:00+00:00,39105,filled,11.1,277.3,,288.4
+Chase Brown,CIN,RB,False,2026-11-24T01:15:00+00:00,393976,filled,52.3,,82.7,
