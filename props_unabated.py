@@ -17,23 +17,36 @@ template, read fresh, never edited), logs/props_board.csv (cross-check).
 Outputs: logs/unabated/projections-nfl.csv, export_log.csv, export_meta.json. Written to temp
 paths and moved into place only after every check passes; on failure the previous export is
 deleted so a stale file can't be uploaded by mistake.
+
+The template has to be current. Unabated's ids, names and teams change every week (trades,
+signings, cuts), and an upload built on an old download carries players on old teams and ids
+Unabated has since dropped. Refresh it by uploading a new download to templates/ under any
+projections-nfl*.csv name: the next run swaps it in (see promote_template). Every run checks
+the template against the grid's active receivers and says on Discord who doesn't line up.
 """
-import argparse, datetime as dt, json, math, os, re, shutil, sys, tempfile, unicodedata
+import argparse, datetime as dt, hashlib, json, math, os, re, shutil, sys, tempfile, unicodedata
 import numpy as np, pandas as pd
 from scipy import optimize, stats
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOGS = os.path.join(HERE, "logs"); OUT = os.path.join(LOGS, "unabated")
-TEMPLATE = os.path.join(HERE, "templates", "projections-nfl.csv")
+TEMPLATE_DIR = os.path.join(HERE, "templates")
+TEMPLATE = os.path.join(TEMPLATE_DIR, "projections-nfl.csv")
+# Unabated's download is projections-nfl.csv, or projections-nfl (14).csv / projections-nfl_14.csv
+# once the downloads folder already holds copies
+TEMPLATE_DROP = re.compile(r"^projections-nfl.*\.csv$", re.I)
+TEMPLATE_NEED = ["id", "name", "position", "team", "receptions", "receiving_yards"]
 CONFIG = os.path.join(HERE, "unabated_config.json")
 DEFAULT_CFG = {"unabated_yds_shape": {"WR": 0.75, "TE": 0.75, "RB": 0.75}, "team_map": {"LA": "LAR"}, "alias": {},
-               "positions": ["WR", "TE", "RB"], "roundtrip_tol_pts": 0.5, "board_tol_pts": 0.15, "stale_template_pct": 5.0,
+               "positions": ["WR", "TE", "RB"], "roundtrip_tol_pts": 0.5, "board_tol_pts": 0.15,
                # below this many uploaded catches the per-catch compound puts a quarter or more of its
                # mass at zero yards and the solved yards mean overshoots Unabated's shape badly
                # (Thornton 30.0 on a 13.5 line read +18% on their screen). Catches still upload;
                # yards stay blank so Unabated falls back to its own number. Raise once section 7 is fit.
                "min_catches_for_yards": 2.5}
 SUFFIX = re.compile(r"\b(jr|sr|ii|iii|iv|v)\b")
+OUT_TAGS = ("Out", "Doubtful", "IR", "PUP", "Suspended")
+EXPORTED = ["filled", "duplicate_filled", "filled_team_differs", "low_volume_yds_blank"]
 
 
 # --- conversion math (reference code from the spec, unchanged) --------------------------
@@ -78,6 +91,34 @@ def unit_tests():
     assert yds_upload_mean(10.5, 0.80, 1.41, 0.75) is None
     assert round(yds_median(4.56, 0.75, 69.5), 1) == 60.0
     assert abs(fit_shape([(4.56, 69.5, 60.0), (1.41, 22.0, 11.5)]) - 0.75) < 0.02
+    # template matching: exact, moved team (unique name), ambiguous, missing
+    t = pd.DataFrame(dict(name=["Keenan Allen", "Mike Williams", "Mike Williams", "Trebor Peña", " Deshaun Fenwick"],
+                          team=["SF", "LAC", "NYJ", "JAX", "NE"], position=["WR", "WR", "WR", "WR", "RB"]))
+    tkeys = pd.Series([f"{match_key(n)}|{tm}|{p}" for n, tm, p in zip(t.name, t.team, t.position)]).to_frame("k").groupby("k").indices
+    tnames = t.groupby([t.name.map(match_key), t.position]).indices
+    assert find_rows("Keenan Allen", "SF", "WR", tkeys, tnames)[1] == ""
+    assert find_rows("Keenan Allen", "IND", "WR", tkeys, tnames)[1] == "team_differs"
+    assert list(find_rows("Keenan Allen", "IND", "WR", tkeys, tnames)[0]) == [0]
+    assert find_rows("Mike Williams", "PIT", "WR", tkeys, tnames) == (None, "team_mismatch")
+    assert find_rows("Mike Williams", "NYJ", "WR", tkeys, tnames)[1] == ""
+    assert find_rows("Trebor Pena", "JAX", "WR", tkeys, tnames)[1] == ""          # accents fold
+    assert find_rows("Deshaun Fenwick", "NE", "RB", tkeys, tnames)[1] == ""       # stray leading space
+    assert find_rows("Keenan Allen", "SF", "TE", tkeys, tnames) == (None, "unmatched")
+    # newest download wins, whatever the browser named it
+    assert pick_newest(["projections-nfl_13.csv", "projections-nfl (14).csv", "projections-nfl (2).csv"]) == "projections-nfl (14).csv"
+    assert TEMPLATE_DROP.match("projections-nfl (14).csv") and TEMPLATE_DROP.match("Projections-NFL_13.csv")
+    assert not TEMPLATE_DROP.match("projections-nba.csv")
+    # a filled file is refused as a template, a blank one passes
+    d = tempfile.mkdtemp()
+    hdr = "id,name,first_name,last_name,position,team,receptions,receiving_yards\n"
+    open(os.path.join(d, "blank.csv"), "w").write(hdr + "1,A B,A,B,WR,SF,,\n")
+    open(os.path.join(d, "filled.csv"), "w").write(hdr + "1,A B,A,B,WR,SF,4.1,50.2\n")
+    assert template_problem(os.path.join(d, "blank.csv")) == ""
+    assert "already hold numbers" in template_problem(os.path.join(d, "filled.csv"))
+    shutil.rmtree(d, ignore_errors=True)
+    # a blank display name reads back as NaN and must fall back to the grid key
+    Row = pd.DataFrame(dict(name=["marvinharrisonjr"], display_name=[np.nan])).itertuples().__next__()
+    assert grid_name(Row, {}) == "marvinharrisonjr"
     return True
 
 
@@ -99,6 +140,96 @@ def match_key(s):
     return re.sub(r"(jr|sr|iii|ii|iv)$", "", k) if len(k) > 6 else k
 
 
+def find_rows(nm, team, pos, tkeys, tnames):
+    """Template rows for one grid player: (row indices or None, note). Exact name + team +
+    position first (note ''). Failing that, the same name and position on exactly one other
+    team is the same player listed under another club, so his Unabated id is still right and he
+    gets filled (note 'team_differs'). Two or more other teams is ambiguous ('team_mismatch',
+    unfilled); no such name at that position is 'unmatched'."""
+    idx = tkeys.get(f"{match_key(nm)}|{team}|{pos}")
+    if idx is not None:
+        return idx, ""
+    other = tnames.get((match_key(nm), pos))
+    if other is None:
+        return None, "unmatched"
+    if len(other) == 1:
+        return other, "team_differs"
+    return None, "team_mismatch"
+
+
+# --- template ------------------------------------------------------------------------------
+
+def template_problem(path):
+    """Why a file can't be the upload template, or '' when it can."""
+    try:
+        t = pd.read_csv(path, dtype=str, keep_default_na=False)
+    except Exception as ex:
+        return f"not a readable CSV ({type(ex).__name__})"
+    miss = [c for c in TEMPLATE_NEED if c not in t.columns]
+    if miss:
+        return f"no {miss} column(s), so it is not Unabated's NFL projections template"
+    if not len(t):
+        return "no player rows"
+    if t.id.duplicated().any():
+        return "the same player id appears twice"
+    proj = list(t.columns[list(t.columns).index("team") + 1:])
+    n = int((t[proj].apply(lambda s: s.str.strip()) != "").sum().sum())
+    if n:
+        return (f"{n} projection cell(s) already hold numbers; this looks like a filled upload, not the blank "
+                "template from Unabated's download button")
+    return ""
+
+
+def pick_newest(files):
+    """Of several downloads, the highest copy number: projections-nfl (14).csv beats _13."""
+    num = lambda f: max([int(x) for x in re.findall(r"\d+", f)] or [-1])
+    return sorted(files, key=lambda f: (num(f), f))[-1]
+
+
+def promote_template():
+    """A download uploaded to templates/ under any projections-nfl*.csv name replaces
+    templates/projections-nfl.csv, so nobody has to rename it. The workflow commits the swap.
+    Returns the promoted file name, or ''. A file that isn't a blank template stops the export."""
+    if not os.path.isdir(TEMPLATE_DIR):
+        return ""
+    drops = [f for f in os.listdir(TEMPLATE_DIR) if TEMPLATE_DROP.match(f) and f != os.path.basename(TEMPLATE)]
+    if not drops:
+        return ""
+    newest = pick_newest(drops)
+    problem = template_problem(os.path.join(TEMPLATE_DIR, newest))
+    if problem:
+        fail(f"templates/{newest} was not swapped in: {problem}")
+    for f in drops:
+        if f != newest:
+            os.remove(os.path.join(TEMPLATE_DIR, f))
+    shutil.move(os.path.join(TEMPLATE_DIR, newest), TEMPLATE)
+    print(f"template: {newest} -> templates/projections-nfl.csv")
+    return newest
+
+
+def roster_check(grid, t, tkeys, tnames, team_map, alias, positions):
+    """Active receivers in the grid that the template doesn't list on the same team. More than a
+    couple means the download is out of date. Returns ['Name (TEAM, template OTHER)', ...]."""
+    out = []
+    for r in grid.itertuples():
+        if str(r.pos) not in positions or str(r.inj) in OUT_TAGS or str(r.status_applied).lower() in ("true", "1"):
+            continue
+        nm = grid_name(r, alias)
+        _, note = find_rows(nm, team_map.get(r.team, r.team), r.pos, tkeys, tnames)
+        if note:
+            other = tnames.get((match_key(nm), r.pos))
+            where = "/".join(sorted({t.team.iloc[i] for i in other})) if other is not None else "missing"
+            out.append(f"{nm} ({r.team}, template {where})")
+    return out
+
+
+def grid_name(r, alias):
+    """The grid's display name when it has one (a blank reads back as NaN), else its key."""
+    disp = getattr(r, "display_name", "")
+    nm = disp.strip() if isinstance(disp, str) and disp.strip() else str(r.name)
+    return alias.get(nm, nm)
+
+
 # --- export ------------------------------------------------------------------------------
 
 def load_cfg():
@@ -108,10 +239,10 @@ def load_cfg():
     return cfg
 
 
-def post(line):
+def post(lines):
     try:
         import notify
-        notify.send("Unabated export", [line], None, getattr(notify, "GREY", None))
+        notify.send("Unabated export", [lines] if isinstance(lines, str) else list(lines), None, getattr(notify, "GREY", None))
     except Exception:
         pass
 
@@ -144,15 +275,21 @@ def main():
     grid_ts = pd.to_datetime(grid.ts.iloc[0], utc=True)
     if (now - grid_ts) > pd.Timedelta(hours=20):
         fail(f"grid is from {grid_ts.isoformat()}, not this run")
+    promoted = promote_template()
     if not os.path.exists(TEMPLATE):
         fail("templates/projections-nfl.csv missing: download it from Unabated's Upload Projections button and commit it")
+    problem = template_problem(TEMPLATE)
+    if problem:
+        fail(f"templates/projections-nfl.csv: {problem}")
     raw = open(TEMPLATE, "rb").read()
     t = pd.read_csv(TEMPLATE, dtype=str, keep_default_na=False)
     # lossless read/write proof
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
     t.to_csv(tmp, index=False, lineterminator="\n", encoding="utf-8")
     if open(tmp, "rb").read() != raw:
-        fail("template round trip is not byte-identical; the writer would alter cells outside receptions/receiving_yards", keep_previous=True)
+        fail("template round trip is not byte-identical, so the writer would alter cells outside receptions/receiving_yards. "
+             "Usually the template was opened and saved in Excel after download; upload it straight from the downloads folder",
+             keep_previous=True)
     t["_key"] = [f"{match_key(n)}|{tm}|{p}" for n, tm, p in zip(t.name, t.team, t.position)]
     tkeys = t.groupby("_key").indices
     tnames = t.groupby([t.name.map(match_key), t.position]).indices
@@ -161,16 +298,17 @@ def main():
     bad_team = sorted({team_map.get(x, x) for x in grid.team.unique()} - template_teams)
     if bad_team:
         fail(f"grid team code(s) not in the template: {bad_team}; add to team_map in unabated_config.json")
+    stale = roster_check(grid, t, tkeys, tnames, team_map, alias, cfg["positions"])
     rows, filled = [], {}
     for r in grid.itertuples():
         rec = dict(name=r.name, team=r.team, pos=r.pos, kickoff_utc=r.kickoff_utc, inj=r.inj, play_prob=r.play_prob,
                    rec_line=r.rec_line, yds_line=r.yds_line, model_rec_p_over=r.rec_p_over, model_yds_p_over=r.yds_p_over,
-                   grid_mean_rec=r.mean_rec, grid_mean_yds=r.mean_yds, template_id="", upload_rec="", upload_yds="",
-                   rebuilt_rec_p_over="", rebuilt_yds_p_over="", err_rec="", err_yds="", status="")
+                   grid_mean_rec=r.mean_rec, grid_mean_yds=r.mean_yds, template_id="", template_team="", upload_rec="",
+                   upload_yds="", rebuilt_rec_p_over="", rebuilt_yds_p_over="", err_rec="", err_yds="", status="")
         status = ""
         if str(r.pos) not in cfg["positions"]:
             status = "skipped_position"
-        elif str(r.inj) in ("Out", "Doubtful", "IR", "PUP", "Suspended") or bool(r.status_applied):
+        elif str(r.inj) in OUT_TAGS or bool(r.status_applied):
             status = "skipped_out"
         elif not (bool(r.anchored) and bool(r.rec_anchored)):
             status = "skipped_unanchored"
@@ -201,16 +339,14 @@ def main():
             rec["err_yds"] = round(abs(rec["rebuilt_yds_p_over"] - p_yds) * 100, 3)
         # template match
         tteam = team_map.get(r.team, r.team)
-        disp = str(getattr(r, "display_name", "") or "")
-        nm = alias.get(disp or r.name, disp or r.name)
-        key = f"{match_key(nm)}|{tteam}|{r.pos}"
-        idx = tkeys.get(key)
+        idx, note = find_rows(grid_name(r, alias), tteam, r.pos, tkeys, tnames)
         if idx is None:
-            other = tnames.get((match_key(nm), r.pos))
-            rec["status"] = "team_mismatch" if other is not None else "unmatched"
+            rec["status"] = note
             rows.append(rec); continue
+        if note == "team_differs":
+            rec["template_team"] = t.team.iloc[idx[0]]
         if rec["status"] not in ("solver_fail", "low_volume_yds_blank"):
-            rec["status"] = "filled" if len(idx) == 1 else "duplicate_filled"
+            rec["status"] = "filled_team_differs" if note else ("filled" if len(idx) == 1 else "duplicate_filled")
         rec["template_id"] = ";".join(str(t.id.iloc[i]) for i in idx)
         for i in idx:
             filled[i] = (str(catches), "" if yards is None else str(yards))
@@ -230,7 +366,7 @@ def main():
     diff_cols = [c for c in chk.columns if not (chk[c] == t[c]).all()]
     if set(diff_cols) - {"receptions", "receiving_yards"}:
         fail(f"structure check: cells changed outside receptions/receiving_yards: {diff_cols}")
-    exported = log[log.status.isin(["filled", "duplicate_filled", "low_volume_yds_blank"])]
+    exported = log[log.status.isin(EXPORTED)]
     max_err_rec = float(pd.to_numeric(exported.err_rec, errors="coerce").max()) if len(exported) else 0.0
     max_err_yds = float(pd.to_numeric(exported.err_yds, errors="coerce").max()) if len(exported) else 0.0
     if max(max_err_rec, max_err_yds) > cfg["roundtrip_tol_pts"]:
@@ -256,24 +392,30 @@ def main():
     # move into place
     shutil.move(tmp_up, os.path.join(OUT, "projections-nfl.csv"))
     log.to_csv(os.path.join(OUT, "export_log.csv"), index=False)
-    n_elig = int(len(log[~log.status.str.startswith("skipped")]))
-    unmatched = int(counts.get("unmatched", 0))
+    unmatched = int(counts.get("unmatched", 0) + counts.get("team_mismatch", 0))
     meta = dict(grid_build_ts=str(grid.ts.iloc[0]), export_ts=now.strftime("%Y-%m-%dT%H:%M:%SZ"), counts=counts,
                 max_roundtrip_err_pts=dict(receptions=round(max_err_rec, 3), receiving_yards=round(max_err_yds, 3)),
                 board_check=board_ok, board_max_diff_pts=round(board_max, 3), shapes=shapes, n_exported=int(len(exported)),
-                template_stale_warning=bool(n_elig and unmatched / n_elig > cfg["stale_template_pct"] / 100))
+                template_rows=int(len(t)), template_sha256=hashlib.sha256(raw).hexdigest()[:16], template_promoted=promoted,
+                template_roster_mismatches=stale, template_stale_warning=bool(stale))
     json.dump(meta, open(os.path.join(OUT, "export_meta.json"), "w"), indent=1)
-    for st in ("unmatched", "team_mismatch", "duplicate_filled", "solver_fail", "low_volume_yds_blank"):
+    for st in ("unmatched", "team_mismatch", "filled_team_differs", "duplicate_filled", "solver_fail", "low_volume_yds_blank"):
         rows_ = log[log.status == st]
         if len(rows_):
             print(f"WARNING {st}: " + ", ".join(f"{r.name} ({r.team} {r.pos})" for r in rows_.itertuples()))
-    if meta["template_stale_warning"]:
-        print("WARNING: unmatched players exceed 5% of eligible; the template is probably stale, download a fresh one from Unabated")
+    if stale:
+        print(f"WARNING template: {len(stale)} active receiver(s) not on the same team in the template: " + "; ".join(stale))
     line = (f"export: {len(exported)} players -> logs/unabated/projections-nfl.csv | counts {counts} | "
             f"max round-trip err rec {max_err_rec:.2f} yds {max_err_yds:.2f} pts | board check {board_ok}, max diff {board_max:.2f}")
     print(line)
-    post(f"logs/unabated/projections-nfl.csv: {len(exported)} players exported, {unmatched} unmatched, "
-         f"max round-trip error {max(max_err_rec, max_err_yds):.2f} pts")
+    msg = [f"logs/unabated/projections-nfl.csv: {len(exported)} players exported, {unmatched} unmatched, "
+           f"max round-trip error {max(max_err_rec, max_err_yds):.2f} pts"]
+    if promoted:
+        msg.append(f"new Unabated template in use: {promoted} ({len(t)} players)")
+    if stale:
+        msg.append(f"template out of date? {len(stale)} receiver(s) not on the same team in it: " + "; ".join(stale[:8])
+                   + ("; ..." if len(stale) > 8 else "") + ". Download a fresh template from Unabated and upload it to the templates folder.")
+    post(msg)
     return meta
 
 
