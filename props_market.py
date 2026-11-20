@@ -51,8 +51,12 @@ def norm_name(s):
 
 
 def american(dec):
+    """American odds for a decimal price. A 100% model probability (the under for a player ruled
+    out, whose ladders are zeros, or on a line past the ladder's top rung) means a price of 1.0,
+    which has no finite American number and crashed the Nov 12 and Nov 15 runs with a
+    ZeroDivisionError. Anything above 99.9% prints as -100000."""
     dec = float(dec)
-    return f"+{round((dec - 1) * 100):d}" if dec >= 2.0 else f"{round(-100 / (dec - 1)):d}"
+    return f"+{round((dec - 1) * 100):d}" if dec >= 2.0 else f"{round(-100 / max(dec - 1, 0.001)):d}"
 
 
 def name_map(roster):
