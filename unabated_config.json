@@ -8,6 +8,8 @@
  "team_map": {
   "LA": "LAR"
  },
- "alias": {},
+ "alias": {
+  "Bam Knight": "Zonovan Knight"
+ },
  "min_catches_for_yards": 1.5
 }

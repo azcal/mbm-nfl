@@ -12,6 +12,12 @@ Unabated's fair price at the posted line equals the model's price at that line:
             configured per-catch Gamma shape (config unabated_yds_shape, per position)
 Uploading a median or a market line prices wrong; the grid means stay in the export log.
 
+Rushing and passing (UNTESTED, added Nov 20, 2026): props_rushpass.py writes bottom-up means to
+logs/rushpass_grid.csv and they go in as plain means, with no line solving and no market input:
+rushing_yards, passing_yards (starting QB), passing_and_rushing_yards (QB) and
+rushing_and_receiving_yards (everyone else). A missing or stale file leaves those columns blank
+and never stops the receiving export. Their own log is export_log_rushpass.csv.
+
 Inputs: logs/props_grid.csv (published, anchored), templates/projections-nfl.csv (Unabated's
 template, read fresh, never edited), logs/props_board.csv (cross-check).
 Outputs: logs/unabated/projections-nfl.csv, export_log.csv, export_meta.json. Written to temp
@@ -47,6 +53,10 @@ DEFAULT_CFG = {"unabated_yds_shape": {"WR": 0.75, "TE": 0.75, "RB": 0.75}, "team
 SUFFIX = re.compile(r"\b(jr|sr|ii|iii|iv|v)\b")
 OUT_TAGS = ("Out", "Doubtful", "IR", "PUP", "Suspended")
 EXPORTED = ["filled", "duplicate_filled", "filled_team_differs", "low_volume_yds_blank"]
+# UNTESTED rushing/passing means from props_rushpass.py, uploaded as plain means (Nov 20, 2026)
+RUSHPASS_COLS = ["rushing_yards", "passing_yards", "rushing_and_receiving_yards", "passing_and_rushing_yards"]
+FILL_COLS = ["receptions", "receiving_yards"] + RUSHPASS_COLS
+RUSH_RANGE, PASS_RANGE = (0.5, 200.0), (50.0, 450.0)
 
 
 # --- conversion math (reference code from the spec, unchanged) --------------------------
@@ -116,6 +126,28 @@ def unit_tests():
     assert template_problem(os.path.join(d, "blank.csv")) == ""
     assert "already hold numbers" in template_problem(os.path.join(d, "filled.csv"))
     shutil.rmtree(d, ignore_errors=True)
+    # rushing/passing cells: QB gets pass, rush and pass+rush; RB gets rush and rush+rec (the
+    # receiving part from the receiving grid when he is in it); a started game and a stale file fill nothing
+    global LOGS
+    keep, LOGS = LOGS, tempfile.mkdtemp()
+    try:
+        now = dt.datetime(2026, 11, 22, 12, tzinfo=dt.timezone.utc)
+        rp = pd.DataFrame(dict(name=["Keenan Allen", "Trebor Pena", "Mike Williams"], team=["SF", "JAX", "LAC"], pos=["WR", "WR", "WR"],
+                               gsis_id=["a", "b", "c"], inj=["", "", ""], starter=[True, False, False],
+                               kickoff_utc=["2026-11-22T18:00:00+00:00", "2026-11-22T18:00:00+00:00", "2026-11-22T10:00:00+00:00"],
+                               game_status=["scheduled", "scheduled", "scheduled"], mean_rush_yds=[20.04, 12.0, 30.0],
+                               mean_pass_yds=[250.0, np.nan, np.nan], rec_yds_simple=[0.0, 7.0, 0.0], ts=["2026-11-22T11:00:00Z"] * 3))
+        rp.to_csv(os.path.join(LOGS, "rushpass_grid.csv"), index=False)
+        g = pd.DataFrame(dict(pid=["b"], mean_yds=[40.0]))
+        t2 = t.assign(id=["1", "2", "3", "4", "5"])
+        ex, lg, _ = rushpass_fills(g, t2, tkeys, tnames, {}, now)
+        assert ex[0] == {"rushing_yards": "20.0", "passing_yards": "250.0", "passing_and_rushing_yards": "270.0"}, ex
+        assert ex[3] == {"rushing_yards": "12.0", "rushing_and_receiving_yards": "52.0"}, ex
+        assert 1 not in ex and 2 not in ex and set(lg.status) == {"filled", "skipped_started"}
+        ex, _, note = rushpass_fills(g, t2, tkeys, tnames, {}, now + dt.timedelta(days=2))
+        assert ex == {} and "left blank" in note
+    finally:
+        shutil.rmtree(LOGS, ignore_errors=True); LOGS = keep
     # a blank display name reads back as NaN and must fall back to the grid key
     Row = pd.DataFrame(dict(name=["marvinharrisonjr"], display_name=[np.nan])).itertuples().__next__()
     assert grid_name(Row, {}) == "marvinharrisonjr"
@@ -223,6 +255,65 @@ def roster_check(grid, t, tkeys, tnames, team_map, alias, positions):
     return out
 
 
+def rushpass_fills(grid, t, tkeys, tnames, team_map, now, alias=None):
+    """Template cells for the UNTESTED rushing and passing means in logs/rushpass_grid.csv:
+    rushing_yards for every projected ballcarrier, passing_yards and passing_and_rushing_yards
+    for each starting QB, rushing_and_receiving_yards for everyone else (receiving part from the
+    published receiving grid when the player is in it, else the rush/pass grid's own decayed
+    receiving yards per game). Plain means, no solving: Unabated simulates around them.
+    Never stops the receiving export: a missing or stale file leaves these columns blank.
+    Returns ({template row: {column: text}}, log frame, one-line note)."""
+    p = os.path.join(LOGS, "rushpass_grid.csv")
+    if not os.path.exists(p):
+        return {}, pd.DataFrame(), "rushing/passing: no logs/rushpass_grid.csv, columns left blank"
+    rp = pd.read_csv(p, low_memory=False)
+    if not len(rp) or "ts" not in rp.columns or (now - pd.to_datetime(rp.ts.iloc[0], utc=True)) > pd.Timedelta(hours=20):
+        return {}, pd.DataFrame(), "rushing/passing: logs/rushpass_grid.csv is empty or not from this run, columns left blank"
+    rec_mean = dict(zip(grid.pid, grid.mean_yds)) if {"pid", "mean_yds"} <= set(grid.columns) else {}
+    alias = alias or {}
+    out, rows = {}, []
+    for r in rp.itertuples():
+        starter = str(r.starter).lower() in ("true", "1")
+        rec = dict(name=r.name, team=r.team, pos=r.pos, starter=starter, kickoff_utc=r.kickoff_utc, template_id="", status="",
+                   **{c: "" for c in RUSHPASS_COLS})
+        if str(r.inj) in OUT_TAGS:
+            rec["status"] = "skipped_out"
+        elif pd.to_datetime(r.kickoff_utc, utc=True) <= now or str(r.game_status) in ("in_progress", "final"):
+            rec["status"] = "skipped_started"
+        else:
+            idx, note = find_rows(alias.get(r.name, r.name), team_map.get(r.team, r.team), "RB" if r.pos == "FB" else r.pos, tkeys, tnames)
+            if idx is None:
+                rec["status"] = note
+            else:
+                rush = float(r.mean_rush_yds) if pd.notna(r.mean_rush_yds) else 0.0
+                vals = {}
+                if RUSH_RANGE[0] <= rush <= RUSH_RANGE[1]:
+                    vals["rushing_yards"] = round(rush, 1)
+                if starter:
+                    pas = float(r.mean_pass_yds) if pd.notna(r.mean_pass_yds) else 0.0
+                    if PASS_RANGE[0] <= pas <= PASS_RANGE[1]:
+                        vals["passing_yards"] = round(pas, 1)
+                        vals["passing_and_rushing_yards"] = round(pas + max(rush, 0.0), 1)
+                elif "rushing_yards" in vals:
+                    ry = rec_mean.get(r.gsis_id, r.rec_yds_simple)
+                    ry = float(ry) if pd.notna(ry) else 0.0
+                    vals["rushing_and_receiving_yards"] = round(rush + max(ry, 0.0), 1)
+                if not vals:
+                    rec["status"] = "out_of_range"
+                else:
+                    for i in idx:
+                        out.setdefault(i, {}).update({c: str(v) for c, v in vals.items()})
+                    rec.update({c: v for c, v in vals.items()}, template_id=";".join(str(t.id.iloc[i]) for i in idx),
+                               status="filled_team_differs" if note else "filled")
+        rows.append(rec)
+    log = pd.DataFrame(rows)
+    got = log[log.status.astype(str).str.startswith("filled")] if len(log) else log
+    n = {c: int((got[c].astype(str) != "").sum()) for c in RUSHPASS_COLS} if len(got) else {c: 0 for c in RUSHPASS_COLS}
+    note = (f"rushing/passing (UNTESTED model means): {n['rushing_yards']} rushing, {n['passing_yards']} passing, "
+            f"{n['rushing_and_receiving_yards']} rush+rec, {n['passing_and_rushing_yards']} pass+rush")
+    return out, log, note
+
+
 def grid_name(r, alias):
     """The grid's display name when it has one (a blank reads back as NaN), else its key."""
     disp = getattr(r, "display_name", "")
@@ -251,7 +342,7 @@ def fail(msg, keep_previous=False):
     print(f"EXPORT FAILED: {msg}")
     post(f"FAILED: {msg}")
     if not keep_previous:
-        for f in ("projections-nfl.csv", "export_log.csv", "export_meta.json"):
+        for f in ("projections-nfl.csv", "export_log.csv", "export_log_rushpass.csv", "export_meta.json"):
             p = os.path.join(OUT, f)
             if os.path.exists(p):
                 os.remove(p)
@@ -287,7 +378,7 @@ def main():
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
     t.to_csv(tmp, index=False, lineterminator="\n", encoding="utf-8")
     if open(tmp, "rb").read() != raw:
-        fail("template round trip is not byte-identical, so the writer would alter cells outside receptions/receiving_yards. "
+        fail("template round trip is not byte-identical, so the writer would alter cells outside the projection columns. "
              "Usually the template was opened and saved in Excel after download; upload it straight from the downloads folder",
              keep_previous=True)
     t["_key"] = [f"{match_key(n)}|{tm}|{p}" for n, tm, p in zip(t.name, t.team, t.position)]
@@ -353,10 +444,14 @@ def main():
         rows.append(rec)
     log = pd.DataFrame(rows)
     counts = log.status.value_counts().to_dict()
+    extra, rp_log, rp_note = rushpass_fills(grid, t, tkeys, tnames, team_map, now, alias)
     # write the upload
     out = t.drop(columns=["_key"]).copy()
     for i, (c, y) in filled.items():
         out.at[i, "receptions"] = c; out.at[i, "receiving_yards"] = y
+    for i, vals in extra.items():
+        for c, v in vals.items():
+            out.at[i, c] = v
     tmp_up = tempfile.NamedTemporaryFile(delete=False, suffix=".csv").name
     out.to_csv(tmp_up, index=False, lineterminator="\n", encoding="utf-8")
     # checks
@@ -364,8 +459,8 @@ def main():
     if list(chk.columns) != list(t.drop(columns=["_key"]).columns) or len(chk) != len(t) or list(chk.id) != list(t.id):
         fail("structure check: header, row count or id order differs from the template")
     diff_cols = [c for c in chk.columns if not (chk[c] == t[c]).all()]
-    if set(diff_cols) - {"receptions", "receiving_yards"}:
-        fail(f"structure check: cells changed outside receptions/receiving_yards: {diff_cols}")
+    if set(diff_cols) - set(FILL_COLS):
+        fail(f"structure check: cells changed outside {FILL_COLS}: {diff_cols}")
     exported = log[log.status.isin(EXPORTED)]
     max_err_rec = float(pd.to_numeric(exported.err_rec, errors="coerce").max()) if len(exported) else 0.0
     max_err_yds = float(pd.to_numeric(exported.err_yds, errors="coerce").max()) if len(exported) else 0.0
@@ -392,12 +487,14 @@ def main():
     # move into place
     shutil.move(tmp_up, os.path.join(OUT, "projections-nfl.csv"))
     log.to_csv(os.path.join(OUT, "export_log.csv"), index=False)
+    rp_log.to_csv(os.path.join(OUT, "export_log_rushpass.csv"), index=False)
     unmatched = int(counts.get("unmatched", 0) + counts.get("team_mismatch", 0))
     meta = dict(grid_build_ts=str(grid.ts.iloc[0]), export_ts=now.strftime("%Y-%m-%dT%H:%M:%SZ"), counts=counts,
                 max_roundtrip_err_pts=dict(receptions=round(max_err_rec, 3), receiving_yards=round(max_err_yds, 3)),
                 board_check=board_ok, board_max_diff_pts=round(board_max, 3), shapes=shapes, n_exported=int(len(exported)),
                 template_rows=int(len(t)), template_sha256=hashlib.sha256(raw).hexdigest()[:16], template_promoted=promoted,
-                template_roster_mismatches=stale, template_stale_warning=bool(stale))
+                template_roster_mismatches=stale, template_stale_warning=bool(stale),
+                rushpass=dict(note=rp_note, untested=True, counts=rp_log.status.value_counts().to_dict() if len(rp_log) else {}))
     json.dump(meta, open(os.path.join(OUT, "export_meta.json"), "w"), indent=1)
     for st in ("unmatched", "team_mismatch", "filled_team_differs", "duplicate_filled", "solver_fail", "low_volume_yds_blank"):
         rows_ = log[log.status == st]
@@ -408,8 +505,13 @@ def main():
     line = (f"export: {len(exported)} players -> logs/unabated/projections-nfl.csv | counts {counts} | "
             f"max round-trip err rec {max_err_rec:.2f} yds {max_err_yds:.2f} pts | board check {board_ok}, max diff {board_max:.2f}")
     print(line)
+    print(rp_note)
+    if len(rp_log):
+        miss = rp_log[rp_log.status.isin(["unmatched", "team_mismatch", "out_of_range"])]
+        if len(miss):
+            print("WARNING rushing/passing not filled: " + ", ".join(f"{r.name} ({r.team} {r.pos}, {r.status})" for r in miss.itertuples()))
     msg = [f"logs/unabated/projections-nfl.csv: {len(exported)} players exported, {unmatched} unmatched, "
-           f"max round-trip error {max(max_err_rec, max_err_yds):.2f} pts"]
+           f"max round-trip error {max(max_err_rec, max_err_yds):.2f} pts", rp_note]
     if promoted:
         msg.append(f"new Unabated template in use: {promoted} ({len(t)} players)")
     if stale:

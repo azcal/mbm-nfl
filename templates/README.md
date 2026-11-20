@@ -1,8 +1,10 @@
 # Unabated template
 
 `projections-nfl.csv` is Unabated's blank NFL projections template. `props_unabated.py` fills
-the `receptions` and `receiving_yards` cells and writes the upload to
-`logs/unabated/projections-nfl.csv`. Every other byte stays as Unabated wrote it.
+the `receptions` and `receiving_yards` cells, plus the untested `rushing_yards`,
+`passing_yards`, `rushing_and_receiving_yards` and `passing_and_rushing_yards` means from
+`props_rushpass.py`, and writes the upload to `logs/unabated/projections-nfl.csv`. Every other
+byte stays as Unabated wrote it.
 
 Unabated's player list changes every week (trades, signings, cuts), so refresh this file about
 once a week, ideally before the Saturday-night run:

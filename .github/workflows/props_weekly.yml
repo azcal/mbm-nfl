@@ -40,6 +40,14 @@ jobs:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           PROPS_ALTS: "0"        # "1" adds the alternate markets: doubles the credits per game
           PROPS_WINDOW_H: ${{ github.event.schedule == '0 6 * * 4' && '48' || '' }}   # Thursday run: games in the next 48h only
+      # UNTESTED rushing and passing means for the Unabated file (added Nov 20, 2026). A failure
+      # here only leaves those columns blank; the receiving grid, board and export carry on.
+      - name: rushing and passing means (untested)
+        if: github.event.schedule != '15 15 * * 2'
+        continue-on-error: true
+        run: python props_rushpass.py
+        env:
+          PROPS_WINDOW_H: ${{ github.event.schedule == '0 6 * * 4' && '48' || '' }}
       - name: commit grid and board
         run: |
           git config user.name "mbm-nfl"
