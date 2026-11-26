@@ -1,16 +1,13 @@
 {
- "grid_build_ts": "2026-11-22T13:30:31Z",
- "export_ts": "2026-11-22T13:32:15Z",
+ "grid_build_ts": "2026-11-26T20:07:11Z",
+ "export_ts": "2026-11-26T20:08:15Z",
  "counts": {
-  "filled": 102,
-  "skipped_out": 11,
-  "skipped_unanchored": 10,
-  "skipped_started": 9,
-  "low_volume_yds_blank": 6
+  "skipped_unanchored": 157,
+  "skipped_out": 8
  },
  "max_roundtrip_err_pts": {
-  "receptions": 0.17,
-  "receiving_yards": 0.13
+  "receptions": 0.0,
+  "receiving_yards": 0.0
  },
  "board_check": "0 rows compared",
  "board_max_diff_pts": 0.0,
@@ -19,18 +16,18 @@
   "TE": 1.65,
   "RB": 1.65
  },
- "n_exported": 108,
+ "n_exported": 0,
  "template_rows": 1778,
  "template_sha256": "420c2d956cdc337b",
  "template_promoted": "",
  "template_roster_mismatches": [],
  "template_stale_warning": false,
  "rushpass": {
-  "note": "rushing/passing (UNTESTED model means): 81 rushing, 24 passing, 57 rush+rec, 24 pass+rush",
+  "note": "rushing/passing (UNTESTED model means): 96 rushing, 28 passing, 68 rush+rec, 28 pass+rush",
   "untested": true,
   "counts": {
-   "filled": 81,
-   "skipped_started": 7
+   "filled": 96,
+   "skipped_started": 15
   }
  }
 }
