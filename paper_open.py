@@ -28,7 +28,14 @@ WEEKDAY = int(os.environ.get("PAPER_WEEKDAY", "0"))          # 0 = Monday (NCAAF
 LABEL = os.environ.get("PAPER_LABEL", "NCAAF paper: Monday-line rule")
 VALIDATED = os.environ.get("PAPER_VALIDATED", "1") == "1"    # NFL threshold is provisional, not backtested
 BAR_HIT, BAR_N = 0.55, 100
-TODAY = dt.date.today()
+# Mountain time, not the runner's UTC clock. A Monday-evening run is already Tuesday in UTC,
+# and the rule only counts rows snapped on its own weekday, so late runs logged every game
+# with trigger=0 (NCAAF weeks 11 to 13 and NFL week 12, found in the 2026-11-26 audit).
+try:
+    from zoneinfo import ZoneInfo
+    TODAY = dt.datetime.now(ZoneInfo("America/Edmonton")).date()
+except Exception:
+    TODAY = dt.date.today()
 COLS = ["snap_date", "date", "week", "season", "game_id", "away", "home", "pick_team", "pick_side",
         "pick_line", "pick_prob", "pick_claim", "book_line", "book_count", "trigger",
         "result", "pnl", "graded"]
@@ -44,6 +51,13 @@ def load_out():
 def snapshot(log, out):
     if "date" not in log.columns and "gameday" in log.columns:
         log = log.rename(columns={"gameday": "date"})
+    # The NFL runner logs the market as mkt_line / mkt_books (home handicap, books at that
+    # number). This ledger's columns are book_line / book_count, so without the mapping
+    # every row was written with a blank book line.
+    if "book_line" not in log.columns and "mkt_line" in log.columns:
+        log["book_line"] = log["mkt_line"]
+    if "book_count" not in log.columns and "mkt_books" in log.columns:
+        log["book_count"] = log["mkt_books"]
     for c in ("week", "season", "book_line", "book_count"):
         if c not in log.columns:
             log[c] = ""
