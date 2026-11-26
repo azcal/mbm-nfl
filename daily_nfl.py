@@ -1239,6 +1239,20 @@ def run(today_str):
                           rows.home.values, rows.away.values, _prev, _mkt),
             index=board.index))
         board["model_total"] = totals
+        # Inputs for sim_nfl.py (paper-only joint sim): the exact winner probability, margin
+        # distribution and total this board publishes, so the sim cannot drift from the board.
+        try:
+            _si = [dict(game_id=str(_g), date=str(_d), week=int(_w), season=int(_s), home=str(_h), away=str(_a),
+                        p_home=float(_p), sp_margin=float(_m), model_total=float(_t),
+                        Ph=[round(float(x), 6) for x in _ph], Pa=[round(float(x), 6) for x in _pa])
+                   for _g, _d, _w, _s, _h, _a, _p, _m, _t, _ph, _pa in zip(
+                       board.game_id, board.date, board.week, board.season, board.home, board.away,
+                       sp_ph, sp_exp, totals, sp_Ph, sp_Pa)]
+            with open(os.path.join(LOGS, "sim_inputs.json"), "w") as _fh:
+                json.dump({"ts": pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%dT%H:%M:%SZ"),
+                           "spread_version": spread.VERSION, "games": _si}, _fh)
+        except Exception as _ex:
+            print("sim inputs skipped:", type(_ex).__name__, _ex)
         _mm, _mp = mode_margin(sp_ph, sp_Ph, sp_Pa)
         board["mode_margin"] = _mm
         board["mode_p"] = _mp

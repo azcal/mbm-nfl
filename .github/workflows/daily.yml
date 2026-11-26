@@ -81,6 +81,13 @@ jobs:
           # falling back to model lines on every game while the credit counter stayed at 0.
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
 
+      # Paper-only joint sim (sim_nfl.py). Reads logs/sim_inputs.json, which the step above
+      # writes for every boarded game, and writes logs/sim_totals.csv. No Discord post from
+      # here; the props workflow posts it. A failure here never blocks the board.
+      - name: joint sim (paper)
+        continue-on-error: true
+        run: python sim_nfl.py --test && python sim_nfl.py
+
       # Mirror picks.csv into a separate public repo. Push from here rather than pull from
       # there: no schedule to keep in sync, and the file lands the moment it is generated.
       #
