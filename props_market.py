@@ -334,7 +334,8 @@ def build_board(s, grid, cons, out_dir, season, week, meta_extra):
 
 def empty_board(out_dir, season, week, reason, meta_extra):
     pd.DataFrame(columns=["player", "market", "line", "side", "book"]).to_csv(os.path.join(out_dir, "props_board.csv"), index=False)
-    json.dump(dict(build_ts=dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), anchored=False, reason=reason, **meta_extra), open(os.path.join(out_dir, "board_meta.json"), "w"), indent=1)
+    json.dump({**meta_extra, "build_ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "anchored": False, "reason": reason},
+              open(os.path.join(out_dir, "board_meta.json"), "w"), indent=1)
     open(os.path.join(out_dir, "props_board.md"), "w").write(f"# NFL receiving props board, {season} week {week}\n\nno board: {reason}\n")
 
 
