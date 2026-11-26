@@ -100,6 +100,9 @@ EARLY_DENSE_DAYS = SPEC.get("early_dense_days", 7)
 
 # Which cron fired, set by the workflow. "manual" for workflow_dispatch, which always runs.
 SLOT = os.environ.get("MBM_SLOT", "manual")
+# See the note where market rows are built. Default False: cover probabilities against the
+# market line are logged but not published.
+PUBLISH_MARKET_COVER = bool(SPEC.get("publish_market_cover", False))
 
 # ESPN, because nflverse injuries_2026.parquet 404s until the regular season and the QB
 # layer has therefore been applying no injury filter at all. Probed 2026-08-19: 800 entries
@@ -1429,6 +1432,29 @@ def run(today_str):
                     ctx += " \u00b7 weak consensus"
             else:
                 ctx = "no market line, model line shown"
+            # What the channel is shown for a market row (2026-11-26 model audit). The row
+            # used to print the pick at the market number with a cover probability, e.g.
+            # "DET -3.5 covers 61.8%". Graded live across this board and NCAAF those claims
+            # averaged 59.2% and hit 47.4% on 779 picks, which scores worse than a coin
+            # (log loss 0.746 against 0.693), and replacing them with 50% week by week would
+            # have improved log loss by 0.045. The model's own line and its win probability
+            # are the calibrated outputs (claimed 64.8%, hit 65.0% on winners), so that is
+            # what the row carries now, with the market number as context.
+            # predictions.csv, picks.csv and the paper ledgers still log the raw market
+            # pick, so the rule stays under measurement. "publish_market_cover": true in
+            # spec.json restores the old row.
+            if r.pick_rule == "market" and not PUBLISH_MARKET_COVER \
+                    and isinstance(r.median_team, str) and r.median_line == r.median_line:
+                _pw = float(r.p_home) if r.median_team == r.home else 1 - float(r.p_home)
+                ctx = (f"market {disp(r.home)} {BF.handicap(r.mkt_line)} "
+                       f"({int(r.mkt_books)} of {int(r.mkt_books_total)} books)")
+                if r.mkt_agree < 0.5:
+                    ctx += " \u00b7 weak consensus"
+                bd.append((str(r.date)[:10],
+                           f"{disp(r.away)} @ {disp(r.home)} ({pd.Timestamp(r.date).strftime('%a')})",
+                           f"{disp(r.median_team)} {BF.handicap(r.median_line)}",
+                           r.game_id, _pw, incal, int(r.week), ctx, "win"))
+                continue
             # Weekday on every matchup and a header per game day, the same layout the NBA
             # and NHL boards use, so a Thursday game cannot be read as a Sunday one.
             bd.append((str(r.date)[:10],
