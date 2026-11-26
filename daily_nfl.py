@@ -23,6 +23,7 @@ import board_format as BF
 import notify
 import spread
 import engine_nfl as E
+import freshness as FR
 
 # Shared files must be at least this new. A minimum rather than an exact match, so a later
 # improvement to a shared file does not force an edit here.
@@ -99,6 +100,9 @@ EARLY_DENSE_DAYS = SPEC.get("early_dense_days", 7)
 
 # Which cron fired, set by the workflow. "manual" for workflow_dispatch, which always runs.
 SLOT = os.environ.get("MBM_SLOT", "manual")
+# See the note where market rows are built. Default False: cover probabilities against the
+# market line are logged but not published.
+PUBLISH_MARKET_COVER = bool(SPEC.get("publish_market_cover", False))
 
 # ESPN, because nflverse injuries_2026.parquet 404s until the regular season and the QB
 # layer has therefore been applying no injury filter at all. Probed 2026-08-19: 800 entries
@@ -294,6 +298,93 @@ def market_spreads():
         return {}
 
 
+MKT_CACHE = os.path.join(LOGS, "market_cache.json")
+MKT_CACHE_MAX_H = 14
+
+
+def _local_now():
+    try:
+        from zoneinfo import ZoneInfo
+        return dt.datetime.now(ZoneInfo("America/Edmonton"))
+    except Exception:
+        return dt.datetime.utcnow()
+
+
+def market_for_run():
+    """market_spreads(), bought once a day instead of on every run.
+
+    Each call costs three Odds API credits, and at two runs a day that was about 180 of the
+    month's 500 from this repo alone. With mbm-data and the props sheet on the same key the
+    allowance ran out in the last week of September, October and November, and the board
+    lost its market line for weeks 3, 7 and 12. So: the morning run and manual runs buy the
+    market and save it; the afternoon run reuses that morning's copy if it is under
+    14 hours old. NFL lines rarely move between 9am and 4pm on anything but a QB change,
+    and a QB change still reprices the model side of the row.
+
+    Falls back to a fresh pull whenever there is no usable copy, so a failed morning does
+    not leave the afternoon board without a market.
+    """
+    now = _local_now()
+    if SLOT == "pm" and os.path.exists(MKT_CACHE):
+        try:
+            c = json.load(open(MKT_CACHE))
+            age_h = (now - dt.datetime.fromisoformat(c["ts"])).total_seconds() / 3600
+            if 0 <= age_h <= MKT_CACHE_MAX_H and c.get("lines"):
+                out = {tuple(k.split("|")): tuple(v) for k, v in c["lines"].items()}
+                print(f"market: {len(out)} game(s) from this morning's pull "
+                      f"({age_h:.1f}h old), no credits spent")
+                return out
+        except Exception as ex:
+            print("market cache unreadable, pulling fresh:", type(ex).__name__)
+    out = market_spreads()
+    if out:
+        try:
+            os.makedirs(LOGS, exist_ok=True)
+            json.dump({"ts": now.isoformat(timespec="seconds"),
+                       "lines": {"|".join(k): list(v) for k, v in out.items()}},
+                      open(MKT_CACHE, "w"), indent=1)
+        except Exception as ex:
+            print("market cache not written:", type(ex).__name__)
+    return out
+
+
+def freshness_gate(g, today):
+    """Stop the run if ESPN has finished games that the nflverse history lacks.
+
+    Through yesterday only. A Sunday afternoon run always trails the early window by a few
+    minutes, and that is not staleness, so games completed today never count. What this
+    catches is the real failure: games.csv silently not refreshing, which would price the
+    week on ratings that are a week old. A failed run leaves no slot marker, so the hourly
+    tick retries it and the board goes out as soon as the history catches up.
+    MBM_ALLOW_STALE=1 boards anyway.
+    """
+    done = g[g.result.notna()]
+    if not len(done):
+        print("MBM-CHECK WARN freshness | NFL: no completed games in history, nothing to compare")
+        return
+    newest = pd.to_datetime(done.gameday).max().date()
+    until = (pd.Timestamp(today) - pd.Timedelta(days=1)).date()
+    try:
+        res = FR.missed_games("football/nfl", newest, until=until)
+        miss, last = res[0], res[1]
+    except Exception as ex:
+        print(f"MBM-CHECK WARN freshness | NFL: ESPN probe failed ({type(ex).__name__}), "
+              f"boarding unverified on history through {newest}")
+        return
+    if not miss:
+        print(f"MBM-CHECK OK freshness | NFL: history through {newest}, nothing completed "
+              f"before today is missing")
+        return
+    msg = (f"NFL: STALE. History stops {newest} and ESPN has "
+           f"{'at least ' if miss < 0 else ''}{abs(miss)} completed game(s) through {last} "
+           f"that it lacks")
+    print(f"MBM-CHECK FAIL freshness | {msg}")
+    if FR.override():
+        print("NFL: MBM_ALLOW_STALE set, boarding anyway")
+        return
+    raise SystemExit("NFL: refusing to board on stale data")
+
+
 # --- key-number context ---------------------------------------------------------------
 # Not the pick. Every row logs the model's probability at each of these, so a reader gets
 # the whole key-number picture without the board having snapped its pick onto one of them.
@@ -345,9 +436,20 @@ def min_odds(p):
 def fetch_games():
     r = requests.get("https://github.com/nflverse/nfldata/raw/master/data/games.csv",
                      headers=H, timeout=120)
-    g = pd.read_csv(io.StringIO(r.text))
-    open(os.path.join(HERE, "data", "games.csv"), "w").write(r.text)
-    return g
+    path = os.path.join(HERE, "data", "games.csv")
+    # Only a real games file replaces the stored one. This used to write whatever came back,
+    # so an error page or a rate-limit message would overwrite the history and the run would
+    # die on a missing column with the good copy already gone. Now a bad response is
+    # reported, the stored copy is used, and freshness_gate decides whether that copy is
+    # recent enough to board on.
+    if r.status_code == 200 and r.text.lstrip().startswith("game_id,"):
+        g = pd.read_csv(io.StringIO(r.text))
+        if {"season", "gameday", "result", "home_team", "away_team"} <= set(g.columns) and len(g) > 1000:
+            open(path, "w").write(r.text)
+            return g
+    print(f"MBM-CHECK WARN source | NFL: games.csv download unusable (HTTP {r.status_code}, "
+          f"{len(r.text)} bytes), using the stored copy")
+    return pd.read_csv(path)
 
 def refresh_current_pbp(season):
     cols = ["game_id","season","week","posteam","defteam","epa","pass","rush",
@@ -1003,6 +1105,9 @@ def run(today_str):
         print(f"early window open: boarding through {pd.Timestamp(EARLY_UNTIL):%Y-%m-%d} "
               f"({len(upcoming)} game(s)); reverts to a {HORIZON_DAYS}-day horizon by itself")
 
+    print(f"MBM-CHECK BEGIN NFL {today_str}")
+    freshness_gate(g, today)
+
     exp = expected_starters(season)
     last_starter = {}
     for r in g[g.result.notna()].sort_values("date").itertuples():
@@ -1115,7 +1220,7 @@ def run(today_str):
         # dog-band row that is the opposite of which side the FAVOURITE sits on, so feeding
         # it into the side decision inverts every held dog row. median_team is always the
         # favourite regardless of which rule published the row.
-        _mkt = market_spreads()
+        _mkt = market_for_run()
         try:
             write_alt_grid(board, sp_Ph, sp_Pa, _mkt)
         except Exception as _ex:
@@ -1327,14 +1432,55 @@ def run(today_str):
                     ctx += " \u00b7 weak consensus"
             else:
                 ctx = "no market line, model line shown"
-            bd.append((str(r.date)[:10], f"{disp(r.away)} @ {disp(r.home)}",
+            # What the channel is shown for a market row (2026-11-26 model audit). The row
+            # used to print the pick at the market number with a cover probability, e.g.
+            # "DET -3.5 covers 61.8%". Graded live across this board and NCAAF those claims
+            # averaged 59.2% and hit 47.4% on 779 picks, which scores worse than a coin
+            # (log loss 0.746 against 0.693), and replacing them with 50% week by week would
+            # have improved log loss by 0.045. The model's own line and its win probability
+            # are the calibrated outputs (claimed 64.8%, hit 65.0% on winners), so that is
+            # what the row carries now, with the market number as context.
+            # predictions.csv, picks.csv and the paper ledgers still log the raw market
+            # pick, so the rule stays under measurement. "publish_market_cover": true in
+            # spec.json restores the old row.
+            if r.pick_rule == "market" and not PUBLISH_MARKET_COVER \
+                    and isinstance(r.median_team, str) and r.median_line == r.median_line:
+                _pw = float(r.p_home) if r.median_team == r.home else 1 - float(r.p_home)
+                ctx = (f"market {disp(r.home)} {BF.handicap(r.mkt_line)} "
+                       f"({int(r.mkt_books)} of {int(r.mkt_books_total)} books)")
+                if r.mkt_agree < 0.5:
+                    ctx += " \u00b7 weak consensus"
+                bd.append((str(r.date)[:10],
+                           f"{disp(r.away)} @ {disp(r.home)} ({pd.Timestamp(r.date).strftime('%a')})",
+                           f"{disp(r.median_team)} {BF.handicap(r.median_line)}",
+                           r.game_id, _pw, incal, int(r.week), ctx, "win"))
+                continue
+            # Weekday on every matchup and a header per game day, the same layout the NBA
+            # and NHL boards use, so a Thursday game cannot be read as a Sunday one.
+            bd.append((str(r.date)[:10],
+                       f"{disp(r.away)} @ {disp(r.home)} ({pd.Timestamp(r.date).strftime('%a')})",
                        f"{disp(r.pick_team)} {BF.handicap(r.pick_line)}",
                        r.game_id, float(r.pick_prob), incal, int(r.week), ctx,
                        "cover" if r.pick_claim == "covers" else "win"))
         if bd:
+            # Day order. sorted() is stable, so games keep their slate order within a day.
+            bd = sorted(bd, key=lambda x: x[0])
             wg = max([len(x[1]) for x in bd] + [10])
             wp = max([len(x[2]) for x in bd] + [8])
+
+            def _day_tag(d_):
+                dd = pd.Timestamp(d_); rel = (dd.normalize() - today.normalize()).days
+                when = "Today" if rel <= 0 else ("Tomorrow" if rel == 1 else dd.strftime("%A"))
+                return when, dd.strftime("%a %b %-d")
+            _last_day = None
             for d_, gm, pk, gid, ph_i, incal, wk, ctx, verb in bd:
+                if d_ != _last_day:
+                    when, nice = _day_tag(d_); n_day = sum(1 for x in bd if x[0] == d_)
+                    # notify.HEADER renders this as a bold line. match and min_odds are
+                    # None so the delta gate never reports a header as a repriced game.
+                    push[f"day:{d_}"] = {"line": f"{d_}  {when}, {nice}: {n_day} game{'s' if n_day != 1 else ''}",
+                                         "min_odds": None, "match": None}
+                    _last_day = d_
                 # A forecast row, not a board row. BF.line's trailer is "find <price> or
                 # better", which is an instruction to bet, and at the median line the cover
                 # is 50% by construction so any price there is either meaningless or a lie.
@@ -1400,7 +1546,9 @@ def run(today_str):
                              if mode == "delta" and lines else "")
         # GREY is the calibration colour. Only when every row is inside the window, so a
         # week straddling the unlock reads as a live board with some rows marked.
-        colour = notify.GREY if push and cal_n == len(push) else notify.GREEN
+        # Count game rows only: the day headers live in push too and are never calibration rows.
+        _n_games = sum(1 for k in push if not str(k).startswith("day:"))
+        colour = notify.GREY if _n_games and cal_n == _n_games else notify.GREEN
         if alerts:
             body = body + ["", "TRIPWIRE: " + ", ".join(alerts)
                            + " below base rate, stop betting this board"]
