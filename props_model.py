@@ -144,7 +144,8 @@ def load_roster(season, live=True):
     return ro
 
 
-def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=False, upcoming=None, live=False, vol_mult=None, roster=None, script=None, inj_status=None):
+def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=False, upcoming=None, live=False, vol_mult=None, roster=None, script=None, inj_status=None,
+        replay=None):
     """script: {(season, week, team): expected margin for that team} from the sides model;
     trailing teams throw more. inj_status: {(season, week, gsis_id): 'Questionable'|'Doubtful'|'Out'}."""
     """upcoming: DataFrame(season, week, team, opponent_team) for a slate that has not been
@@ -191,6 +192,7 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
             prior_of = {}; prior_src = {}
             if "disp_of" not in dir():
                 disp_of = {}
+            ro = None
             if roster is not None and stop_at is not None and (int(season), int(week)) == stop_at:
                 # upcoming slate: the current roster decides who is on the team. Players with no
                 # history (rookies, first-timers) get the position prior; players who moved
@@ -198,6 +200,12 @@ def run(seasons, kappa=30.0, alpha=1.6, H=4.0, min_proj_targets=3.0, verbose=Fal
                 wk_avail = roster[roster.week <= week]
                 ro = wk_avail[wk_avail.week == wk_avail.week.max()] if len(wk_avail) else roster[roster.week == roster.week.min()]
                 ro = ro[ro.team == team]
+            elif replay is not None and (int(season), int(week), team) in replay:
+                # backtest only: {(season, week, team): roster rows as they stood before that
+                # week}, so past weeks are projected through the same roster path the live
+                # run uses instead of the history-only path below.
+                ro = replay[(int(season), int(week), team)]
+            if ro is not None:
                 cands = []; removed = []
                 for rr in ro.itertuples():
                     pid = rr.gsis_id
