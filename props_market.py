@@ -101,6 +101,14 @@ def snapshot(season, week, games, key, bookmakers, markets=MARKETS_DEFAULT, out_
     inv = {v: k for k, v in TEAMS.items()}
     want = {(inv.get(h), inv.get(a)) for h, a in zip(games.home_team, games.away_team)}
     evs = [e for e in r.json() if (e.get("home_team"), e.get("away_team")) in want]
+    # Pregame prices only. Once a game has kicked off the feed returns LIVE lines, which have
+    # seen part of the result: they cost credits, they anchor the grid to an in-game number,
+    # and they poison any later test against "the line". 16% of the quotes archived through
+    # week 11 of 2026 were live (44% in week 8) before this filter.
+    started = [e for e in evs if pd.to_datetime(e.get("commence_time"), utc=True) <= pd.Timestamp(now)]
+    if started:
+        print(f"odds: skipping {len(started)} game(s) already under way")
+    evs = [e for e in evs if e not in started]
     print(f"odds: {len(evs)} of {len(want)} games found on the feed; pulling {','.join(markets)} ({len(markets) * math.ceil(len(bookmakers.split(',')) / 10)} credits per game)")
     n = 0; rem = None
     with open(path, "w", newline="") as f:
