@@ -149,6 +149,8 @@ def main(backfill=False):
     new = pd.DataFrame(columns=COLS)
     if all(os.path.exists(p) for p in paths):
         raw, grid, board = (pd.read_csv(p, low_memory=False) for p in paths)
+        if "market_line" not in grid.columns or grid.market_line.notna().sum() == 0:
+            print("raw-gap ledger: this run has no pregame lines (no price pull), so there is nothing to flag")
         team_ts = {}
         try:
             import props_market as PM

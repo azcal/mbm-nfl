@@ -134,6 +134,12 @@ def snapshot(season, week, games, key, bookmakers, markets=MARKETS_DEFAULT, out_
                             continue
                         w.writerow([now.isoformat(timespec="seconds"), d["id"], d["commence_time"], d["home_team"], d["away_team"], bk["key"], bk.get("last_update", ""),
                                     mk["key"], o.get("name"), o.get("description", ""), o.get("point", ""), float(o["price"]), american(o["price"])]); n += 1
+    if n == 0:
+        # Quota gone or nothing priced. An empty file must not become the week's "latest
+        # snapshot": it crashed the build on 2026-11-26 and would hide any earlier good pull.
+        os.remove(path)
+        print("odds: 0 rows pulled, no snapshot written; the grid publishes raw (no lines, no anchor, no board)")
+        return None
     print(f"odds: {n} rows -> {os.path.relpath(path, HERE)}; {rem} credits left")
     return path
 
@@ -141,7 +147,12 @@ def snapshot(season, week, games, key, bookmakers, markets=MARKETS_DEFAULT, out_
 def latest_snapshot(season, week, out_dir=None):
     out_dir = out_dir or os.path.join(HERE, "data", "odds")
     files = sorted(glob.glob(os.path.join(out_dir, f"props_{season}_w{week}_*.csv")))
-    return files[-1] if files else None
+    for f in reversed(files):               # newest file that actually holds a price row
+        with open(f) as fh:
+            fh.readline()
+            if fh.readline().strip():
+                return f
+    return None
 
 
 def load_snapshot(path, roster, season, week, out_dir=None):

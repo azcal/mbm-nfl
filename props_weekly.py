@@ -244,7 +244,8 @@ def main():
     if odds_path and roster is not None:
         snap, un = PM.load_snapshot(odds_path, roster, season, week)
         cons = PM.consensus(snap)
-        odds_ts = str(pd.read_csv(odds_path, nrows=1).snap_ts.iloc[0]) if os.path.getsize(odds_path) > 50 else ""
+        _first = pd.read_csv(odds_path, nrows=1)
+        odds_ts = str(_first.snap_ts.iloc[0]) if len(_first) else ""
         pub = PM.anchor_grid(raw, cons, spec); pub["odds_ts"] = odds_ts
         vol = PM.team_volume_report(raw, pub)
         print("team target volume, raw vs anchored (flag = outside 22..40):"); print(vol[vol.flag != ""].to_string() if (vol.flag != "").any() else "  all teams inside 22..40")

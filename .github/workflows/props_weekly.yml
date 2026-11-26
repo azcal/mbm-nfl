@@ -58,6 +58,8 @@ jobs:
         run: python tests/test_props_names.py
       - name: odds conversion test
         run: python tests/test_props_odds.py
+      - name: empty price file test
+        run: python tests/test_props_empty_snapshot.py
       - name: project this week (Sunday)
         if: needs.gate.outputs.name != 'validate'
         run: python props_weekly.py
