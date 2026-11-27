@@ -72,15 +72,31 @@ def window(hourly, kickoff_utc):
                 snow_cm=round(float(col("snowfall").sum()), 1), temp_c=round(float(col("temperature_2m").mean()), 1))
 
 
-def fetch(lat, lon, kickoff_utc):
-    import requests
-    k = pd.Timestamp(kickoff_utc); k = k.tz_localize("UTC") if k.tzinfo is None else k.tz_convert("UTC")
-    r = requests.get(API, timeout=30, params=dict(
-        latitude=lat, longitude=lon, timezone="UTC", wind_speed_unit="mph",
-        hourly="temperature_2m,precipitation_probability,precipitation,snowfall,wind_speed_10m,wind_gusts_10m",
-        start_date=k.strftime("%Y-%m-%d"), end_date=(k + pd.Timedelta(days=1)).strftime("%Y-%m-%d")))
-    r.raise_for_status()
-    return window(r.json()["hourly"], k)
+def fetch_many(points, start, end, tries=5):
+    """Hourly blocks for several (lat, lon) points in ONE request, in the order given.
+    The free feed answers 429 or 503 when it is busy, so the call is retried with a longer
+    wait each time; one request for the whole week keeps it well inside the feed's limits."""
+    import requests, time
+    params = dict(latitude=",".join(f"{p[0]:.4f}" for p in points), longitude=",".join(f"{p[1]:.4f}" for p in points),
+                  timezone="UTC", wind_speed_unit="mph", start_date=start, end_date=end,
+                  hourly="temperature_2m,precipitation_probability,precipitation,snowfall,wind_speed_10m,wind_gusts_10m")
+    last = None
+    for i in range(tries):
+        try:
+            r = requests.get(API, params=params, timeout=30)
+            if r.status_code == 200:
+                d = r.json()
+                d = d if isinstance(d, list) else [d]
+                if len(d) == len(points):
+                    return [x["hourly"] for x in d]
+                last = f"{len(d)} answers for {len(points)} points"
+            else:
+                last = f"HTTP {r.status_code}"
+        except Exception as ex:
+            last = type(ex).__name__
+        if i < tries - 1:
+            time.sleep(15 * (i + 1))
+    raise RuntimeError(f"forecast feed failed after {tries} tries ({last})")
 
 
 def roofs(season, week):
@@ -90,8 +106,8 @@ def roofs(season, week):
     return {GAMES_ALIAS.get(h, h): (str(r).lower(), str(l)) for h, r, l in zip(g.home_team, g.roof, g.location)}
 
 
-def game_tag(home, kickoff_utc, roof_info=None, fetcher=fetch):
-    """One game's tag: dict(status, reason, detail). status is poor, ok, indoors, neutral or unknown."""
+def site(home, roof_info):
+    """None if the game needs a forecast, else the tag that settles it without one."""
     roof, loc = roof_info if roof_info else ("outdoors", "Home")
     if loc != "Home":
         return dict(status="neutral", reason="", detail="neutral site, weather not checked")
@@ -99,10 +115,10 @@ def game_tag(home, kickoff_utc, roof_info=None, fetcher=fetch):
         return dict(status="indoors", reason="", detail="retractable roof" if home in RETRACTABLE and roof not in ("dome", "closed") else roof)
     if home not in STADIUMS:
         return dict(status="unknown", reason="", detail="no stadium on file")
-    try:
-        w = fetcher(*STADIUMS[home], kickoff_utc)
-    except Exception as ex:
-        return dict(status="unknown", reason="", detail=f"forecast unavailable ({type(ex).__name__})")
+    return None
+
+
+def tag_from(w):
     if w is None:
         return dict(status="unknown", reason="", detail="kickoff is outside the forecast range")
     poor, why = is_poor(w)
@@ -110,17 +126,33 @@ def game_tag(home, kickoff_utc, roof_info=None, fetcher=fetch):
     return dict(status="poor" if poor else "ok", reason=why, detail=detail)
 
 
-def week_tags(raw):
-    """{team: tag dict} for every team in a props grid frame (columns team, opp, home_away, kickoff_utc, season, week)."""
-    out = {}
+def week_tags(raw, fetcher=fetch_many, roof_map=None):
+    """{team: tag dict} for every team in a props grid frame (columns team, opp, home_away,
+    kickoff_utc, season, week). status is poor, ok, indoors, neutral or unknown. If the feed
+    cannot be reached every outdoor game is "unknown" and nothing is excluded."""
+    out, need = {}, []
     if not len(raw):
         return out
-    rf = roofs(int(raw.season.iloc[0]), int(raw.week.iloc[0]))
+    rf = roof_map if roof_map is not None else roofs(int(raw.season.iloc[0]), int(raw.week.iloc[0]))
+    games = {}
     for (team, opp, ha, kick), _ in raw.groupby(["team", "opp", "home_away", "kickoff_utc"]):
-        home = team if ha == "home" else opp
-        if home not in out:
-            out[home] = game_tag(home, kick, rf.get(home))
-        out[team] = out[home]; out[opp] = out[home]
+        home, away = (team, opp) if ha == "home" else (opp, team)
+        games[home] = (away, kick)
+    for home, (away, kick) in games.items():
+        t = site(home, rf.get(home))
+        if t is None:
+            need.append(home)
+        out[home] = out[away] = t
+    if need:
+        ks = [pd.Timestamp(games[h][1]) for h in need]
+        ks = [k.tz_localize("UTC") if k.tzinfo is None else k.tz_convert("UTC") for k in ks]
+        try:
+            blocks = fetcher([STADIUMS[h] for h in need], min(ks).strftime("%Y-%m-%d"), (max(ks) + pd.Timedelta(days=1)).strftime("%Y-%m-%d"))
+            for h, k, blk in zip(need, ks, blocks):
+                out[h] = out[games[h][0]] = tag_from(window(blk, k))
+        except Exception as ex:
+            for h in need:
+                out[h] = out[games[h][0]] = dict(status="unknown", reason="", detail=f"forecast unavailable ({ex})")
     return out
 
 
@@ -133,16 +165,26 @@ def unit_tests():
     assert window(hourly, "2026-12-05T18:00:00+00:00") is None
     assert is_poor(dict(wind_mph=15.0, precip_pct=0, snow_cm=0))[0] and not is_poor(dict(wind_mph=14.9, precip_pct=59, snow_cm=0))[0]
     assert is_poor(dict(wind_mph=3, precip_pct=60, snow_cm=0))[0] and is_poor(dict(wind_mph=3, precip_pct=10, snow_cm=0.2))[0]
-    calm = lambda la, lo, k: dict(wind_mph=5.0, gust_mph=9.0, precip_pct=10.0, precip_mm=0.0, snow_cm=0.0, temp_c=12.0)
-    windy = lambda la, lo, k: dict(wind_mph=19.0, gust_mph=33.0, precip_pct=10.0, precip_mm=0.0, snow_cm=0.0, temp_c=2.0)
-    def down(la, lo, k): raise RuntimeError("feed down")
-    assert game_tag("CLE", "2026-11-30T01:20:00+00:00", ("outdoors", "Home"), windy)["status"] == "poor"
-    assert game_tag("CLE", "2026-11-30T01:20:00+00:00", ("outdoors", "Home"), calm)["status"] == "ok"
-    assert game_tag("MIN", "2026-11-29T18:00:00+00:00", ("dome", "Home"), windy)["status"] == "indoors"
-    assert game_tag("HOU", "2026-11-29T18:00:00+00:00", ("open", "Home"), windy)["status"] == "indoors"    # a roof that opens counts as indoors
+    hrs = [f"2026-11-{d}T{h:02d}:00" for d in (29, 30) for h in range(24)]
+    blk = lambda wind, gust, pp: dict(time=hrs, temperature_2m=[5] * 48, precipitation_probability=[pp] * 48, precipitation=[0] * 48,
+                                      snowfall=[0] * 48, wind_speed_10m=[wind] * 48, wind_gusts_10m=[gust] * 48)
+    raw = pd.DataFrame(dict(season=2026, week=12, team=["CLE", "LV", "MIA", "NYJ", "MIN", "ATL", "HOU", "BAL", "JAX", "TEN"],
+                            opp=["LV", "CLE", "NYJ", "MIA", "ATL", "MIN", "BAL", "HOU", "TEN", "JAX"], home_away=["home", "away"] * 5,
+                            kickoff_utc=["2026-11-30T01:20:00+00:00"] * 2 + ["2026-11-29T18:00:00+00:00"] * 8))
+    rm = {"CLE": ("outdoors", "Home"), "MIA": ("outdoors", "Home"), "MIN": ("dome", "Home"), "HOU": ("nan", "Home"), "JAX": ("outdoors", "Neutral")}
+    seen = {}
+    def fake(points, start, end):
+        seen["n"] = len(points); seen["dates"] = (start, end)
+        return [blk(19, 33, 10) if abs(p[0] - 41.5061) < 1e-6 else blk(5, 9, 10) for p in points]
+    t = week_tags(raw, fetcher=fake, roof_map=rm)
+    assert seen["n"] == 2 and seen["dates"] == ("2026-11-29", "2026-12-01"), seen          # one request, outdoor games only
+    assert t["CLE"]["status"] == "poor" and t["LV"]["status"] == "poor" and t["MIA"]["status"] == "ok" and t["NYJ"]["status"] == "ok"
+    assert t["MIN"]["status"] == "indoors" and t["HOU"]["status"] == "indoors" and t["BAL"]["detail"] == "retractable roof"   # a roof that opens counts as indoors
+    assert t["JAX"]["status"] == "neutral" and t["TEN"]["status"] == "neutral"
+    def down(points, start, end): raise RuntimeError("feed down")
+    d = week_tags(raw, fetcher=down, roof_map=rm)
+    assert d["CLE"]["status"] == "unknown" and d["MIN"]["status"] == "indoors"                # a dead feed excludes nothing
     assert is_poor(dict(wind_mph=14.0, gust_mph=35.0, precip_pct=40, snow_cm=0)) == (True, "gusts 35 mph")
-    assert game_tag("JAX", "2026-10-18T13:30:00+00:00", ("outdoors", "Neutral"), windy)["status"] == "neutral"
-    assert game_tag("CLE", "2026-11-30T01:20:00+00:00", ("outdoors", "Home"), down)["status"] == "unknown"   # a dead feed excludes nothing
     assert set(STADIUMS) >= {"LA", "LAC", "LV", "JAX", "WAS", "GB", "NO", "NE", "SF", "TB", "KC"} and len(STADIUMS) == 32
     print("props_weather unit tests passed")
 

@@ -68,15 +68,6 @@ jobs:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           PROPS_ALTS: "0"        # "1" adds the alternate markets: doubles the credits per game
           PROPS_WINDOW_H: ${{ needs.gate.outputs.name == 'thu' && '48' || '' }}   # Thursday run: games in the next 48h only
-      # Paper ledger for the raw-gap rule (props_raw_ledger.py): flags players whose raw median is
-      # 30%+ from the pregame line, grades finished games, posts one grey embed. Runs on every
-      # slot so Tuesday grades the weekend. A failure here never blocks the grid or the export.
-      - name: raw-gap paper ledger
-        continue-on-error: true
-        run: python props_weather.py --test && python props_raw_ledger.py --test && python props_raw_ledger.py
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          RAW_LEDGER_POST: "1"
       # UNTESTED rushing and passing means for the Unabated file (added Nov 20, 2026). A failure
       # here only leaves those columns blank; the receiving grid, board and export carry on.
       - name: rushing and passing means (untested)
@@ -85,6 +76,16 @@ jobs:
         run: python props_rushpass.py
         env:
           PROPS_WINDOW_H: ${{ needs.gate.outputs.name == 'thu' && '48' || '' }}
+      # Paper ledger for the raw-model rules (props_raw_ledger.py): receiving yards and receptions.
+      # Flags, grades finished games, posts one grey embed. Runs on every slot so Tuesday grades
+      # the weekend, and after props_rushpass.py because it reads that step's expected starters
+      # for the backup-QB check. A failure here never blocks the grid or the export.
+      - name: raw-gap paper ledger
+        continue-on-error: true
+        run: python props_weather.py --test && python props_raw_ledger.py --test && python props_raw_ledger.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          RAW_LEDGER_POST: "1"
       - name: commit grid and board
         run: |
           git config user.name "mbm-nfl"
