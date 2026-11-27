@@ -73,7 +73,7 @@ jobs:
       # slot so Tuesday grades the weekend. A failure here never blocks the grid or the export.
       - name: raw-gap paper ledger
         continue-on-error: true
-        run: python props_raw_ledger.py --test && python props_raw_ledger.py
+        run: python props_weather.py --test && python props_raw_ledger.py --test && python props_raw_ledger.py
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           RAW_LEDGER_POST: "1"
