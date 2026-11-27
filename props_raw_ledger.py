@@ -14,6 +14,11 @@ THE RULE (written 2026-11-26, before any row below was graded)
   If a later run prices the same player before kickoff, that later look replaces the earlier one.
   A player with no stat line in a finished game is void, as a book would void it.
 
+WEATHER EXCLUSION (added 2026-11-26, a judgment rule; see props_weather.py)
+  An OVER in a game tagged poor weather (outdoors with 15+ mph wind, 30+ mph gusts, a 60%+
+  chance of precipitation, or snow) is logged with a reason in the `excluded` column. Excluded
+  rows are graded and reported on their own and do not count toward the bar. Unders stand.
+
 THE BAR
   150 graded rule-tier flags from live runs: hit rate 56% or better AND positive ROI at the
   best price. Short of either, the rule is retired. Rows marked source=backfill do not count.
@@ -38,7 +43,7 @@ RULE_GAP, WATCH_GAP = 0.30, 0.15
 BAR_N, BAR_HIT = 150, 0.56
 STALE_H = 36.0          # a line older than this at flag time is marked stale: re-check it before acting
 COLS = ["flag_ts", "source", "season", "week", "pid", "player", "pos", "team", "opp", "kickoff_utc", "inj", "tier", "side", "line",
-        "raw_median", "gap", "best_price", "best_book", "n_books", "odds_ts", "line_age_h", "actual", "result", "pnl", "graded"]
+        "raw_median", "gap", "best_price", "best_book", "n_books", "odds_ts", "line_age_h", "actual", "result", "pnl", "graded", "weather", "excluded"]
 
 
 def dec(american):
@@ -46,7 +51,7 @@ def dec(american):
     return 1 + a / 100 if a > 0 else 1 + 100 / -a
 
 
-def build_flags(raw, grid, board, now, backfill=False, team_ts=None):
+def build_flags(raw, grid, board, now, backfill=False, team_ts=None, tags=None):
     """Rows to flag from one run's files. now is a UTC Timestamp. team_ts: {team: time that team's
     game was last priced}; the grid's own odds_ts is the first row of a merged file, so on a week
     with a Thursday pull it reports Thursday for every game."""
@@ -82,7 +87,9 @@ def build_flags(raw, grid, board, now, backfill=False, team_ts=None):
                          inj=x.inj if isinstance(x.inj, str) else "", tier="rule" if x.gap >= RULE_GAP else "watch", side=side,
                          line=float(x.market_line), raw_median=round(float(x.med_yds), 1), gap=round(float(x.gap), 3),
                          best_price=round(float(best.price), 3), best_book=best.book, n_books=int(q.book.nunique()), odds_ts=x.odds_ts,
-                         line_age_h=round(age, 1), actual=np.nan, result="", pnl=np.nan, graded=""))
+                         line_age_h=round(age, 1), actual=np.nan, result="", pnl=np.nan, graded="",
+                         weather=(tags or {}).get(x.team, {}).get("detail", ""),
+                         excluded=("weather: " + tags[x.team]["reason"]) if side == "Over" and (tags or {}).get(x.team, {}).get("status") == "poor" else ""))
     return pd.DataFrame(rows, columns=COLS)
 
 
@@ -113,8 +120,9 @@ def grade(led, stats, now):
     return led, n
 
 
-def record(led, tier, source="live"):
-    d = led[(led.tier == tier) & (led.source == source) & led.result.isin(["win", "loss"])]
+def record(led, tier, source="live", excluded=False):
+    ex = led.excluded.fillna("").astype(str) != "" if "excluded" in led.columns else pd.Series(False, index=led.index)
+    d = led[(led.tier == tier) & (led.source == source) & led.result.isin(["win", "loss"]) & (ex == excluded)]
     w = int((d.result == "win").sum()); l = int((d.result == "loss").sum())
     return w, l, float(d.pnl.sum()) if len(d) else 0.0
 
@@ -126,6 +134,9 @@ def post_lines(new, led, now):
         n2 = new.copy(); n2["local"] = pd.to_datetime(n2.kickoff_utc, utc=True).dt.tz_convert("America/Edmonton")
         today = now.tz_convert("America/Edmonton").normalize()
         n2 = n2[(n2.local >= today) & (n2.local < today + pd.Timedelta(days=2))]
+        n2 = n2.assign(_ex=n2.excluded.fillna("").astype(str) != "")
+        n_ex = int((n2._ex & (n2.tier == "rule")).sum())
+        n2 = n2[~n2._ex]
         rule = n2[n2.tier == "rule"].sort_values(["local", "gap"], ascending=[True, False])
         for day, g in rule.groupby(rule.local.dt.strftime("%a %b %-d"), sort=False):
             lines.append(day)
@@ -134,17 +145,24 @@ def post_lines(new, led, now):
                 q = f" ({x.inj})" if x.inj else ""
                 lines.append(f"  {x.player}{q} ({x.team} vs {x.opp}) {x.side.upper()} {x.line:g} rec yds | model {x.raw_median:g} | best {x.best_price:.2f} {x.best_book}{stale}")
             lines.append("")
-        lines.append(f"new this run: {int((n2.tier == 'rule').sum())} rule flags, {int((n2.tier == 'watch').sum())} watch (15-30%, in the ledger only)")
+        lines.append(f"new this run: {int((n2.tier == 'rule').sum())} rule flags, {int((n2.tier == 'watch').sum())} watch (15-30%, in the ledger only)"
+                     + (f", {n_ex} over(s) left out for poor weather" if n_ex else ""))
     for tier in ("rule", "watch"):
         w, l, u = record(led, tier)
         if w + l:
             lines.append(f"{tier} tier, live: {w}-{l} ({w / (w + l):.1%}), {u:+.1f}u" + (f"  [bar: {BAR_N} flags at {BAR_HIT:.0%}+ and profit]" if tier == "rule" else ""))
+    w, l, u = record(led, "rule", excluded=True)
+    if w + l:
+        lines.append(f"weather-excluded overs, graded for reference: {w}-{l}, {u:+.1f}u")
     return lines
 
 
 def main(backfill=False):
     now = pd.Timestamp.now(tz="UTC")
     led = pd.read_csv(LEDGER) if os.path.exists(LEDGER) else pd.DataFrame(columns=COLS)
+    for c in COLS:
+        if c not in led.columns:
+            led[c] = ""                      # ledgers written before a column existed
     paths = [os.path.join(LOGS, f) for f in ("props_grid_raw.csv", "props_grid.csv", "props_board.csv")]
     new = pd.DataFrame(columns=COLS)
     if all(os.path.exists(p) for p in paths):
@@ -161,7 +179,16 @@ def main(backfill=False):
                     team_ts[PM.TEAMS.get(h, h)] = t; team_ts[PM.TEAMS.get(a, a)] = t
         except Exception as ex:
             print("raw-gap ledger: price times unavailable,", type(ex).__name__, ex)
-        cand = build_flags(raw, grid, board, now, backfill=backfill, team_ts=team_ts)
+        tags = {}
+        if not backfill:
+            try:
+                import props_weather as PW
+                tags = PW.week_tags(raw[pd.to_datetime(raw.kickoff_utc, utc=True) > now])
+                poor = sorted({t for t, v in tags.items() if v["status"] == "poor"})
+                print(f"raw-gap ledger: weather checked for {len(tags)} team(s); poor weather: {', '.join(poor) if poor else 'none'}")
+            except Exception as ex:
+                print("raw-gap ledger: weather unavailable, nothing excluded,", type(ex).__name__, ex)
+        cand = build_flags(raw, grid, board, now, backfill=backfill, team_ts=team_ts, tags=tags)
         # The latest pregame look is the one that counts. Every player this run priced, whose
         # game is still ahead, has his earlier ungraded live row replaced by this run's verdict
         # (or removed, if the gap has closed). Graded rows and backfill rows are never touched.
@@ -220,6 +247,10 @@ def unit_tests():
     assert list(f.index) == ["a", "c"], list(f.index)          # b is 14% off (no flag); d has kicked off
     assert f.at["a", "tier"] == "rule" and f.at["a", "side"] == "Under" and f.at["a", "best_book"] == "fd" and abs(f.at["a", "best_price"] - 1.952) < 1e-3
     assert f.at["c", "tier"] == "watch" and f.at["c", "side"] == "Over" and f.at["c", "best_price"] == 2.0
+    tg = {"X": dict(status="poor", reason="wind 18 mph", detail="2C, wind 18 mph")}
+    fw = build_flags(raw, grid, board, now, tags=tg).set_index("pid")
+    assert fw.at["c", "excluded"] == "weather: wind 18 mph" and fw.at["a", "excluded"] == "" and fw.at["a", "weather"] == "2C, wind 18 mph"   # only the over is excluded
+    assert f.at["c", "excluded"] == ""
     st = pd.DataFrame(dict(season=2026, week=12, season_type="REG", team=["X", "X"], player_id=["a", "zz"], receiving_yards=[45.0, 5.0]))
     g, n = grade(f.reset_index()[COLS], st, pd.Timestamp("2026-11-30T12:00:00Z"))
     g = g.set_index("pid")
