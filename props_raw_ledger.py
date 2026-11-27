@@ -229,6 +229,8 @@ def post_lines(new, led, now):
                     q = f" ({x.inj})" if x.inj else ""
                     why = f"model {x.raw_median:g}" if mkt == "rec_yds" else f"model {100 * x.model_p:.0f}% vs market {100 * x.market_p:.0f}%"
                     qb = "  [backup QB]" if isinstance(x.qb, str) and x.qb else ""
+                    if x.side == "Over" and isinstance(x.weather, str) and "unavailable" in x.weather:
+                        qb += "  [weather NOT checked: look before acting]"
                     lines.append(f"  {x.player}{q} ({x.team} vs {x.opp}) {x.side.upper()} {x.line:g} {label} | {why} | best {x.best_price:.2f} {x.best_book}{qb}{stale}")
             ex = m[m._ex]
             if len(ex):
@@ -289,7 +291,9 @@ def main(backfill=False):
                 import props_weather as PW
                 tags = PW.week_tags(raw[pd.to_datetime(raw.kickoff_utc, utc=True) > now])
                 poor = sorted({t for t, v in tags.items() if v["status"] == "poor"})
-                print(f"raw-gap ledger: weather checked for {len(tags)} team(s); poor weather: {', '.join(poor) if poor else 'none'}")
+                unk = sorted({t for t, v in tags.items() if v["status"] == "unknown"})
+                print(f"raw-gap ledger: weather checked for {len(tags)} team(s); poor weather: {', '.join(poor) if poor else 'none'}"
+                      + (f"; NOT CHECKED (feed failed): {', '.join(unk)}" if unk else ""))
             except Exception as ex:
                 print("raw-gap ledger: weather unavailable, nothing excluded for it,", type(ex).__name__, ex)
             try:
